@@ -1,13 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllCompanies, updateStatus } from '@/lib/notion';
+import { updateStatus } from '@/lib/notion';
 import { sendEmail } from '@/lib/mailer';
+import { Client } from '@notionhq/client';
+
+const notion = new Client({ auth: process.env.NOTION_API_KEY });
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const allCompanies = await getAllCompanies();
-    const company = allCompanies.find(c => c.notionId === id);
-    if (!company) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+    // Fetch the specific page directly instead of querying all companies
+    const page: any = await notion.pages.retrieve({ page_id: id });
+
+    const company = {
+      notionId: page.id,
+      company: page.properties['Company']?.title?.[0]?.text?.content ?? '',
+      role: page.properties['Role']?.rich_text?.[0]?.text?.content ?? '',
+      email: page.properties['Email']?.email ?? '',
+      contactName: page.properties['Contact Name']?.rich_text?.[0]?.text?.content ?? '',
+      emailSubject: page.properties['Email Subject']?.rich_text?.[0]?.text?.content ?? '',
+      emailDraft: page.properties['Email Draft']?.rich_text?.[0]?.text?.content ?? '',
+    };
+
     if (!company.email) return NextResponse.json({ error: 'No email address for this company' }, { status: 400 });
 
     await sendEmail({
