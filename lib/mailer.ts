@@ -47,7 +47,8 @@ export async function sendEmail(payload: EmailPayload): Promise<boolean> {
     if (resumeBlob) {
       attachments.push({
         filename: 'Resume.pdf',
-        path: resumeBlob.url
+        // Use downloadUrl for private blobs, otherwise fallback to url
+        path: (resumeBlob as any).downloadUrl || resumeBlob.url
       });
     }
   } catch (err) {

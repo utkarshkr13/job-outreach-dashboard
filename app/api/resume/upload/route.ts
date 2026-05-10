@@ -12,10 +12,23 @@ export async function POST(request: Request): Promise<NextResponse> {
       return NextResponse.json({ error: 'No file body provided' }, { status: 400 });
     }
 
-    const blob = await put(filename, body, {
-      access: 'public',
-      addRandomSuffix: false, // Override the same file every time
-    });
+    let blob;
+    try {
+      blob = await put(filename, body, {
+        access: 'public',
+        addRandomSuffix: false, // Override the same file every time
+      });
+    } catch (e: any) {
+      if (e.message.includes('private store')) {
+        // Fallback to private access
+        blob = await put(filename, body, {
+          access: 'private',
+          addRandomSuffix: false,
+        });
+      } else {
+        throw e;
+      }
+    }
 
     return NextResponse.json(blob);
   } catch (error: any) {
