@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { list } from '@vercel/blob';
 
 export interface EmailPayload {
@@ -11,34 +11,17 @@ export interface EmailPayload {
   contactName: string;
 }
 
-let _transporter: nodemailer.Transporter | null = null;
-
-function getTransporter() {
-  if (_transporter) return _transporter;
-
-  const user = process.env.GMAIL_USER;
-  const pass = process.env.GMAIL_APP_PASSWORD;
-
-  if (!user || !pass) {
-    throw new Error('GMAIL_USER and GMAIL_APP_PASSWORD must be set in environment variables');
-  }
-
-  _transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, // STARTTLS
-    auth: { user, pass },
-  });
-
-  return _transporter;
-}
-
 export async function sendEmail(payload: EmailPayload): Promise<boolean> {
-  const transporter = getTransporter();
-  const from = process.env.GMAIL_USER!;
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) throw new Error('RESEND_API_KEY must be set in environment variables');
 
-  // Try to attach the uploaded resume from Vercel Blob
-  const attachments: nodemailer.SendMailOptions['attachments'] = [];
+  const resend = new Resend(apiKey);
+
+  // Build HTML body
+  const htmlBody = payload.emailBody.replace(/\n/g, '<br>');
+
+  // Try to attach resume from Vercel Blob
+  const attachments: { filename: string; content: Buffer; contentType: string }[] = [];
   try {
     const { blobs } = await list();
     const resumeBlob = blobs.find(b => b.pathname === 'resume.pdf');
@@ -49,23 +32,24 @@ export async function sendEmail(payload: EmailPayload): Promise<boolean> {
       if (res.ok) {
         const buffer = Buffer.from(await res.arrayBuffer());
         attachments.push({ filename: 'Resume.pdf', content: buffer, contentType: 'application/pdf' });
-      } else {
-        console.error('Failed to download resume blob:', res.statusText);
       }
     }
   } catch (err) {
     console.error('Failed to attach resume (non-fatal):', err);
   }
 
-  await transporter.sendMail({
-    from: `"${process.env.SENDER_NAME || 'Utkarsh Rajput'}" <${from}>`,
+  const fromName = process.env.SENDER_NAME || 'Utkarsh Rajput';
+  // Resend free tier: must send from onboarding@resend.dev OR a verified domain
+  const fromAddress = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+
+  const { error } = await resend.emails.send({
+    from: `${fromName} <${fromAddress}>`,
     to: payload.toEmail,
     subject: payload.subject,
-    html: payload.emailBody.replace(/\n/g, '<br>'),
-    text: payload.emailBody,
-    replyTo: from,
-    attachments,
+    html: htmlBody,
+    attachments: attachments.length > 0 ? attachments : undefined,
   });
 
+  if (error) throw new Error(`Resend error: ${error.message}`);
   return true;
 }
