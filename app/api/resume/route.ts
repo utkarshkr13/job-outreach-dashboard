@@ -9,7 +9,7 @@ export async function GET() {
     
     if (resumeBlob) {
       return NextResponse.json({ 
-        url: (resumeBlob as any).downloadUrl || resumeBlob.url, 
+        url: '/api/resume/download', 
         uploadedAt: resumeBlob.uploadedAt 
       });
     } else {
