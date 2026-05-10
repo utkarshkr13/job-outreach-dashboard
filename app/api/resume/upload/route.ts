@@ -6,22 +6,22 @@ export async function POST(request: Request): Promise<NextResponse> {
   const filename = searchParams.get('filename') || 'resume.pdf';
 
   try {
-    // Read the file buffer from the request body
-    const body = await request.body;
-    if (!body) {
+    const arrayBuffer = await request.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    if (buffer.length === 0) {
       return NextResponse.json({ error: 'No file body provided' }, { status: 400 });
     }
 
     let blob;
     try {
-      blob = await put(filename, body, {
+      blob = await put(filename, buffer, {
         access: 'public',
-        addRandomSuffix: false, // Override the same file every time
+        addRandomSuffix: false,
       });
     } catch (e: any) {
       if (e.message.includes('private store')) {
-        // Fallback to private access
-        blob = await put(filename, body, {
+        blob = await put(filename, buffer, {
           access: 'private',
           addRandomSuffix: false,
         });
