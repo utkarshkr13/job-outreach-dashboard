@@ -18,12 +18,14 @@ export async function POST(request: Request): Promise<NextResponse> {
       blob = await put(filename, buffer, {
         access: 'public',
         addRandomSuffix: false,
+        allowOverwrite: true,
       });
     } catch (e: any) {
       if (e.message.includes('private store')) {
         blob = await put(filename, buffer, {
           access: 'private',
           addRandomSuffix: false,
+          allowOverwrite: true,
         });
       } else {
         throw e;
