@@ -33,9 +33,26 @@ function getTransporter() {
   return _transporter;
 }
 
+import { list } from '@vercel/blob';
+
 export async function sendEmail(payload: EmailPayload): Promise<boolean> {
   const transporter = getTransporter();
   const from = process.env.OUTLOOK_USER!;
+
+  // Try to find the uploaded resume
+  let attachments = [];
+  try {
+    const { blobs } = await list();
+    const resumeBlob = blobs.find(b => b.pathname === 'resume.pdf');
+    if (resumeBlob) {
+      attachments.push({
+        filename: 'Resume.pdf',
+        path: resumeBlob.url
+      });
+    }
+  } catch (err) {
+    console.error('Failed to attach resume:', err);
+  }
 
   await transporter.sendMail({
     from: `"${process.env.SENDER_NAME || 'Utkarsh Rajput'}" <${from}>`,
@@ -44,6 +61,7 @@ export async function sendEmail(payload: EmailPayload): Promise<boolean> {
     html: payload.emailBody.replace(/\n/g, '<br>'),
     text: payload.emailBody,
     replyTo: from,
+    attachments,
   });
 
   return true;

@@ -17,6 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <span className="font-bold text-lg">📬 Job Outreach</span>
           <a href="/" className="text-gray-400 hover:text-white text-sm">Dashboard</a>
           <a href="/sent" className="text-gray-400 hover:text-white text-sm">Sent</a>
+          <a href="/settings" className="text-gray-400 hover:text-white text-sm">Settings</a>
         </nav>
         <main className="p-6">{children}</main>
       </body>
