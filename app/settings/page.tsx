@@ -44,8 +44,8 @@ export default function SettingsPage() {
 
       if (!res.ok) throw new Error('Upload failed');
       
-      const blob = await res.json();
-      setCurrentResumeUrl(blob.url);
+      await res.json();
+      setCurrentResumeUrl('/api/resume/download');
       setMessage('Resume uploaded successfully!');
     } catch (err: any) {
       setMessage('Error: ' + err.message);
