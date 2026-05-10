@@ -1,65 +1,179 @@
-import Image from "next/image";
+'use client';
+import { useEffect, useState } from 'react';
+import { Company, EmailStatus } from '@/types';
+import Link from 'next/link';
 
-export default function Home() {
+const STATUS_COLORS: Record<string, string> = {
+  'New': 'bg-gray-700 text-gray-300',
+  'Draft Ready': 'bg-blue-900 text-blue-300',
+  'Approved': 'bg-green-900 text-green-300',
+  'Sent': 'bg-purple-900 text-purple-300',
+  'Rejected': 'bg-red-900 text-red-300',
+  'Redo': 'bg-yellow-900 text-yellow-300',
+};
+
+export default function Dashboard() {
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [filter, setFilter] = useState<string>('Draft Ready');
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const fetchCompanies = async () => {
+    setLoading(true);
+    const res = await fetch(`/api/companies?status=${filter}`);
+    const data = await res.json();
+    setCompanies(data);
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchCompanies(); }, [filter]);
+
+  const handleAction = async (id: string, action: 'approve' | 'reject' | 'redo' | 'send') => {
+    setActionLoading(id + action);
+    await fetch(`/api/${action}/${id}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+    setActionLoading(null);
+    fetchCompanies();
+  };
+
+  const handleBulkSend = async () => {
+    setBulkLoading(true);
+    const res = await fetch('/api/send/bulk', { method: 'POST' });
+    const data = await res.json();
+    setMessage(`✅ Sent ${data.sent} emails successfully`);
+    setBulkLoading(false);
+    fetchCompanies();
+  };
+
+  const handleBulkApprove = async () => {
+    setBulkLoading(true);
+    for (const c of companies.filter(c => c.emailStatus === 'Draft Ready')) {
+      await fetch(`/api/approve/${c.notionId}`, { method: 'POST' });
+    }
+    setBulkLoading(false);
+    fetchCompanies();
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">Morning Dashboard</h1>
+          <p className="text-gray-400 text-sm mt-1">Review and send today's recruiter emails</p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        <div className="flex gap-3">
+          <button
+            onClick={handleBulkApprove}
+            disabled={bulkLoading}
+            className="bg-green-700 hover:bg-green-600 px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            ✅ Approve All
+          </button>
+          <button
+            onClick={handleBulkSend}
+            disabled={bulkLoading}
+            className="bg-blue-700 hover:bg-blue-600 px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
           >
-            Documentation
-          </a>
+            {bulkLoading ? 'Sending...' : '🚀 Send All Approved'}
+          </button>
         </div>
-      </main>
+      </div>
+
+      {message && (
+        <div className="mb-4 bg-green-900 border border-green-700 text-green-300 px-4 py-3 rounded-lg">
+          {message}
+        </div>
+      )}
+
+      {/* Filter tabs */}
+      <div className="flex gap-2 mb-6">
+        {['Draft Ready', 'Approved', 'New', 'Redo', 'Sent', 'Rejected'].map(s => (
+          <button
+            key={s}
+            onClick={() => setFilter(s)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${filter === s ? 'bg-white text-black' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="text-center py-20 text-gray-500">Loading companies...</div>
+      ) : companies.length === 0 ? (
+        <div className="text-center py-20 text-gray-500">No companies with status "{filter}"</div>
+      ) : (
+        <div className="grid gap-4">
+          {companies.map(company => (
+            <div key={company.notionId} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-1">
+                    <h2 className="font-semibold text-lg">{company.company}</h2>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[company.emailStatus ?? 'New'] ?? 'bg-gray-700'}`}>
+                      {company.emailStatus ?? 'New'}
+                    </span>
+                    {company.companyType && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-400">{company.companyType}</span>
+                    )}
+                  </div>
+                  <p className="text-gray-400 text-sm">{company.role} {company.salaryRange ? `· ${company.salaryRange} LPA` : ''} {company.location ? `· ${company.location}` : ''}</p>
+                  {company.emailSubject && (
+                    <p className="text-blue-400 text-sm mt-2 font-medium">"{company.emailSubject}"</p>
+                  )}
+                  {company.emailDraft && (
+                    <p className="text-gray-500 text-xs mt-1 line-clamp-2">{company.emailDraft.slice(0, 150)}...</p>
+                  )}
+                  {company.draftNotes && (
+                    <p className="text-yellow-600 text-xs mt-1">{company.draftNotes}</p>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2 ml-4 min-w-[120px]">
+                  <Link
+                    href={`/company/${company.notionId}`}
+                    className="bg-gray-800 hover:bg-gray-700 text-center px-3 py-1.5 rounded-lg text-xs font-medium"
+                  >
+                    👁 Preview
+                  </Link>
+                  {company.emailStatus === 'Draft Ready' && (
+                    <button
+                      onClick={() => handleAction(company.notionId, 'approve')}
+                      disabled={actionLoading === company.notionId + 'approve'}
+                      className="bg-green-800 hover:bg-green-700 px-3 py-1.5 rounded-lg text-xs font-medium disabled:opacity-50"
+                    >
+                      ✅ Approve
+                    </button>
+                  )}
+                  {company.emailStatus === 'Approved' && (
+                    <button
+                      onClick={() => handleAction(company.notionId, 'send')}
+                      disabled={actionLoading === company.notionId + 'send'}
+                      className="bg-blue-800 hover:bg-blue-700 px-3 py-1.5 rounded-lg text-xs font-medium disabled:opacity-50"
+                    >
+                      {actionLoading === company.notionId + 'send' ? '...' : '🚀 Send'}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleAction(company.notionId, 'redo')}
+                    disabled={actionLoading === company.notionId + 'redo'}
+                    className="bg-yellow-900 hover:bg-yellow-800 px-3 py-1.5 rounded-lg text-xs font-medium disabled:opacity-50"
+                  >
+                    {actionLoading === company.notionId + 'redo' ? '...' : '🔄 Redo'}
+                  </button>
+                  <button
+                    onClick={() => handleAction(company.notionId, 'reject')}
+                    disabled={actionLoading === company.notionId + 'reject'}
+                    className="bg-red-900 hover:bg-red-800 px-3 py-1.5 rounded-lg text-xs font-medium disabled:opacity-50"
+                  >
+                    ❌ Reject
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
