@@ -8,7 +8,10 @@ export async function GET() {
     const resumeBlob = blobs.find(b => b.pathname === 'resume.pdf');
     
     if (resumeBlob) {
-      return NextResponse.json({ url: resumeBlob.url, uploadedAt: resumeBlob.uploadedAt });
+      return NextResponse.json({ 
+        url: (resumeBlob as any).downloadUrl || resumeBlob.url, 
+        uploadedAt: resumeBlob.uploadedAt 
+      });
     } else {
       return NextResponse.json({ url: null });
     }
