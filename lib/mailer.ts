@@ -45,11 +45,21 @@ export async function sendEmail(payload: EmailPayload): Promise<boolean> {
     const { blobs } = await list();
     const resumeBlob = blobs.find(b => b.pathname === 'resume.pdf');
     if (resumeBlob) {
-      attachments.push({
-        filename: 'Resume.pdf',
-        // Use downloadUrl for private blobs, otherwise fallback to url
-        path: (resumeBlob as any).downloadUrl || resumeBlob.url
+      const res = await fetch(resumeBlob.url, {
+        headers: {
+          Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`
+        }
       });
+      if (res.ok) {
+        const buffer = Buffer.from(await res.arrayBuffer());
+        attachments.push({
+          filename: 'Resume.pdf',
+          content: buffer,
+          contentType: 'application/pdf'
+        });
+      } else {
+        console.error('Failed to download resume blob for email:', res.statusText);
+      }
     }
   } catch (err) {
     console.error('Failed to attach resume:', err);
