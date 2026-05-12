@@ -1,4 +1,4 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 import { list } from '@vercel/blob';
 
 export interface EmailPayload {
@@ -12,16 +12,30 @@ export interface EmailPayload {
 }
 
 export async function sendEmail(payload: EmailPayload): Promise<boolean> {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) throw new Error('RESEND_API_KEY must be set in environment variables');
+  const user = process.env.GMAIL_USER;
+  const clientId = process.env.GMAIL_CLIENT_ID;
+  const clientSecret = process.env.GMAIL_CLIENT_SECRET;
+  const refreshToken = process.env.GMAIL_REFRESH_TOKEN;
 
-  const resend = new Resend(apiKey);
+  if (!user || !clientId || !clientSecret || !refreshToken) {
+    throw new Error(
+      'Missing Gmail OAuth2 env vars. Need: GMAIL_USER, GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN'
+    );
+  }
 
-  // Build HTML body
-  const htmlBody = payload.emailBody.replace(/\n/g, '<br>');
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      type: 'OAuth2',
+      user,
+      clientId,
+      clientSecret,
+      refreshToken,
+    },
+  });
 
   // Try to attach resume from Vercel Blob
-  const attachments: { filename: string; content: Buffer; contentType: string }[] = [];
+  const attachments: nodemailer.SendMailOptions['attachments'] = [];
   try {
     const { blobs } = await list();
     const resumeBlob = blobs.find(b => b.pathname === 'resume.pdf');
@@ -38,18 +52,15 @@ export async function sendEmail(payload: EmailPayload): Promise<boolean> {
     console.error('Failed to attach resume (non-fatal):', err);
   }
 
-  const fromName = process.env.SENDER_NAME || 'Utkarsh Rajput';
-  // Resend free tier: must send from onboarding@resend.dev OR a verified domain
-  const fromAddress = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
-
-  const { error } = await resend.emails.send({
-    from: `${fromName} <${fromAddress}>`,
+  await transporter.sendMail({
+    from: `"${process.env.SENDER_NAME || 'Utkarsh Rajput'}" <${user}>`,
     to: payload.toEmail,
     subject: payload.subject,
-    html: htmlBody,
-    attachments: attachments.length > 0 ? attachments : undefined,
+    html: payload.emailBody.replace(/\n/g, '<br>'),
+    text: payload.emailBody,
+    replyTo: user,
+    attachments,
   });
 
-  if (error) throw new Error(`Resend error: ${error.message}`);
   return true;
 }
