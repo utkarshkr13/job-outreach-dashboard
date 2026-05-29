@@ -19,6 +19,7 @@ export interface Company {
   draftNotes: string;
   emailed: boolean;
   dateAdded: string;
+  resumeStatus?: 'custom' | 'global' | 'none';
 }
 
 export interface AgentResult {

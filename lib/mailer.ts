@@ -1,5 +1,7 @@
 import nodemailer from 'nodemailer';
 import { list } from '@vercel/blob';
+import fs from 'fs';
+import path from 'path';
 
 export interface EmailPayload {
   notionId: string;
@@ -13,7 +15,16 @@ export interface EmailPayload {
 
 export async function sendEmail(payload: EmailPayload): Promise<boolean> {
   if (process.env.NEXT_PUBLIC_APP_MODE === 'demo') {
-    console.log(`[DEMO MODE] Mock-sent email to ${payload.toEmail} for ${payload.companyName}`);
+    // In demo mode, log which file would be attached
+    const customPath = path.join(process.cwd(), 'lib', 'resumes', `custom-${payload.notionId}.pdf`);
+    const globalPath = path.join(process.cwd(), 'lib', 'resumes', 'global-resume.pdf');
+    let attachedFile = 'None';
+    if (fs.existsSync(customPath)) {
+      attachedFile = `Custom Resume (custom-${payload.notionId}.pdf)`;
+    } else if (fs.existsSync(globalPath)) {
+      attachedFile = 'Global Default Resume (global-resume.pdf)';
+    }
+    console.log(`[DEMO MODE] Mock-sent email to ${payload.toEmail} for ${payload.companyName}. Attached Resume: ${attachedFile}`);
     return true;
   }
 
@@ -39,18 +50,44 @@ export async function sendEmail(payload: EmailPayload): Promise<boolean> {
     },
   });
 
-  // Try to attach resume from Vercel Blob
+  // Multi-tier Resume Attachment Flow
   const attachments: nodemailer.SendMailOptions['attachments'] = [];
   try {
-    const { blobs } = await list();
-    const resumeBlob = blobs.find(b => b.pathname === 'resume.pdf');
-    if (resumeBlob) {
-      const res = await fetch(resumeBlob.url, {
-        headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` }
-      });
-      if (res.ok) {
-        const buffer = Buffer.from(await res.arrayBuffer());
-        attachments.push({ filename: 'Resume.pdf', content: buffer, contentType: 'application/pdf' });
+    const customPath = path.join(process.cwd(), 'lib', 'resumes', `custom-${payload.notionId}.pdf`);
+    const globalPath = path.join(process.cwd(), 'lib', 'resumes', 'global-resume.pdf');
+
+    if (fs.existsSync(customPath)) {
+      // Tier 1: Local Custom Resume Override
+      const buffer = fs.readFileSync(customPath);
+      attachments.push({ filename: 'Resume.pdf', content: buffer, contentType: 'application/pdf' });
+      console.log(`[MAILER] Attached local custom resume override for ${payload.companyName}`);
+    } else if (fs.existsSync(globalPath)) {
+      // Tier 2: Local Global Default Resume
+      const buffer = fs.readFileSync(globalPath);
+      attachments.push({ filename: 'Resume.pdf', content: buffer, contentType: 'application/pdf' });
+      console.log(`[MAILER] Attached local global default resume`);
+    } else {
+      // Tier 3: Vercel Blob Remote Fallback (when running in production on Vercel)
+      try {
+        const { blobs } = await list();
+        // Check for custom remote resume first, then global
+        let resumeBlob = blobs.find(b => b.pathname === `custom-${payload.notionId}.pdf`);
+        if (!resumeBlob) {
+          resumeBlob = blobs.find(b => b.pathname === 'resume.pdf');
+        }
+
+        if (resumeBlob) {
+          const res = await fetch(resumeBlob.url, {
+            headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` }
+          });
+          if (res.ok) {
+            const buffer = Buffer.from(await res.arrayBuffer());
+            attachments.push({ filename: 'Resume.pdf', content: buffer, contentType: 'application/pdf' });
+            console.log(`[MAILER] Attached remote Vercel Blob resume`);
+          }
+        }
+      } catch (blobErr) {
+        console.warn('[MAILER] Remote Vercel Blob lookup failed (expected in local offline dev):', blobErr);
       }
     }
   } catch (err) {

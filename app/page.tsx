@@ -118,7 +118,23 @@ export default function Dashboard() {
                       <span className="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-400">{company.companyType}</span>
                     )}
                   </div>
-                  <p className="text-gray-400 text-sm">{company.role} {company.salaryRange ? `· ${company.salaryRange} LPA` : ''} {company.location ? `· ${company.location}` : ''}</p>
+                  <div className="flex items-center gap-2 mt-1.5 flex-wrap text-sm">
+                    <span className="text-gray-400">{company.role} {company.salaryRange ? `· ${company.salaryRange} LPA` : ''} {company.location ? `· ${company.location}` : ''}</span>
+                    <span className="text-gray-700">·</span>
+                    {company.resumeStatus === 'custom' ? (
+                      <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-950 text-blue-400 border border-blue-900/40 flex items-center gap-1 shadow-sm">
+                        📎 Custom Resume
+                      </span>
+                    ) : company.resumeStatus === 'global' ? (
+                      <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-green-950 text-green-400 border border-green-900/40 flex items-center gap-1 shadow-sm">
+                        📎 Global Resume
+                      </span>
+                    ) : (
+                      <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-950 text-amber-500 border border-amber-900/40 flex items-center gap-1 animate-pulse">
+                        ⚠️ No Resume
+                      </span>
+                    )}
+                  </div>
                   {company.emailSubject && (
                     <p className="text-blue-400 text-sm mt-2 font-medium">"{company.emailSubject}"</p>
                   )}

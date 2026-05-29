@@ -33,7 +33,7 @@
       "sourceUrl": "https://vercel.com/careers",
       "location": "Remote (India)",
       "notes": "Fast growing startup behind Next.js. Focus on enterprise dashboard workflows.",
-      "emailStatus": "Draft Ready",
+      "emailStatus": "Approved",
       "emailSubject": "Associate PM / BA Interest at Vercel | Utkarsh Kumar",
       "emailDraft": "Hi David,\n\nThe velocity with which Vercel is building v0.dev and bringing Turbopack to production is incredible. Having spent a lot of time optimization-focused, I really appreciate how you are streamlining frontend development workflows.\n\nI am Utkarsh, a Business Analyst who has shipped end-to-end at an AI-first company, owning everything from BRDs and sprint planning to UAT cycles and client go-lives.\n\nI am currently looking for Associate PM or Business Analyst roles and would love to explore if there is a fit at Vercel. Happy to connect for a quick 15-minute call.\n\nUtkarsh Kumar\n+91 9969396063\nlinkedin.com/in/utkarsh-kumar-rajput-76b673232",
       "draftNotes": "Score: 9.2. Approved. Opened with strong hooks about v0 and Turbopack.",
@@ -121,5 +121,5 @@
       "dateAdded": "2026-05-26"
     }
   ],
-  "mockResumeUploaded": false
+  "mockResumeUploaded": true
 }

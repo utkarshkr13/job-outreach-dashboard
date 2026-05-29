@@ -4,6 +4,7 @@ import {
   getMockCompanies,
   mockUpdateEmailDraft,
   mockUpdateStatus,
+  getCompanyResumeStatus,
 } from './mockDb';
 
 const notion = process.env.NEXT_PUBLIC_APP_MODE !== 'demo' && process.env.NOTION_API_KEY
@@ -47,6 +48,7 @@ export async function getCompaniesByStatus(status: EmailStatus | EmailStatus[]):
     draftNotes: page.properties['Draft Notes']?.rich_text?.[0]?.text?.content ?? '',
     emailed: page.properties['Emailed']?.checkbox ?? false,
     dateAdded: page.properties['Date Added']?.date?.start ?? '',
+    resumeStatus: getCompanyResumeStatus(page.id),
   }));
 }
 
@@ -79,6 +81,7 @@ export async function getAllCompanies(): Promise<Company[]> {
     draftNotes: page.properties['Draft Notes']?.rich_text?.[0]?.text?.content ?? '',
     emailed: page.properties['Emailed']?.checkbox ?? false,
     dateAdded: page.properties['Date Added']?.date?.start ?? '',
+    resumeStatus: getCompanyResumeStatus(page.id),
   }));
 }
 
@@ -151,5 +154,6 @@ export async function getCompanyById(id: string): Promise<Company | null> {
     draftNotes: page.properties['Draft Notes']?.rich_text?.[0]?.text?.content ?? '',
     emailed: page.properties['Emailed']?.checkbox ?? false,
     dateAdded: page.properties['Date Added']?.date?.start ?? '',
+    resumeStatus: getCompanyResumeStatus(page.id),
   };
 }

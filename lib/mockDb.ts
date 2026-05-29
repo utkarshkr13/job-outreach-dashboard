@@ -177,10 +177,37 @@ linkedin.com/in/utkarsh-kumar-rajput-76b673232`,
 import fs from 'fs';
 import path from 'path';
 
+// Automatically create local resumes folder on server start
+if (typeof window === 'undefined') {
+  try {
+    fs.mkdirSync(path.join(process.cwd(), 'lib', 'resumes'), { recursive: true });
+  } catch (e) {}
+}
+
 // Environment-aware file path: use /tmp on Vercel, and project root locally
 const MOCK_DB_PATH = process.env.VERCEL
   ? '/tmp/mockDb.json'
   : path.join(process.cwd(), 'lib', 'mockDb.json');
+
+export function getCompanyResumeStatus(notionId: string): 'custom' | 'global' | 'none' {
+  const customPath = process.env.VERCEL
+    ? `/tmp/custom-${notionId}.pdf`
+    : path.join(process.cwd(), 'lib', 'resumes', `custom-${notionId}.pdf`);
+
+  if (fs.existsSync(customPath)) {
+    return 'custom';
+  }
+
+  const globalPath = process.env.VERCEL
+    ? '/tmp/global-resume.pdf'
+    : path.join(process.cwd(), 'lib', 'resumes', 'global-resume.pdf');
+
+  if (fs.existsSync(globalPath)) {
+    return 'global';
+  }
+
+  return 'none';
+}
 
 // Memory fallback store if file writes fail
 const memoryFallback = {
@@ -215,14 +242,23 @@ function writeDb(data: { mockCompanies: Company[]; mockResumeUploaded: boolean }
 
 export function getMockCompanies(status?: EmailStatus | EmailStatus[]): Company[] {
   const db = readDb();
-  if (!status) return db.mockCompanies;
-  const statuses = Array.isArray(status) ? status : [status];
-  return db.mockCompanies.filter(c => c.emailStatus && statuses.includes(c.emailStatus));
+  const list = status
+    ? db.mockCompanies.filter(c => c.emailStatus && (Array.isArray(status) ? status.includes(c.emailStatus) : c.emailStatus === status))
+    : db.mockCompanies;
+  return list.map(c => ({
+    ...c,
+    resumeStatus: getCompanyResumeStatus(c.notionId),
+  }));
 }
 
 export function getMockCompany(id: string): Company | undefined {
   const db = readDb();
-  return db.mockCompanies.find(c => c.notionId === id);
+  const c = db.mockCompanies.find(x => x.notionId === id);
+  if (!c) return undefined;
+  return {
+    ...c,
+    resumeStatus: getCompanyResumeStatus(c.notionId),
+  };
 }
 
 export function mockUpdateEmailDraft(
