@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCompaniesByStatus, updateEmailDraft } from '@/lib/notion';
 import { runAgentPipeline } from '@/lib/agents';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   // Security check
   const secret = req.headers.get('authorization')?.replace('Bearer ', '');

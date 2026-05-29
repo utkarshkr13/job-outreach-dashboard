@@ -174,18 +174,55 @@ linkedin.com/in/utkarsh-kumar-rajput-76b673232`,
   }
 ];
 
-// In-memory mock store
-let mockCompanies: Company[] = [...SEED_COMPANIES];
-let mockResumeUploaded = false;
+import fs from 'fs';
+import path from 'path';
+
+// Environment-aware file path: use /tmp on Vercel, and project root locally
+const MOCK_DB_PATH = process.env.VERCEL
+  ? '/tmp/mockDb.json'
+  : path.join(process.cwd(), 'lib', 'mockDb.json');
+
+// Memory fallback store if file writes fail
+const memoryFallback = {
+  mockCompanies: [...SEED_COMPANIES],
+  mockResumeUploaded: false,
+};
+
+function readDb(): { mockCompanies: Company[]; mockResumeUploaded: boolean } {
+  try {
+    if (fs.existsSync(MOCK_DB_PATH)) {
+      const content = fs.readFileSync(MOCK_DB_PATH, 'utf-8');
+      const data = JSON.parse(content);
+      if (data.mockCompanies && Array.isArray(data.mockCompanies)) {
+        return data;
+      }
+    }
+  } catch (err) {
+    console.warn('[DEMO DB] Failed to read file-backed DB, using memory fallback:', err);
+  }
+  return memoryFallback;
+}
+
+function writeDb(data: { mockCompanies: Company[]; mockResumeUploaded: boolean }): void {
+  try {
+    fs.writeFileSync(MOCK_DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('[DEMO DB] Failed to write file-backed DB, writing to memory fallback:', err);
+    memoryFallback.mockCompanies = data.mockCompanies;
+    memoryFallback.mockResumeUploaded = data.mockResumeUploaded;
+  }
+}
 
 export function getMockCompanies(status?: EmailStatus | EmailStatus[]): Company[] {
-  if (!status) return mockCompanies;
+  const db = readDb();
+  if (!status) return db.mockCompanies;
   const statuses = Array.isArray(status) ? status : [status];
-  return mockCompanies.filter(c => c.emailStatus && statuses.includes(c.emailStatus));
+  return db.mockCompanies.filter(c => c.emailStatus && statuses.includes(c.emailStatus));
 }
 
 export function getMockCompany(id: string): Company | undefined {
-  return mockCompanies.find(c => c.notionId === id);
+  const db = readDb();
+  return db.mockCompanies.find(c => c.notionId === id);
 }
 
 export function mockUpdateEmailDraft(
@@ -195,7 +232,8 @@ export function mockUpdateEmailDraft(
   notes: string,
   status: EmailStatus
 ): void {
-  mockCompanies = mockCompanies.map(c => {
+  const db = readDb();
+  db.mockCompanies = db.mockCompanies.map(c => {
     if (c.notionId === notionId) {
       return {
         ...c,
@@ -207,10 +245,12 @@ export function mockUpdateEmailDraft(
     }
     return c;
   });
+  writeDb(db);
 }
 
 export function mockUpdateStatus(notionId: string, status: EmailStatus, notes?: string): void {
-  mockCompanies = mockCompanies.map(c => {
+  const db = readDb();
+  db.mockCompanies = db.mockCompanies.map(c => {
     if (c.notionId === notionId) {
       const updated: Company = {
         ...c,
@@ -226,6 +266,7 @@ export function mockUpdateStatus(notionId: string, status: EmailStatus, notes?: 
     }
     return c;
   });
+  writeDb(db);
 }
 
 // Generates high-quality specific hooks mock-style instantly
@@ -270,9 +311,12 @@ ${signature}`;
 }
 
 export function isMockResumeUploaded(): boolean {
-  return mockResumeUploaded;
+  const db = readDb();
+  return db.mockResumeUploaded;
 }
 
 export function setMockResumeUploaded(uploaded: boolean): void {
-  mockResumeUploaded = uploaded;
+  const db = readDb();
+  db.mockResumeUploaded = uploaded;
+  writeDb(db);
 }

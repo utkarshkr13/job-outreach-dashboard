@@ -2,6 +2,8 @@ import { list } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 import { isMockResumeUploaded } from '@/lib/mockDb';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   if (process.env.NEXT_PUBLIC_APP_MODE === 'demo') {
     if (isMockResumeUploaded()) {

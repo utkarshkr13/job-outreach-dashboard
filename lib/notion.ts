@@ -122,3 +122,34 @@ export async function updateStatus(notionId: string, status: EmailStatus, notes?
   }
   await notion.pages.update({ page_id: notionId, properties: props });
 }
+
+export async function getCompanyById(id: string): Promise<Company | null> {
+  if (process.env.NEXT_PUBLIC_APP_MODE === 'demo') {
+    const { getMockCompany } = require('./mockDb');
+    return getMockCompany(id) ?? null;
+  }
+
+  const page: any = await notion.pages.retrieve({ page_id: id });
+  if (!page) return null;
+
+  return {
+    notionId: page.id,
+    company: page.properties['Company']?.title?.[0]?.text?.content ?? '',
+    role: page.properties['Role']?.rich_text?.[0]?.text?.content ?? '',
+    email: page.properties['Email']?.email ?? '',
+    contactName: page.properties['Contact Name']?.rich_text?.[0]?.text?.content ?? '',
+    contactTitle: page.properties['Contact Title']?.rich_text?.[0]?.text?.content ?? '',
+    companyType: page.properties['Company Type']?.select?.name ?? null,
+    salaryRange: page.properties['Salary Range (LPA)']?.rich_text?.[0]?.text?.content ?? '',
+    source: page.properties['Source']?.select?.name ?? '',
+    sourceUrl: page.properties['Source URL']?.url ?? '',
+    location: page.properties['Location']?.rich_text?.[0]?.text?.content ?? '',
+    notes: page.properties['Notes']?.rich_text?.[0]?.text?.content ?? '',
+    emailStatus: page.properties['Email Status']?.select?.name ?? null,
+    emailDraft: page.properties['Email Draft']?.rich_text?.[0]?.text?.content ?? '',
+    emailSubject: page.properties['Email Subject']?.rich_text?.[0]?.text?.content ?? '',
+    draftNotes: page.properties['Draft Notes']?.rich_text?.[0]?.text?.content ?? '',
+    emailed: page.properties['Emailed']?.checkbox ?? false,
+    dateAdded: page.properties['Date Added']?.date?.start ?? '',
+  };
+}
