@@ -1,176 +1,167 @@
-import Anthropic from '@anthropic-ai/sdk';
+﻿import Anthropic from '@anthropic-ai/sdk';
 import { Company, AgentResult } from '@/types';
-import fs from 'fs';
-import path from 'path';
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const MODEL = 'claude-3-5-sonnet-20241022';
+
+// ─── FIXED CONSTANTS (never change these) ───────────────────────────────────
+
+const FIXED_INTRO_LINE =
+  'I am Utkarsh, a Business Analyst who has shipped end-to-end at an AI-first company, owning everything from BRDs and sprint planning to UAT cycles and client go-lives.';
+
+const SIGNATURE = `Utkarsh Kumar
++91 9969396063
+linkedin.com/in/utkarsh-kumar-rajput-76b673232`;
+
+const TARGET_ROLES = 'Associate PM or Business Analyst';
+
+// ─── HELPER ─────────────────────────────────────────────────────────────────
 
 async function ask(systemPrompt: string, userMessage: string): Promise<string> {
   const response = await client.messages.create({
     model: MODEL,
     max_tokens: 1024,
     system: systemPrompt,
-    messages: [{ role: 'user', content: userMessage }]
+    messages: [{ role: 'user', content: userMessage }],
   });
   return (response.content[0] as any).text;
 }
 
-// Agent 1: Company Intelligence
-async function companyIntelligenceAgent(company: Company): Promise<string> {
+// ─── AGENT 1: COMPANY HOOK ────────────────────────────────────────────────
+// Writes 2-3 sentences that are specific to THIS company.
+// These are the opening lines of the email — before the fixed intro.
+
+async function companyHookAgent(company: Company): Promise<string> {
   return ask(
-    `You are a company research specialist. Given a company name, role, and any available info, 
-    produce a concise 3-4 sentence company profile covering: what they do, their product/service, 
-    their market/industry, and anything notable. Be factual and specific. Output only the profile text, no labels.`,
+    `You write the opening 2-3 sentences of a cold job application email.
+    
+RULES — ALL MANDATORY:
+- Be specific to this exact company. Reference their actual product, the problem they solve, their market, or a recent development.
+- Sound genuine and interested, not flattering or sycophantic.
+- NO generic lines like "I came across your company and was impressed" or "You are a market leader."
+- NO em dashes (the long dash: —). Use a hyphen (-) or rewrite.
+- NO "Hope this finds you well", "I wanted to reach out", "I am reaching out to express".
+- 2-3 sentences only. Tight and specific.
+- Output only those 2-3 sentences. No greeting, no label, no extra text.`,
     `Company: ${company.company}
 Role: ${company.role}
-Type: ${company.companyType}
-Location: ${company.location}
-Source URL: ${company.sourceUrl}
-Notes: ${company.notes}
-Salary Range: ${company.salaryRange} LPA`
+Company Type: ${company.companyType ?? ''}
+Location: ${company.location ?? ''}
+Notes: ${company.notes ?? ''}
+Source URL: ${company.sourceUrl ?? ''}`
   );
 }
 
-// Agent 2: Resume Parser
-async function resumeParserAgent(role: string): Promise<string> {
-  let resume = '';
-  try {
-    resume = fs.readFileSync(path.join(process.cwd(), 'resume.txt'), 'utf-8');
-  } catch (error) {
-    console.error('Could not read resume.txt', error);
-  }
-  
+// ─── AGENT 2: SUBJECT LINE ────────────────────────────────────────────────
+
+async function subjectLineAgent(company: Company): Promise<string> {
   return ask(
-    `You are a resume analysis expert. Given a resume and a target job role, extract the candidate's 
-    most relevant skills, achievements, and experiences FOR THAT SPECIFIC ROLE. 
-    Return a JSON object with keys: "skills" (array of strings), "achievements" (array of strings with numbers/metrics), 
-    "topExperiences" (array of strings), "education" (string). Be specific, use exact numbers from the resume.`,
-    `Target Role: ${role}\n\nResume:\n${resume}`
+    `Write a cold email subject line for a job application.
+
+FORMAT: "Associate PM / BA Interest at [Company Name] | Utkarsh Kumar"
+- Replace [Company Name] with the actual company name.
+- Keep total length between 40-55 characters.
+- If the company name is long, abbreviate naturally to stay within 55 chars.
+- NO em dashes (—). Use a hyphen (-) if needed.
+- Output only the subject line. Nothing else.`,
+    `Company: ${company.company}`
   );
 }
 
-// Agent 3: Fit Analyzer
-async function fitAnalyzerAgent(companyProfile: string, resumeData: string, company: Company): Promise<string> {
-  return ask(
-    `You are a job application strategist. Given a company profile and a candidate's resume data, 
-    identify exactly 3 highly specific reasons why THIS candidate is a great fit for THIS company and role. 
-    Each reason must cite specific resume evidence. No generic statements like "I am a hard worker."
-    Return as a JSON array of 3 strings, each being one talking point with evidence.`,
-    `Company: ${company.company}
-Role: ${company.role}
-Company Profile: ${companyProfile}
-Candidate Resume Data: ${resumeData}`
-  );
-}
+// ─── AGENT 3: QUALITY GATE ───────────────────────────────────────────────
 
-// Agent 4: Subject Line
-async function subjectLineAgent(company: Company, talkingPoints: string): Promise<string> {
-  return ask(
-    `You are an expert cold email copywriter. Generate 3 compelling email subject lines for a job application cold email.
-    Rules:
-    - NEVER write "Application for [Role]" or anything generic
-    - Be curiosity-driven or lead with value
-    - Under 60 characters each
-    - Sound like a human, not a bot
-    - Reference something specific about the company or role
-    Return only the best subject line as plain text, nothing else.`,
-    `Company: ${company.company}
-Role: ${company.role}
-Contact: ${company.contactName ?? 'Hiring Manager'} (${company.contactTitle ?? ''})
-Key talking points: ${talkingPoints}`
-  );
-}
-
-// Agent 5: Email Body Writer
-async function emailBodyAgent(
-  company: Company,
+async function qualityGateAgent(
   subject: string,
-  companyProfile: string,
-  talkingPoints: string,
-  resumeData: string
-): Promise<string> {
-  return ask(
-    `You are an expert cold email writer specializing in job applications. Write a cold email from a candidate 
-    to a recruiter/hiring manager. 
-    
-    STRICT RULES:
-    - Maximum 4 short paragraphs
-    - Paragraph 1: Hook — something specific about the company that caught your eye (from company profile)
-    - Paragraph 2: Why you — use the top 2 talking points with specific evidence from resume
-    - Paragraph 3: One specific value you'd bring to THIS role at THIS company
-    - Paragraph 4: Soft CTA — "Would love 15 minutes to chat" — not pushy
-    - Sign off with: "Best regards,\nUtkarsh Rajput"
-    - Mention resume is attached
-    - Sound conversational and human, NOT corporate or robotic
-    - NO clichés: "I am writing to express", "I would be a great fit", "passionate about"
-    - Total length: 150-200 words maximum
-    
-    Return only the email body text, no subject line.`,
-    `To: ${company.contactName ?? 'Hiring Manager'} (${company.contactTitle ?? 'Recruiter'}) at ${company.company}
-Role: ${company.role}
-Subject: ${subject}
-Company Profile: ${companyProfile}
-Top Talking Points: ${talkingPoints}
-Resume Data: ${resumeData}`
-  );
-}
-
-// Agent 6: Quality Gate
-async function qualityGateAgent(subject: string, body: string, company: Company): Promise<{ score: number; approved: boolean; feedback: string }> {
+  body: string,
+  company: Company
+): Promise<{ score: number; approved: boolean; feedback: string }> {
   const result = await ask(
-    `You are a cold email quality reviewer. Evaluate this recruiter email strictly.
-    
-    Score on these criteria (1-10 each, then average):
-    1. Personalization — does it reference specific company details? Not generic?
-    2. Evidence — does it cite real numbers/achievements from the resume?
-    3. Clarity — is it concise, under 200 words, easy to read?
-    4. Tone — conversational, human, not corporate or desperate?
-    5. CTA — soft and confident, not pushy?
-    
-    Return a JSON object: { "score": <average 1-10>, "approved": <true if score >= 7>, "feedback": "<specific improvement if not approved, or 'Approved' if approved>" }`,
+    `You are a cold email quality reviewer. Check this job application email strictly.
+
+Score each criterion 1-10, then return the average:
+1. Specificity — does the opening reference concrete details about this company? Not generic?
+2. Fixed intro line present — does the email contain this exact line word for word: "${FIXED_INTRO_LINE}"
+3. Word count — is the body between 120-140 words? (score 10 if yes, 1 if not)
+4. No em dashes — does the email contain any em dash (—)? (score 10 if none found, 1 if found)
+5. No placeholders — are there any unfilled [brackets] or placeholder text? (score 10 if clean, 1 if found)
+6. One CTA only — is there exactly one call to action?
+7. Correct signature — does it end with "Utkarsh Kumar", phone, and LinkedIn?
+
+Return a JSON object: { "score": <average>, "approved": <true if score >= 7>, "feedback": "<what to fix, or Approved>" }`,
     `Company: ${company.company}
 Role: ${company.role}
 Subject: ${subject}
-Body: ${body}`
+Body:
+${body}`
   );
 
   try {
-    // Extract JSON from response
     const jsonMatch = result.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
-    }
+    if (jsonMatch) return JSON.parse(jsonMatch[0]);
   } catch {}
-  
+
   return { score: 7, approved: true, feedback: 'Approved' };
 }
 
-// MAIN: Run full 6-agent pipeline
+// ─── ASSEMBLE FINAL EMAIL ────────────────────────────────────────────────
+
+function assembleEmail(
+  contactFirstName: string,
+  companyHook: string,
+  companyName: string
+): string {
+  return `Hi ${contactFirstName},
+
+${companyHook}
+
+${FIXED_INTRO_LINE}
+
+I am currently looking for ${TARGET_ROLES} roles and would love to explore if there is a fit at ${companyName}. Happy to connect for a quick 15-minute call.
+
+${SIGNATURE}`;
+}
+
+// ─── MAIN EXPORT ─────────────────────────────────────────────────────────
+
 export async function runAgentPipeline(company: Company): Promise<AgentResult> {
-  // Agent 1
-  const companyProfile = await companyIntelligenceAgent(company);
-  
-  // Agent 2
-  const resumeData = await resumeParserAgent(company.role);
-  
-  // Agent 3
-  const talkingPointsRaw = await fitAnalyzerAgent(companyProfile, resumeData, company);
-  
-  // Agent 4
-  const subject = await subjectLineAgent(company, talkingPointsRaw);
-  
-  // Agent 5
-  let body = await emailBodyAgent(company, subject, companyProfile, talkingPointsRaw, resumeData);
-  
-  // Agent 6 — with one retry loop
+  // Derive first name from contactName (e.g. "Priya Sharma" -> "Priya")
+  const firstName = company.contactName
+    ? company.contactName.trim().split(' ')[0]
+    : 'there';
+
+  // Run company hook + subject in parallel
+  const [companyHook, subject] = await Promise.all([
+    companyHookAgent(company),
+    subjectLineAgent(company),
+  ]);
+
+  // Assemble body using fixed template
+  let body = assembleEmail(firstName, companyHook.trim(), company.company);
+
+  // Quality gate with one retry if needed
   let quality = await qualityGateAgent(subject, body, company);
-  
+
   if (!quality.approved) {
-    // Retry Agent 5 with quality feedback
-    body = await emailBodyAgent(
-      company, subject, companyProfile, talkingPointsRaw, resumeData + '\n\nFeedback from previous draft: ' + quality.feedback
+    // Retry only the company hook (most likely failure point)
+    const betterHook = await ask(
+      `You write the opening 2-3 sentences of a cold job application email.
+      
+RULES — ALL MANDATORY:
+- Be specific to this exact company. Reference their actual product, the problem they solve, their market.
+- Sound genuine and interested.
+- NO generic lines whatsoever.
+- NO em dashes (—). Use a hyphen (-) or rewrite.
+- 2-3 sentences only.
+- Previous attempt failed quality check with this feedback: ${quality.feedback}
+- Fix that specific issue.
+- Output only the 2-3 sentences. No label, no extra text.`,
+      `Company: ${company.company}
+Role: ${company.role}
+Notes: ${company.notes ?? ''}
+Source URL: ${company.sourceUrl ?? ''}`
     );
+
+    body = assembleEmail(firstName, betterHook.trim(), company.company);
     quality = await qualityGateAgent(subject, body, company);
   }
 
@@ -178,6 +169,6 @@ export async function runAgentPipeline(company: Company): Promise<AgentResult> {
     subject,
     body,
     score: quality.score,
-    notes: quality.feedback
+    notes: quality.feedback,
   };
 }
