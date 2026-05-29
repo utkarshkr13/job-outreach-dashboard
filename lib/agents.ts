@@ -1,7 +1,10 @@
-﻿import Anthropic from '@anthropic-ai/sdk';
+import Anthropic from '@anthropic-ai/sdk';
 import { Company, AgentResult } from '@/types';
+import { mockGenerateDraftPipeline } from './mockDb';
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const client = process.env.NEXT_PUBLIC_APP_MODE !== 'demo' && process.env.ANTHROPIC_API_KEY
+  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  : null as any;
 const MODEL = 'claude-3-5-sonnet-20241022';
 
 // ─── FIXED CONSTANTS (never change these) ───────────────────────────────────
@@ -124,6 +127,10 @@ ${SIGNATURE}`;
 // ─── MAIN EXPORT ─────────────────────────────────────────────────────────
 
 export async function runAgentPipeline(company: Company): Promise<AgentResult> {
+  if (process.env.NEXT_PUBLIC_APP_MODE === 'demo') {
+    return mockGenerateDraftPipeline(company);
+  }
+
   // Derive first name from contactName (e.g. "Priya Sharma" -> "Priya")
   const firstName = company.contactName
     ? company.contactName.trim().split(' ')[0]

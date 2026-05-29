@@ -12,6 +12,11 @@ export interface EmailPayload {
 }
 
 export async function sendEmail(payload: EmailPayload): Promise<boolean> {
+  if (process.env.NEXT_PUBLIC_APP_MODE === 'demo') {
+    console.log(`[DEMO MODE] Mock-sent email to ${payload.toEmail} for ${payload.companyName}`);
+    return true;
+  }
+
   const user = process.env.GMAIL_USER;
   const clientId = process.env.GMAIL_CLIENT_ID;
   const clientSecret = process.env.GMAIL_CLIENT_SECRET;

@@ -1,7 +1,19 @@
 import { list } from '@vercel/blob';
 import { NextResponse } from 'next/server';
+import { isMockResumeUploaded } from '@/lib/mockDb';
 
 export async function GET() {
+  if (process.env.NEXT_PUBLIC_APP_MODE === 'demo') {
+    if (isMockResumeUploaded()) {
+      return NextResponse.json({
+        url: '/api/resume/download',
+        uploadedAt: new Date().toISOString()
+      });
+    } else {
+      return NextResponse.json({ url: null });
+    }
+  }
+
   try {
     const { blobs } = await list();
     // Assuming we always upload the file as 'resume.pdf'
