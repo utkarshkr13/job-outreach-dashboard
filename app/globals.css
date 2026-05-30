@@ -990,6 +990,38 @@ div:hover > .apple-hover-actions {
   border-color: rgba(90, 200, 250, 0.35) !important;
 }
 
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 25 ─────────────────────── */
+
+/* Interactive Glassmorphic Hover Highlight for sidebar menu items */
+.apple-menu-hover {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.apple-menu-hover:hover {
+  transform: scale(1.02) translateY(-0.5px);
+  box-shadow: 0 4px 12px rgba(0, 113, 227, 0.05) !important;
+}
+
+/* Mac-Dock Active Navigation Dock active badge border glow */
+.apple-badge-focus {
+  transition: all 0.3s ease;
+}
+.apple-badge-focus.active {
+  border-color: #30b0c6 !important;
+  box-shadow: 0 0 8px 1px rgba(48, 176, 198, 0.2) !important;
+}
+
+/* Breathing Teal Aura highlight for approved elements */
+@keyframes breathingTealGlow {
+  0% { box-shadow: 0 0 0 0 rgba(48, 176, 198, 0.05); }
+  50% { box-shadow: 0 0 12px 2px rgba(48, 176, 198, 0.15); }
+  100% { box-shadow: 0 0 0 0 rgba(48, 176, 198, 0.05); }
+}
+.apple-glow-teal {
+  animation: breathingTealGlow 3.5s infinite ease-in-out;
+  border-color: rgba(48, 176, 198, 0.35) !important;
+}
+
+
 
 
 
