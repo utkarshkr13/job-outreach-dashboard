@@ -455,7 +455,7 @@ export default function MorningDashboard() {
               <h1 className="text-xl font-bold tracking-tight text-[#1d1d1f] dark:text-neutral-100">
                 Morning Briefing
               </h1>
-              <span className="apple-border-glow-indigo bg-neutral-100 dark:bg-neutral-900 text-orange-600 dark:text-orange-400 border text-[10px] font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm transition-colors">
+              <span className="apple-glow-indigo-milestone bg-neutral-100 dark:bg-neutral-900 text-orange-600 dark:text-orange-400 border text-[10px] font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm transition-all">
                 🔥 {streakCount} Days Streak
               </span>
             </div>
@@ -469,7 +469,7 @@ export default function MorningDashboard() {
         <div className="flex items-center gap-2 w-full md:w-auto">
           <button
             onClick={handleExportCSV}
-            className="flex-1 md:flex-initial bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 border border-[#e8e8ed] dark:border-neutral-850 px-4 py-2 rounded-full text-xs font-semibold text-neutral-700 dark:text-neutral-300 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            className="apple-action-hover flex-1 md:flex-initial bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 border border-[#e8e8ed] dark:border-neutral-850 px-4 py-2 rounded-full text-xs font-semibold text-neutral-700 dark:text-neutral-300 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
           >
             📥 Export Sent
           </button>
@@ -477,7 +477,7 @@ export default function MorningDashboard() {
           <button
             onClick={handleBulkApprove}
             disabled={bulkLoading || companies.filter(c => c.emailStatus === 'Draft Ready').length === 0}
-            className="flex-1 md:flex-initial bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 border border-[#e8e8ed] dark:border-neutral-850 px-4 py-2 rounded-full text-xs font-semibold text-emerald-600 dark:text-emerald-400 disabled:opacity-40 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            className="apple-action-hover flex-1 md:flex-initial bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 border border-[#e8e8ed] dark:border-neutral-850 px-4 py-2 rounded-full text-xs font-semibold text-emerald-600 dark:text-emerald-400 disabled:opacity-40 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
           >
             ✅ Approve All ({companies.filter(c => c.emailStatus === 'Draft Ready').length})
           </button>
@@ -485,7 +485,7 @@ export default function MorningDashboard() {
           <button
             onClick={handleBulkSend}
             disabled={bulkLoading || companies.filter(c => c.emailStatus === 'Approved').length === 0}
-            className="flex-1 md:flex-initial bg-blue-600 hover:bg-blue-500 px-5 py-2 rounded-full text-xs font-semibold text-white disabled:opacity-40 transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+            className="apple-action-hover flex-1 md:flex-initial bg-blue-600 hover:bg-blue-500 px-5 py-2 rounded-full text-xs font-semibold text-white disabled:opacity-40 transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
           >
             🚀 Send Approved ({companies.filter(c => c.emailStatus === 'Approved').length})
           </button>

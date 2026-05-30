@@ -1062,6 +1062,37 @@ div:hover > .apple-hover-actions {
   border-color: rgba(255, 45, 85, 0.35) !important;
 }
 
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 27 ─────────────────────── */
+
+/* Interactive Glassmorphic Hover Highlight for list actions panel */
+.apple-action-hover {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.apple-action-hover:hover {
+  transform: scale(1.03) translateY(-0.5px);
+  box-shadow: 0 4px 12px rgba(0, 113, 227, 0.05) !important;
+}
+
+/* Mac-Dock Active Navigation Dock active link border expand outline */
+.apple-link-outline {
+  transition: all 0.3s ease;
+}
+.apple-link-outline:focus {
+  outline: 2px solid rgba(0, 113, 227, 0.3) !important;
+}
+
+/* Breathing Indigo Aura highlight for PM profile status badges */
+@keyframes breathingIndigoGlowMilestone {
+  0% { box-shadow: 0 0 0 0 rgba(94, 92, 230, 0.05); }
+  50% { box-shadow: 0 0 12px 2px rgba(94, 92, 230, 0.15); }
+  100% { box-shadow: 0 0 0 0 rgba(94, 92, 230, 0.05); }
+}
+.apple-glow-indigo-milestone {
+  animation: breathingIndigoGlowMilestone 3.5s infinite ease-in-out;
+  border-color: rgba(94, 92, 230, 0.35) !important;
+}
+
+
 
 
 
