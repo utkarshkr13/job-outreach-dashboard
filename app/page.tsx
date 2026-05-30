@@ -612,7 +612,7 @@ export default function MorningDashboard() {
                   setActiveTab(tab);
                   setFocusedIndex(-1);
                 }}
-                className={`apple-tab-elastic px-4 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 flex items-center gap-2 cursor-pointer ${activeTab === tab ? 'bg-white dark:bg-[#333336] text-[#1d1d1f] dark:text-white shadow-sm' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-500 dark:hover:text-neutral-300'}`}
+                className={`apple-tab-elastic apple-badge-focus-scale px-4 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 flex items-center gap-2 cursor-pointer ${activeTab === tab ? 'bg-white dark:bg-[#333336] text-[#1d1d1f] dark:text-white shadow-sm' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-500 dark:hover:text-neutral-300'}`}
               >
                 <span>{tab}</span>
                 <span className={`text-[9px] px-1.5 py-0.5 rounded-full transition-colors ${activeTab === tab ? 'bg-[#f5f5f7] dark:bg-neutral-900 text-neutral-500 dark:text-neutral-400' : 'bg-[#e8e8ed]/40 dark:bg-neutral-900/20 text-neutral-400 dark:text-neutral-600'}`}>
@@ -655,7 +655,7 @@ export default function MorningDashboard() {
                     <tr
                       key={company.notionId}
                       onClick={() => openReviewDrawer(company.notionId)}
-                      className={`apple-row-focus apple-row-hover apple-row-divider hover:bg-[#fafafa]/80 dark:hover:bg-neutral-900/20 transition-all cursor-pointer group ${isFocused ? 'active bg-blue-50/30 dark:bg-blue-950/5 border-l-2 border-blue-600' : ''}`}
+                      className={`apple-row-focus apple-row-focus-sweep apple-row-hover apple-row-divider hover:bg-[#fafafa]/80 dark:hover:bg-neutral-900/20 transition-all cursor-pointer group ${isFocused ? 'active bg-blue-50/30 dark:bg-blue-950/5 border-l-2 border-blue-600' : ''}`}
                     >
                       {/* Company Name & status */}
                       <td className="py-4 px-6">
