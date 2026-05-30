@@ -820,6 +820,46 @@ div:hover > .apple-hover-actions {
   border-color: rgba(52, 199, 89, 0.3) !important;
 }
 
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 20 ─────────────────────── */
+
+/* Frosted Glass-Saturation Saturated Card Overlay */
+.apple-glass-card-saturated {
+  backdrop-filter: blur(25px) saturate(190%);
+  background: rgba(255, 255, 255, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.2), 0 8px 32px rgba(0, 0, 0, 0.02) !important;
+}
+.dark .apple-glass-card-saturated {
+  backdrop-filter: blur(25px) saturate(190%);
+  background: rgba(22, 22, 23, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.02), 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Mac-Dock Floating Indicator Highlight glow active */
+.apple-dock-glow {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.apple-dock-glow:hover {
+  box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.15), 0 8px 24px rgba(0, 0, 0, 0.03) !important;
+  transform: translateY(-1px);
+}
+.dark .apple-dock-glow:hover {
+  box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.25), 0 8px 24px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Breathing Amber Aura for Revision status badges */
+@keyframes breathingAmberGlow {
+  0% { box-shadow: 0 0 0 0 rgba(255, 149, 0, 0.05); }
+  50% { box-shadow: 0 0 12px 2px rgba(255, 149, 0, 0.15); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 149, 0, 0.05); }
+}
+.apple-glow-amber {
+  animation: breathingAmberGlow 3.5s infinite ease-in-out;
+  border-color: rgba(255, 149, 0, 0.35) !important;
+}
+
+
 
 
 

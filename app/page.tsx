@@ -425,7 +425,7 @@ export default function MorningDashboard() {
       )}
 
       {/* APPLE-INSPIRED HEADER BLOCK WITH STREAK & MORNING BRIEF */}
-      <div className="apple-glow-card bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 backdrop-blur-xl rounded-3xl p-6 shadow-[0_4px_12px_rgba(0,0,0,0.015)] dark:shadow-none flex flex-col md:flex-row justify-between items-start md:items-center gap-6 transition-colors duration-300">
+      <div className="apple-glass-card-saturated apple-dock-glow bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 backdrop-blur-xl rounded-3xl p-6 shadow-[0_4px_12px_rgba(0,0,0,0.015)] dark:shadow-none flex flex-col md:flex-row justify-between items-start md:items-center gap-6 transition-colors duration-300">
         
         <div className="flex items-center gap-6">
           {/* Minimal progress ring */}
@@ -663,7 +663,7 @@ export default function MorningDashboard() {
                           <span className="font-semibold text-neutral-800 dark:text-neutral-100 text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                             {company.company}
                           </span>
-                          <span className={`text-[8.5px] font-semibold px-2 py-0.5 rounded-full ${crmStage ? crmStage.colorClass : 'bg-neutral-100 text-neutral-500'} ${company.emailStatus === 'Redo' ? 'apple-glow-warning border' : ''}`}>
+                          <span className={`text-[8.5px] font-semibold px-2 py-0.5 rounded-full ${crmStage ? crmStage.colorClass : 'bg-neutral-100 text-neutral-500'} ${company.emailStatus === 'Redo' ? 'apple-glow-amber border' : ''}`}>
                             {company.emailStatus}
                           </span>
                         </div>
