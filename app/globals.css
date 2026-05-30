@@ -1476,5 +1476,50 @@ body::-webkit-scrollbar-thumb:hover {
   border-color: rgba(168, 85, 247, 0.45) !important;
 }
 
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 37 ─────────────────────── */
+
+/* macOS Sonoma Floating Notification Pill active breathing overlay */
+.apple-pill-glow {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.apple-pill-glow:hover {
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15), 0 0 12px 2px rgba(0, 113, 227, 0.1) !important;
+}
+
+/* macos-style sidebar navigation indicator sweep dot */
+.apple-indicator-accent {
+  position: relative;
+}
+.apple-indicator-accent::before {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%) scale(0.8);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: #5e5ce6;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.apple-indicator-accent.active::before,
+.apple-indicator-accent:hover::before {
+  opacity: 1;
+  transform: translateX(-50%) scale(1.1);
+}
+
+/* Breathing Lime-Emerald Status Badge Glow for Job Offers */
+@keyframes breathingLimeEmeraldGlow {
+  0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.05); }
+  50% { box-shadow: 0 0 14px 3px rgba(52, 211, 153, 0.25); }
+  100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.05); }
+}
+.apple-glow-lime-emerald {
+  animation: breathingLimeEmeraldGlow 3.5s infinite ease-in-out;
+  border-color: rgba(52, 211, 153, 0.45) !important;
+}
+
+
 
 

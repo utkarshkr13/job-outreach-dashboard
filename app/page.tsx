@@ -455,7 +455,7 @@ export default function MorningDashboard() {
               <h1 className="text-xl font-bold tracking-tight text-[#1d1d1f] dark:text-neutral-100">
                 Morning Briefing
               </h1>
-              <span className="apple-glow-indigo-milestone bg-neutral-100 dark:bg-neutral-900 text-orange-600 dark:text-orange-400 border text-[10px] font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm transition-all">
+              <span className="apple-pill-glow apple-glow-indigo-milestone bg-neutral-100 dark:bg-neutral-900 text-orange-600 dark:text-orange-400 border text-[10px] font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm transition-all">
                 🔥 {streakCount} Days Streak
               </span>
             </div>
@@ -575,13 +575,13 @@ export default function MorningDashboard() {
               <div className="bg-[#e8e8ed]/60 dark:bg-neutral-900 border border-[#d2d2d7]/30 dark:border-neutral-850 rounded-xl p-0.5 flex transition-colors duration-300">
                 <button
                   onClick={() => setCurrentView('list')}
-                  className={`apple-sliding-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer ${currentView === 'list' ? 'active text-[#1d1d1f] dark:text-white' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-500 dark:hover:text-neutral-300'}`}
+                  className={`apple-indicator-accent apple-sliding-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer ${currentView === 'list' ? 'active text-[#1d1d1f] dark:text-white' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-500 dark:hover:text-neutral-300'}`}
                 >
                   List
                 </button>
                 <button
                   onClick={() => setCurrentView('kanban')}
-                  className={`apple-sliding-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer ${currentView === 'kanban' ? 'active text-[#1d1d1f] dark:text-white' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-500 dark:hover:text-neutral-300'}`}
+                  className={`apple-indicator-accent apple-sliding-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer ${currentView === 'kanban' ? 'active text-[#1d1d1f] dark:text-white' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-500 dark:hover:text-neutral-300'}`}
                 >
                   Kanban
                 </button>
@@ -663,7 +663,7 @@ export default function MorningDashboard() {
                           <span className="font-semibold text-neutral-800 dark:text-neutral-100 text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                             {company.company}
                           </span>
-                          <span className={`text-[8.5px] font-semibold px-2 py-0.5 rounded-full ${crmStage ? crmStage.colorClass : 'bg-neutral-100 text-neutral-500'} ${company.emailStatus === 'Redo' ? 'apple-glow-amber border' : ''} ${company.emailStatus === 'New' ? 'apple-glow-cyan-new border' : ''} ${company.emailStatus === 'Approved' ? 'apple-glow-teal border' : ''} ${company.emailStatus === 'Replied' ? 'apple-glow-teal-cyan border' : ''} ${company.emailStatus === 'Interview' ? 'apple-glow-violet border' : ''} ${company.emailStatus === 'Offer' ? 'apple-glow-emerald-teal border' : ''}`}>
+                          <span className={`text-[8.5px] font-semibold px-2 py-0.5 rounded-full ${crmStage ? crmStage.colorClass : 'bg-neutral-100 text-neutral-500'} ${company.emailStatus === 'Redo' ? 'apple-glow-amber border' : ''} ${company.emailStatus === 'New' ? 'apple-glow-cyan-new border' : ''} ${company.emailStatus === 'Approved' ? 'apple-glow-teal border' : ''} ${company.emailStatus === 'Replied' ? 'apple-glow-teal-cyan border' : ''} ${company.emailStatus === 'Interview' ? 'apple-glow-violet border' : ''} ${company.emailStatus === 'Offer' ? 'apple-glow-lime-emerald border' : ''}`}>
                             {company.emailStatus}
                           </span>
                         </div>
