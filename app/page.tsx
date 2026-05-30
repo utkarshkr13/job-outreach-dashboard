@@ -519,7 +519,7 @@ export default function MorningDashboard() {
               placeholder="Company name (e.g. Stripe)"
               value={ingestCompany}
               onChange={e => setIngestCompany(e.target.value)}
-              className="w-full bg-[#f5f5f7]/60 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-3 py-2 text-xs text-neutral-800 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-600 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-700 transition-colors"
+              className="apple-input-active w-full bg-[#f5f5f7]/60 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-3 py-2 text-xs text-neutral-800 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-600 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-700 transition-colors"
             />
             <select
               value={ingestRole}
@@ -861,7 +861,7 @@ export default function MorningDashboard() {
                       📎 Global Resume Attached
                     </span>
                   ) : (
-                    <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-600/10 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-600/20">
+                    <span className="apple-border-glow-warning text-[9px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-600/10 text-rose-600 dark:text-rose-400 border transition-colors">
                       ⚠️ No Resume Attached
                     </span>
                   )}
@@ -873,7 +873,7 @@ export default function MorningDashboard() {
               
               <button
                 onClick={() => setSelectedCompanyId(null)}
-                className="text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-100 text-xs border border-[#e8e8ed] dark:border-neutral-900 bg-white dark:bg-neutral-900/40 rounded-full w-7 h-7 flex items-center justify-center cursor-pointer transition-colors"
+                className="apple-modal-close text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-100 text-xs border border-[#e8e8ed] dark:border-neutral-900 bg-white dark:bg-neutral-900/40 rounded-full w-7 h-7 flex items-center justify-center cursor-pointer transition-colors"
               >
                 ✕
               </button>

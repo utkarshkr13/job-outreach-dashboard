@@ -698,6 +698,44 @@ div:hover > .apple-hover-actions {
   border-color: rgba(255, 149, 0, 0.3) !important;
 }
 
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 17 ─────────────────────── */
+
+/* macOS circular Close circular red button overlays with spring scaling */
+.apple-modal-close {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.apple-modal-close:hover {
+  background-color: rgba(255, 59, 48, 0.12) !important;
+  color: #ff3b30 !important;
+  border-color: rgba(255, 59, 48, 0.3) !important;
+  transform: scale(1.08) rotate(90deg);
+}
+.apple-modal-close:active {
+  transform: scale(0.92);
+}
+
+/* Sub-pixel blue active glow outlines for system inputs */
+.apple-input-active {
+  transition: border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.apple-input-active:focus-within {
+  border-color: rgba(0, 113, 227, 0.45) !important;
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15) !important;
+  outline: none !important;
+}
+
+/* Continuous breathing HSL glowing orange border highlight */
+@keyframes borderGlowWarning {
+  0% { border-color: rgba(255, 149, 0, 0.2); box-shadow: 0 0 0 0 rgba(255, 149, 0, 0.03); }
+  50% { border-color: rgba(255, 149, 0, 0.5); box-shadow: 0 0 8px 1px rgba(255, 149, 0, 0.12); }
+  100% { border-color: rgba(255, 149, 0, 0.2); box-shadow: 0 0 0 0 rgba(255, 149, 0, 0.03); }
+}
+.apple-border-glow-warning {
+  animation: borderGlowWarning 3.5s infinite ease-in-out;
+  border-width: 1.2px !important;
+}
+
+
 
 
 
