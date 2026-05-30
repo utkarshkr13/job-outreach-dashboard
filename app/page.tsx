@@ -781,7 +781,7 @@ export default function MorningDashboard() {
                       <div
                         key={c.notionId}
                         onClick={() => openReviewDrawer(c.notionId)}
-                        className="bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 hover:border-neutral-350 dark:hover:border-neutral-800 rounded-2xl p-4 cursor-pointer transition-all group space-y-2 relative overflow-hidden shadow-[0_3px_8px_rgba(0,0,0,0.01)] dark:shadow-none"
+                        className="apple-kanban-hover bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 hover:border-neutral-350 dark:hover:border-neutral-800 rounded-2xl p-4 cursor-pointer transition-all group space-y-2 relative overflow-hidden shadow-[0_3px_8px_rgba(0,0,0,0.01)] dark:shadow-none"
                       >
                         <div className="flex justify-between items-start gap-1">
                           <h4 className="font-bold text-xs text-neutral-800 dark:text-neutral-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 line-clamp-1 transition-colors">
@@ -857,7 +857,7 @@ export default function MorningDashboard() {
                       📎 APM/BA Resume Mapped
                     </span>
                   ) : selectedCompany.resumeStatus === 'global' ? (
-                    <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-600/20">
+                    <span className="apple-glow-emerald text-[9px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 border transition-all">
                       📎 Global Resume Attached
                     </span>
                   ) : (

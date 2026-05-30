@@ -772,6 +772,55 @@ div:hover > .apple-hover-actions {
   border-color: rgba(94, 92, 230, 0.3) !important;
 }
 
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 19 ─────────────────────── */
+
+/* Interactive Glassmorphic Hover Highlight for Kanban Columns */
+.apple-kanban-hover {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.apple-kanban-hover:hover {
+  transform: translateY(-1.5px) scale(1.006);
+  background: rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.03), 0 0 0 1px rgba(0, 0, 0, 0.02) !important;
+}
+.dark .apple-kanban-hover:hover {
+  background: rgba(22, 22, 23, 0.9) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.02) !important;
+}
+
+/* Active navigation sliding border accents */
+.apple-nav-border {
+  position: relative;
+}
+.apple-nav-border::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #0071e3, transparent);
+  border-radius: 1px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.apple-nav-border:hover::after,
+.apple-nav-border.active::after {
+  opacity: 1;
+}
+
+/* Breathing Emerald Aura highlight for successful outreach nodes */
+@keyframes breathingEmeraldGlow {
+  0% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.05); }
+  50% { box-shadow: 0 0 12px 2px rgba(52, 199, 89, 0.15); }
+  100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.05); }
+}
+.apple-glow-emerald {
+  animation: breathingEmeraldGlow 3.5s infinite ease-in-out;
+  border-color: rgba(52, 199, 89, 0.3) !important;
+}
+
+
 
 
 
