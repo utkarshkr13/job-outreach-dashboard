@@ -663,7 +663,7 @@ export default function MorningDashboard() {
                           <span className="font-semibold text-neutral-800 dark:text-neutral-100 text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                             {company.company}
                           </span>
-                          <span className={`text-[8.5px] font-semibold px-2 py-0.5 rounded-full ${crmStage ? crmStage.colorClass : 'bg-neutral-100 text-neutral-500'}`}>
+                          <span className={`text-[8.5px] font-semibold px-2 py-0.5 rounded-full ${crmStage ? crmStage.colorClass : 'bg-neutral-100 text-neutral-500'} ${company.emailStatus === 'Redo' ? 'apple-glow-warning border' : ''}`}>
                             {company.emailStatus}
                           </span>
                         </div>
@@ -841,7 +841,7 @@ export default function MorningDashboard() {
           <div className="flex-1" onClick={() => setSelectedCompanyId(null)}></div>
 
           {/* Drawer container styled as iPad multitasking sheet */}
-          <div className="w-full max-w-3xl bg-white dark:bg-[#161617] border-l border-[#e8e8ed] dark:border-neutral-900 h-full flex flex-col justify-between shadow-2xl animate-slide-in transition-colors duration-300">
+          <div className="w-full max-w-3xl bg-white dark:bg-[#161617]/90 apple-drawer-glass-border h-full flex flex-col justify-between shadow-2xl animate-slide-in transition-colors duration-300">
             
             {/* Header */}
             <div className="border-b border-[#e8e8ed] dark:border-neutral-900 p-6 bg-[#fafafa]/60 dark:bg-neutral-900/10 flex justify-between items-center transition-colors">
