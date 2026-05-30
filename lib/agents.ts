@@ -1,30 +1,17 @@
-﻿import Anthropic from '@anthropic-ai/sdk';
+import Anthropic from '@anthropic-ai/sdk';
 import { Company, AgentResult } from '@/types';
 import { mockGenerateDraftPipeline } from './mockDb';
+import { UserCredentials } from './auth-middleware';
 
-const client = process.env.NEXT_PUBLIC_APP_MODE !== 'demo' && process.env.ANTHROPIC_API_KEY
-  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-  : null as any;
 const MODEL = 'claude-3-5-sonnet-20241022';
-
-// ─── USER CONFIG (all from env vars — no hardcoding) ─────────────────────────
-
-const SENDER_NAME     = process.env.SENDER_NAME     || 'Your Name';
-const SENDER_PHONE    = process.env.SENDER_PHONE    || '';
-const SENDER_LINKEDIN = process.env.SENDER_LINKEDIN || '';
-const TARGET_ROLES    = process.env.TARGET_ROLES    || 'Associate PM or Business Analyst';
-const SENDER_BIO      = process.env.SENDER_BIO      ||
-  'I am a professional with experience shipping products end-to-end.';
-
-const SIGNATURE = [
-  SENDER_NAME,
-  SENDER_PHONE,
-  SENDER_LINKEDIN,
-].filter(Boolean).join('\n');
 
 // ─── HELPER ──────────────────────────────────────────────────────────────────
 
-async function ask(systemPrompt: string, userMessage: string): Promise<string> {
+async function ask(
+  client: Anthropic,
+  systemPrompt: string,
+  userMessage: string
+): Promise<string> {
   const response = await client.messages.create({
     model: MODEL,
     max_tokens: 1024,
@@ -36,8 +23,9 @@ async function ask(systemPrompt: string, userMessage: string): Promise<string> {
 
 // ─── AGENT 1: COMPANY HOOK ───────────────────────────────────────────────────
 
-async function companyHookAgent(company: Company): Promise<string> {
+async function companyHookAgent(client: Anthropic, company: Company): Promise<string> {
   return ask(
+    client,
     `You write the opening 2-3 sentences of a cold job application email.
 
 RULES — ALL MANDATORY:
@@ -59,14 +47,20 @@ Source URL: ${company.sourceUrl ?? ''}`
 
 // ─── AGENT 2: SUBJECT LINE ───────────────────────────────────────────────────
 
-async function subjectLineAgent(company: Company): Promise<string> {
+async function subjectLineAgent(
+  client: Anthropic,
+  company: Company,
+  targetRoles: string,
+  senderName: string
+): Promise<string> {
   return ask(
+    client,
     `Write a cold email subject line for a job application.
 
 FORMAT: "[TARGET_ROLES] Interest at [Company Name] | [SENDER_NAME]"
 - Replace [Company Name] with the actual company name.
-- Replace [TARGET_ROLES] with: ${TARGET_ROLES}
-- Replace [SENDER_NAME] with: ${SENDER_NAME}
+- Replace [TARGET_ROLES] with: ${targetRoles}
+- Replace [SENDER_NAME] with: ${senderName}
 - Keep total length between 40-60 characters.
 - If the company name is long, abbreviate naturally to stay within 60 chars.
 - NO em dashes (—). Use a hyphen (-) if needed.
@@ -78,11 +72,13 @@ FORMAT: "[TARGET_ROLES] Interest at [Company Name] | [SENDER_NAME]"
 // ─── AGENT 3: QUALITY GATE ───────────────────────────────────────────────────
 
 async function qualityGateAgent(
+  client: Anthropic,
   subject: string,
   body: string,
   company: Company
 ): Promise<{ score: number; approved: boolean; feedback: string }> {
   const result = await ask(
+    client,
     `You are a cold email quality reviewer. Check this job application email strictly.
 
 Score each criterion 1-10, then return the average:
@@ -115,40 +111,69 @@ ${body}`
 function assembleEmail(
   contactFirstName: string,
   companyHook: string,
-  companyName: string
+  companyName: string,
+  senderBio: string,
+  targetRoles: string,
+  signature: string
 ): string {
   return `Hi ${contactFirstName},
 
 ${companyHook}
 
-${SENDER_BIO}
+${senderBio}
 
-I am currently looking for ${TARGET_ROLES} roles and would love to explore if there is a fit at ${companyName}. Happy to connect for a quick 15-minute call.
+I am currently looking for ${targetRoles} roles and would love to explore if there is a fit at ${companyName}. Happy to connect for a quick 15-minute call.
 
-${SIGNATURE}`;
+${signature}`;
 }
 
 // ─── MAIN EXPORT ──────────────────────────────────────────────────────────────
 
-export async function runAgentPipeline(company: Company): Promise<AgentResult> {
+export async function runAgentPipeline(
+  company: Company,
+  creds: UserCredentials
+): Promise<AgentResult> {
   if (process.env.NEXT_PUBLIC_APP_MODE === 'demo') {
     return mockGenerateDraftPipeline(company);
   }
+
+  // Dynamically instantiate the Anthropic client using the user's specific key
+  const apiKey = creds.anthropicApiKey || process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    throw new Error('Missing Anthropic API Key. Please configure your key in settings to run email generation.');
+  }
+
+  const client = new Anthropic({ apiKey });
+
+  const signature = [
+    creds.senderName,
+    creds.senderPhone,
+    creds.senderLinkedin,
+  ].filter(Boolean).join('\n');
 
   const firstName = company.contactName
     ? company.contactName.trim().split(' ')[0]
     : 'there';
 
   const [companyHook, subject] = await Promise.all([
-    companyHookAgent(company),
-    subjectLineAgent(company),
+    companyHookAgent(client, company),
+    subjectLineAgent(client, company, creds.targetRoles, creds.senderName),
   ]);
 
-  let body = assembleEmail(firstName, companyHook.trim(), company.company);
-  let quality = await qualityGateAgent(subject, body, company);
+  let body = assembleEmail(
+    firstName,
+    companyHook.trim(),
+    company.company,
+    creds.senderBio,
+    creds.targetRoles,
+    signature
+  );
+  
+  let quality = await qualityGateAgent(client, subject, body, company);
 
   if (!quality.approved) {
     const betterHook = await ask(
+      client,
       `You write the opening 2-3 sentences of a cold job application email.
 
 RULES — ALL MANDATORY:
@@ -166,8 +191,15 @@ Notes: ${company.notes ?? ''}
 Source URL: ${company.sourceUrl ?? ''}`
     );
 
-    body = assembleEmail(firstName, betterHook.trim(), company.company);
-    quality = await qualityGateAgent(subject, body, company);
+    body = assembleEmail(
+      firstName,
+      betterHook.trim(),
+      company.company,
+      creds.senderBio,
+      creds.targetRoles,
+      signature
+    );
+    quality = await qualityGateAgent(client, subject, body, company);
   }
 
   return {

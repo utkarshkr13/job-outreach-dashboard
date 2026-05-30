@@ -1,13 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { updateStatus } from '@/lib/notion';
+import { NextResponse } from 'next/server';
+import { updateStatus, getNotionConnection } from '@/lib/notion';
+import { getAuthenticatedUser } from '@/lib/auth-middleware';
 
-export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { reason } = await req.json();
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    await updateStatus(id, 'Rejected', reason ?? 'Manually rejected');
+    const body = await req.json().catch(() => ({}));
+    const reason = body?.reason;
+
+    // 1. Authenticate user & load decrypted secrets
+    const { creds } = await getAuthenticatedUser(req);
+    const connection = getNotionConnection(creds.notionApiKey, creds.notionDbId);
+
+    // 2. Perform status updates in their respective database
+    await updateStatus(connection, id, 'Rejected', reason ?? 'Manually rejected');
     return NextResponse.json({ success: true });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    console.error('❌ POST /api/reject/[id] error:', e.message);
+    const isAuthError = e.message.includes('Unauthorized') || e.message.includes('User not found');
+    return NextResponse.json({ error: e.message }, { status: isAuthError ? 401 : 500 });
   }
 }

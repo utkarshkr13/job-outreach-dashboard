@@ -1,18 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCompaniesByStatus, updateEmailDraft } from '@/lib/notion';
+import { NextResponse } from 'next/server';
+import { getCompaniesByStatus, updateEmailDraft, getNotionConnection } from '@/lib/notion';
 import { runAgentPipeline } from '@/lib/agents';
+import { getAuthenticatedUser } from '@/lib/auth-middleware';
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const companies = await getCompaniesByStatus('New');
+    // 1. Authenticate user & load decrypted secrets
+    const { creds } = await getAuthenticatedUser(req);
+    const connection = getNotionConnection(creds.notionApiKey, creds.notionDbId);
+
+    // 2. Query all 'New' status companies from the scoped Notion DB
+    const companies = await getCompaniesByStatus(connection, 'New');
     const results = [];
 
     for (const company of companies) {
       try {
-        const result = await runAgentPipeline(company);
-        await updateEmailDraft(company.notionId, result.subject, result.body, `Score: ${result.score}/10 — ${result.notes}`, 'Draft Ready');
+        const result = await runAgentPipeline(company, creds);
+        await updateEmailDraft(connection, company.notionId, result.subject, result.body, `Score: ${result.score}/10 — ${result.notes}`, 'Draft Ready');
         results.push({ company: company.company, success: true, score: result.score });
-        // Small delay to avoid rate limits
+        
+        // Small throttling delay to safeguard Anthropic API rate boundaries
         await new Promise(r => setTimeout(r, 1000));
       } catch (e: any) {
         results.push({ company: company.company, success: false, error: e.message });
@@ -21,6 +28,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ processed: results.length, results });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    console.error('❌ POST /api/generate/bulk error:', e.message);
+    const isAuthError = e.message.includes('Unauthorized') || e.message.includes('User not found');
+    return NextResponse.json({ error: e.message }, { status: isAuthError ? 401 : 500 });
   }
 }

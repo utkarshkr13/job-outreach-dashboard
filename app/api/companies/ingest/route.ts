@@ -1,12 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { mockIngestCompany } from '@/lib/mockDb';
 import { Client } from '@notionhq/client';
 import Anthropic from '@anthropic-ai/sdk';
+import { getAuthenticatedUser } from '@/lib/auth-middleware';
+import { getNotionConnection } from '@/lib/notion';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
+    // 1. Authenticate user & load decrypted secrets
+    const { creds } = await getAuthenticatedUser(req);
+    const connection = getNotionConnection(creds.notionApiKey, creds.notionDbId);
+
     const { company, role } = await req.json();
     if (!company || !role) {
       return NextResponse.json({ error: 'Missing company or role' }, { status: 400 });
@@ -18,8 +24,13 @@ export async function POST(req: NextRequest) {
     }
 
     // Production Mode: Trigger Claude to search/guess contact info and insert into Notion
-    const notion = new Client({ auth: process.env.NOTION_API_KEY });
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const notion = connection.notion;
+    
+    const anthropicKey = creds.anthropicApiKey || process.env.ANTHROPIC_API_KEY;
+    if (!anthropicKey) {
+      throw new Error('Missing Anthropic API Key. Configure your key in Settings to run AI discovery.');
+    }
+    const anthropic = new Anthropic({ apiKey: anthropicKey });
 
     const systemPrompt = `You are a cold email lead generation agent.
 Your job is to search your knowledge base and return the most likely first name, last name, job title, and email address of a Technical Recruiter, Recruiting Lead, HR Specialist, or Engineering Manager at a given company.
@@ -59,9 +70,9 @@ Return a JSON object only:
       } catch (e) {}
     }
 
-    // Insert new page into Notion
+    // Insert new page into User's scoped Notion DB
     const notionResponse = await notion.pages.create({
-      parent: { database_id: process.env.NOTION_DB_ID! },
+      parent: { database_id: connection.DB_ID },
       properties: {
         'Company': { title: [{ text: { content: company } }] },
         'Role': { rich_text: [{ text: { content: role } }] },
@@ -94,6 +105,7 @@ Return a JSON object only:
 
   } catch (error: any) {
     console.error('Error in Ingest API:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const isAuthError = error.message.includes('Unauthorized') || error.message.includes('User not found');
+    return NextResponse.json({ error: error.message }, { status: isAuthError ? 401 : 500 });
   }
 }

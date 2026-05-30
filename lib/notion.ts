@@ -7,16 +7,30 @@ import {
   getCompanyResumeStatus,
 } from './mockDb';
 
-const notion = process.env.NEXT_PUBLIC_APP_MODE !== 'demo' && process.env.NOTION_API_KEY
-  ? new Client({ auth: process.env.NOTION_API_KEY })
-  : null as any;
-const DB_ID = process.env.NOTION_DB_ID!;
+export interface NotionConnection {
+  notion: Client;
+  DB_ID: string;
+}
 
-export async function getCompaniesByStatus(status: EmailStatus | EmailStatus[]): Promise<Company[]> {
+/**
+ * Factory helper to construct a scoped Notion Client for a user
+ */
+export function getNotionConnection(apiKey: string, dbId: string): NotionConnection {
+  const notion = process.env.NEXT_PUBLIC_APP_MODE !== 'demo' && apiKey
+    ? new Client({ auth: apiKey })
+    : null as any;
+  return { notion, DB_ID: dbId };
+}
+
+export async function getCompaniesByStatus(
+  connection: NotionConnection,
+  status: EmailStatus | EmailStatus[]
+): Promise<Company[]> {
   if (process.env.NEXT_PUBLIC_APP_MODE === 'demo') {
     return getMockCompanies(status);
   }
 
+  const { notion, DB_ID } = connection;
   const statuses = Array.isArray(status) ? status : [status];
   
   const response = await notion.databases.query({
@@ -52,11 +66,12 @@ export async function getCompaniesByStatus(status: EmailStatus | EmailStatus[]):
   }));
 }
 
-export async function getAllCompanies(): Promise<Company[]> {
+export async function getAllCompanies(connection: NotionConnection): Promise<Company[]> {
   if (process.env.NEXT_PUBLIC_APP_MODE === 'demo') {
     return getMockCompanies();
   }
 
+  const { notion, DB_ID } = connection;
   const response = await notion.databases.query({
     database_id: DB_ID,
     sorts: [{ property: 'Number', direction: 'ascending' }]
@@ -86,6 +101,7 @@ export async function getAllCompanies(): Promise<Company[]> {
 }
 
 export async function updateEmailDraft(
+  connection: NotionConnection,
   notionId: string,
   subject: string,
   body: string,
@@ -97,6 +113,7 @@ export async function updateEmailDraft(
     return;
   }
 
+  const { notion } = connection;
   await notion.pages.update({
     page_id: notionId,
     properties: {
@@ -108,12 +125,18 @@ export async function updateEmailDraft(
   });
 }
 
-export async function updateStatus(notionId: string, status: EmailStatus, notes?: string): Promise<void> {
+export async function updateStatus(
+  connection: NotionConnection,
+  notionId: string,
+  status: EmailStatus,
+  notes?: string
+): Promise<void> {
   if (process.env.NEXT_PUBLIC_APP_MODE === 'demo') {
     mockUpdateStatus(notionId, status, notes);
     return;
   }
 
+  const { notion } = connection;
   const props: any = {
     'Email Status': { select: { name: status } },
   };
@@ -126,12 +149,13 @@ export async function updateStatus(notionId: string, status: EmailStatus, notes?
   await notion.pages.update({ page_id: notionId, properties: props });
 }
 
-export async function getCompanyById(id: string): Promise<Company | null> {
+export async function getCompanyById(connection: NotionConnection, id: string): Promise<Company | null> {
   if (process.env.NEXT_PUBLIC_APP_MODE === 'demo') {
     const { getMockCompany } = require('./mockDb');
     return getMockCompany(id) ?? null;
   }
 
+  const { notion } = connection;
   const page: any = await notion.pages.retrieve({ page_id: id });
   if (!page) return null;
 

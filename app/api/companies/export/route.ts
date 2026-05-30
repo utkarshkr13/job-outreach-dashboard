@@ -1,11 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getAllCompanies } from '@/lib/notion';
+import { NextResponse } from 'next/server';
+import { getAllCompanies, getNotionConnection } from '@/lib/notion';
+import { getAuthenticatedUser } from '@/lib/auth-middleware';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest) {
+export async function GET(req: Request) {
   try {
-    const companies = await getAllCompanies();
+    // 1. Authenticate user & load decrypted secrets (allows token in searchParams)
+    const { creds } = await getAuthenticatedUser(req);
+    const connection = getNotionConnection(creds.notionApiKey, creds.notionDbId);
+
+    const companies = await getAllCompanies(connection);
     const sentCompanies = companies.filter(c => c.emailStatus === 'Sent');
 
     // Create CSV header and rows

@@ -1,12 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCompanyById, updateEmailDraft } from '@/lib/notion';
+import { NextResponse } from 'next/server';
+import { getCompanyById, updateEmailDraft, getNotionConnection } from '@/lib/notion';
 import { mockGenerateFollowUp } from '@/lib/mockDb';
 import Anthropic from '@anthropic-ai/sdk';
+import { getAuthenticatedUser } from '@/lib/auth-middleware';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
+    // 1. Authenticate user & load decrypted secrets
+    const { creds } = await getAuthenticatedUser(req);
+    const connection = getNotionConnection(creds.notionApiKey, creds.notionDbId);
+
     const { notionId } = await req.json();
     if (!notionId) {
       return NextResponse.json({ error: 'Missing notionId' }, { status: 400 });
@@ -17,14 +22,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, result });
     }
 
-    // Production Mode: Trigger Claude to write a second-touchpoint follow-up thread
-    const company = await getCompanyById(notionId);
+    // 2. Fetch specific company lead from the scoped Notion DB
+    const company = await getCompanyById(connection, notionId);
     if (!company) {
-      return NextResponse.json({ error: 'Company not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Company not found in active database.' }, { status: 404 });
     }
 
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    // 3. Setup dynamic Anthropic and profile details
+    const anthropicKey = creds.anthropicApiKey || process.env.ANTHROPIC_API_KEY;
+    if (!anthropicKey) {
+      throw new Error('Missing Anthropic API Key. Configure your key in Settings to execute email generation.');
+    }
+    const anthropic = new Anthropic({ apiKey: anthropicKey });
+    
     const firstName = company.contactName ? company.contactName.trim().split(' ')[0] : 'there';
+    const signature = [
+      creds.senderName,
+      creds.senderPhone,
+      creds.senderLinkedin
+    ].filter(Boolean).join('\n');
     
     const prompt = `Write a short, polite second-touchpoint follow-up email for job application.
 The recruiter's name is ${firstName}, company is ${company.company}, and the targeted role is ${company.role}.
@@ -34,13 +50,11 @@ NO em dashes. NO fluff. Keep signature block.
 Format of the follow-up:
 Hi ${firstName},
 
-[2 sentences politely checking in, referencing your Business Analyst background shipping end-to-end at an AI-first company]
+[2 sentences politely checking in, referencing your background: "${creds.senderBio}"]
 
 Let me know if you have any availability for a quick call next week.
 
-Utkarsh Kumar
-+91 9969396063
-linkedin.com/in/utkarsh-kumar-rajput-76b673232`;
+${signature}`;
 
     const response = await anthropic.messages.create({
       model: 'claude-3-5-sonnet-20241022',
@@ -49,10 +63,10 @@ linkedin.com/in/utkarsh-kumar-rajput-76b673232`;
     });
 
     const body = (response.content[0] as any).text;
-    const subject = `Re: Associate PM / BA Interest at ${company.company} | Utkarsh Kumar`;
+    const subject = `Re: ${creds.targetRoles} Interest at ${company.company} | ${creds.senderName}`;
 
     // Save back to Notion with Draft Ready status so the user can review/edit
-    await updateEmailDraft(notionId, subject, body, 'Score: 9.6. Approved (Follow-Up Cadence). Polished second-touchpoint email.', 'Draft Ready');
+    await updateEmailDraft(connection, notionId, subject, body, 'Score: 9.6. Approved (Follow-Up Cadence). Polished second-touchpoint email.', 'Draft Ready');
 
     return NextResponse.json({
       success: true,
@@ -66,6 +80,7 @@ linkedin.com/in/utkarsh-kumar-rajput-76b673232`;
 
   } catch (error: any) {
     console.error('Error generating follow-up draft:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const isAuthError = error.message.includes('Unauthorized') || error.message.includes('User not found');
+    return NextResponse.json({ error: error.message }, { status: isAuthError ? 401 : 500 });
   }
 }

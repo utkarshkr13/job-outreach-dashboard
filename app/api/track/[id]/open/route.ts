@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { mockRegisterOpen } from '@/lib/mockDb';
 import { Client } from '@notionhq/client';
+import { db } from '@/lib/firebase-admin';
+import { decrypt } from '@/lib/crypto';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,16 +14,34 @@ const TRACKING_PIXEL = Buffer.from(
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  
+  // Extract user ID from tracking query parameter
+  const userId = req.nextUrl.searchParams.get('u');
 
   try {
-    const isLocal = process.env.NEXT_PUBLIC_APP_MODE === 'demo' || !process.env.NOTION_API_KEY;
+    const isDemo = process.env.NEXT_PUBLIC_APP_MODE === 'demo';
 
-    if (isLocal) {
+    if (isDemo || !userId) {
+      // Local/Demo Mode fallback
       mockRegisterOpen(id);
+      console.log(`[TRACKER] [DEMO] Registered open count for lead ${id}`);
     } else {
-      // Production Mode: Update Notion open counts
-      const notion = new Client({ auth: process.env.NOTION_API_KEY });
+      // Production Multi-Tenant Mode: Retrieve and decrypt user credentials to update Notion
       try {
+        const userDoc = await db.collection('users').doc(userId).get();
+        if (!userDoc.exists) {
+          throw new Error(`User ${userId} not found in Firestore.`);
+        }
+
+        const userData = userDoc.data()!;
+        const apiKey = decrypt(userData.credentials?.notionApiKey || '');
+        
+        if (!apiKey) {
+          throw new Error(`Notion API key not configured or failed to decrypt for user ${userId}`);
+        }
+
+        const notion = new Client({ auth: apiKey });
+
         // Query the current page to read open count
         const page: any = await notion.pages.retrieve({ page_id: id });
         const currentCountText = page.properties['Draft Notes']?.rich_text?.[0]?.text?.content ?? '';
@@ -42,12 +62,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
             }
           }
         });
-      } catch (err) {
-        console.warn('[TRACKER] Failed to update Notion open count:', err);
+        console.log(`[TRACKER] Scoped open count successfully incremented to ${count} for lead ${id} (User: ${userId})`);
+      } catch (err: any) {
+        console.warn(`[TRACKER] Failed to update Notion open count for user ${userId}:`, err.message);
       }
     }
-  } catch (e) {
-    console.error('[TRACKER] Pixel tracker error:', e);
+  } catch (e: any) {
+    console.error('[TRACKER] Pixel tracker error:', e.message);
   }
 
   // Always return the transparent 1x1 tracking GIF immediately
