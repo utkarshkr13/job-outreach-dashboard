@@ -536,7 +536,7 @@ export default function MorningDashboard() {
           <button
             type="submit"
             disabled={ingestLoading || !ingestCompany}
-            className="apple-glow-blue w-full bg-blue-600 hover:bg-blue-500 text-white rounded-full py-2 text-xs font-semibold transition-all disabled:opacity-40 flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+            className="apple-glow-blue apple-button-sweep w-full bg-blue-600 hover:bg-blue-500 text-white rounded-full py-2 text-xs font-semibold transition-all disabled:opacity-40 flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
           >
             {ingestLoading ? (
               <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
@@ -612,7 +612,7 @@ export default function MorningDashboard() {
                   setActiveTab(tab);
                   setFocusedIndex(-1);
                 }}
-                className={`apple-tab-elastic apple-badge-focus-scale px-4 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 flex items-center gap-2 cursor-pointer ${activeTab === tab ? 'bg-white dark:bg-[#333336] text-[#1d1d1f] dark:text-white shadow-sm' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-500 dark:hover:text-neutral-300'}`}
+                className={`apple-tab-elastic apple-badge-focus-shift px-4 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 flex items-center gap-2 cursor-pointer ${activeTab === tab ? 'bg-white dark:bg-[#333336] text-[#1d1d1f] dark:text-white shadow-sm' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-500 dark:hover:text-neutral-300'}`}
               >
                 <span>{tab}</span>
                 <span className={`text-[9px] px-1.5 py-0.5 rounded-full transition-colors ${activeTab === tab ? 'bg-[#f5f5f7] dark:bg-neutral-900 text-neutral-500 dark:text-neutral-400' : 'bg-[#e8e8ed]/40 dark:bg-neutral-900/20 text-neutral-400 dark:text-neutral-600'}`}>
@@ -663,7 +663,7 @@ export default function MorningDashboard() {
                           <span className="font-semibold text-neutral-800 dark:text-neutral-100 text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                             {company.company}
                           </span>
-                          <span className={`text-[8.5px] font-semibold px-2 py-0.5 rounded-full ${crmStage ? crmStage.colorClass : 'bg-neutral-100 text-neutral-500'} ${company.emailStatus === 'Redo' ? 'apple-glow-amber border' : ''} ${company.emailStatus === 'New' ? 'apple-glow-cyan border' : ''} ${company.emailStatus === 'Approved' ? 'apple-glow-teal border' : ''} ${company.emailStatus === 'Replied' ? 'apple-glow-pink border' : ''} ${company.emailStatus === 'Interview' ? 'apple-glow-violet border' : ''} ${company.emailStatus === 'Offer' ? 'apple-glow-lime border' : ''}`}>
+                          <span className={`text-[8.5px] font-semibold px-2 py-0.5 rounded-full ${crmStage ? crmStage.colorClass : 'bg-neutral-100 text-neutral-500'} ${company.emailStatus === 'Redo' ? 'apple-glow-amber border' : ''} ${company.emailStatus === 'New' ? 'apple-glow-cyan-new border' : ''} ${company.emailStatus === 'Approved' ? 'apple-glow-teal border' : ''} ${company.emailStatus === 'Replied' ? 'apple-glow-pink border' : ''} ${company.emailStatus === 'Interview' ? 'apple-glow-violet border' : ''} ${company.emailStatus === 'Offer' ? 'apple-glow-lime border' : ''}`}>
                             {company.emailStatus}
                           </span>
                         </div>
