@@ -494,8 +494,12 @@ export default function MorningDashboard() {
       </div>
 
       {message && (
-        <div className="bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-850 text-neutral-800 dark:text-neutral-300 text-xs font-semibold px-5 py-3 rounded-2xl flex items-center gap-2 shadow-sm transition-colors duration-300">
-          <span>🔔</span> {message}
+        <div className="apple-toast-overlay fixed top-6 right-6 z-50 text-neutral-850 dark:text-neutral-200 text-xs font-semibold px-5 py-3.5 rounded-2xl flex items-center gap-2 border transition-all duration-300 max-w-sm">
+          <span className="text-sm">🔔</span>
+          <div className="flex-1">
+            <p className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider">System Notification</p>
+            <p className="mt-0.5">{message}</p>
+          </div>
         </div>
       )}
 
@@ -571,13 +575,13 @@ export default function MorningDashboard() {
               <div className="bg-[#e8e8ed]/60 dark:bg-neutral-900 border border-[#d2d2d7]/30 dark:border-neutral-850 rounded-xl p-0.5 flex transition-colors duration-300">
                 <button
                   onClick={() => setCurrentView('list')}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${currentView === 'list' ? 'bg-white dark:bg-[#333336] text-[#1d1d1f] dark:text-white shadow-sm' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-500 dark:hover:text-neutral-300'}`}
+                  className={`apple-sliding-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer ${currentView === 'list' ? 'active text-[#1d1d1f] dark:text-white' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-500 dark:hover:text-neutral-300'}`}
                 >
                   List
                 </button>
                 <button
                   onClick={() => setCurrentView('kanban')}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${currentView === 'kanban' ? 'bg-white dark:bg-[#333336] text-[#1d1d1f] dark:text-white shadow-sm' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-500 dark:hover:text-neutral-300'}`}
+                  className={`apple-sliding-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer ${currentView === 'kanban' ? 'active text-[#1d1d1f] dark:text-white' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-500 dark:hover:text-neutral-300'}`}
                 >
                   Kanban
                 </button>
@@ -1101,7 +1105,7 @@ export default function MorningDashboard() {
                   {/* Cadence Timeline */}
                   <div className="bg-[#fafafa] dark:bg-neutral-900/20 border border-[#e8e8ed] dark:border-neutral-900 rounded-2xl p-4 space-y-3 transition-colors">
                     <h4 className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">📅 Threaded Cadence Timelines</h4>
-                    <div className="flex flex-col gap-3.5 border-l border-[#e8e8ed] dark:border-neutral-900 pl-4 py-1 ml-2 transition-colors">
+                    <div className="apple-timeline-hairline flex flex-col gap-3.5 pl-5 py-1 ml-1 transition-colors">
                       <div className="relative">
                         <span className="absolute -left-[20px] top-1 bg-emerald-500 w-2 h-2 rounded-full ring-4 ring-white dark:ring-neutral-950"></span>
                         <div className="text-xs">
