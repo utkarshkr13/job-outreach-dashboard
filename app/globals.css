@@ -1563,6 +1563,36 @@ body::-webkit-scrollbar-thumb:hover {
   border-color: rgba(52, 211, 153, 0.45) !important;
 }
 
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 39 ─────────────────────── */
+
+/* Apple Silicon Hardware-Accelerated Tab Gliding Hover Accent */
+.apple-tab-glide {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.apple-tab-glide:hover {
+  box-shadow: 0 4px 14px rgba(0, 113, 227, 0.06), inset 0 0 0 1px rgba(0, 113, 227, 0.15) !important;
+}
+
+/* macOS Finder/Mail Hover Row Accent Saturation Sweep */
+.apple-row-saturate {
+  transition: filter 0.3s ease;
+}
+.apple-row-saturate:hover {
+  filter: saturate(180%) !important;
+}
+
+/* Breathing Teal-Cyan Aurora Milestone Highlight for Approved stages */
+@keyframes breathingApprovedTealGlow {
+  0% { box-shadow: 0 0 0 0 rgba(48, 176, 198, 0.05); }
+  50% { box-shadow: 0 0 14px 3px rgba(48, 176, 198, 0.22); }
+  100% { box-shadow: 0 0 0 0 rgba(48, 176, 198, 0.05); }
+}
+.apple-glow-approved-teal {
+  animation: breathingApprovedTealGlow 3.5s infinite ease-in-out;
+  border-color: rgba(48, 176, 198, 0.45) !important;
+}
+
+
 
 
 
