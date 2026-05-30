@@ -3,21 +3,31 @@
 import { useEffect, useState } from 'react';
 import { Company } from '@/types';
 import Link from 'next/link';
+import { useAuth } from '@/lib/auth-context';
 
 export default function SentPage() {
+  const { user } = useAuth();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/companies?status=Sent')
-      .then(r => r.json())
-      .then(data => {
+    async function loadData() {
+      try {
+        const token = user ? await user.getIdToken() : '';
+        const headers: HeadersInit = token ? { 'Authorization': `Bearer ${token}` } : {};
+        const res = await fetch('/api/companies?status=Sent', { headers });
+        const data = await res.json();
         if (Array.isArray(data)) {
           setCompanies(data);
         }
+      } catch (err) {
+        console.error('Failed to load sent outreaches:', err);
+      } finally {
         setLoading(false);
-      });
-  }, []);
+      }
+    }
+    loadData();
+  }, [user]);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in text-[#1d1d1f] dark:text-[#f5f5f7] transition-colors duration-300">

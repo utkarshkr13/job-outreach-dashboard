@@ -1,5 +1,6 @@
 import { list } from '@vercel/blob';
 import { NextRequest, NextResponse } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/auth-middleware';
 import fs from 'fs';
 import path from 'path';
 
@@ -12,11 +13,24 @@ const MINIMAL_PDF = Buffer.from(
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const companyId = searchParams.get('companyId');
+  let userId = searchParams.get('userId');
+
+  // Authenticate user to verify identity and get userId
+  try {
+    const authContext = await getAuthenticatedUser(req);
+    userId = authContext.userId;
+  } catch (e) {
+    // Non-blocking query param fallback if Authorization header was not sent (e.g. standard file href clicks)
+    if (!userId) {
+      userId = 'demo-user-id';
+    }
+  }
 
   const isLocal = process.env.NEXT_PUBLIC_APP_MODE === 'demo' || !process.env.BLOB_READ_WRITE_TOKEN;
 
   if (isLocal) {
-    const customPath = companyId ? path.join(process.cwd(), 'lib', 'resumes', `custom-${companyId}.pdf`) : '';
+    const customPath = companyId ? path.join(process.cwd(), 'lib', 'resumes', `custom-${userId}-${companyId}.pdf`) : '';
+    const personalPath = path.join(process.cwd(), 'lib', 'resumes', `resume-${userId}.pdf`);
     const globalPath = path.join(process.cwd(), 'lib', 'resumes', 'global-resume.pdf');
 
     if (companyId && fs.existsSync(customPath)) {
@@ -24,7 +38,15 @@ export async function GET(req: NextRequest) {
       return new NextResponse(buffer, {
         headers: {
           'Content-Type': 'application/pdf',
-          'Content-Disposition': `inline; filename="resume-${companyId}.pdf"`,
+          'Content-Disposition': `inline; filename="resume-${userId}-${companyId}.pdf"`,
+        },
+      });
+    } else if (fs.existsSync(personalPath)) {
+      const buffer = fs.readFileSync(personalPath);
+      return new NextResponse(buffer, {
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `inline; filename="resume-${userId}.pdf"`,
         },
       });
     } else if (fs.existsSync(globalPath)) {
@@ -36,7 +58,6 @@ export async function GET(req: NextRequest) {
         },
       });
     } else {
-      // Return a valid blank PDF block as a friendly placeholder in local dev
       return new NextResponse(MINIMAL_PDF, {
         headers: {
           'Content-Type': 'application/pdf',
@@ -49,7 +70,10 @@ export async function GET(req: NextRequest) {
   // Vercel Blob Production Fallback
   try {
     const { blobs } = await list();
-    let resumeBlob = companyId ? blobs.find(b => b.pathname === `custom-${companyId}.pdf`) : null;
+    let resumeBlob = companyId ? blobs.find(b => b.pathname === `custom-${userId}-${companyId}.pdf`) : null;
+    if (!resumeBlob) {
+      resumeBlob = blobs.find(b => b.pathname === `resume-${userId}.pdf`);
+    }
     if (!resumeBlob) {
       resumeBlob = blobs.find(b => b.pathname === 'resume.pdf');
     }
@@ -77,7 +101,7 @@ export async function GET(req: NextRequest) {
       return new NextResponse('Not found', { status: 404 });
     }
   } catch (error: any) {
-    console.error('Error fetching resume from Vercel Blob:', error);
+    console.error('❌ Error fetching resume from Vercel Blob:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

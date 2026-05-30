@@ -1,4 +1,6 @@
 'use client';
+import { useAuth } from '@/lib/auth-context';
+import { useRouter } from 'next/navigation';
 
 import { useEffect, useState } from 'react';
 import { Company, EmailStatus } from '@/types';
@@ -16,7 +18,21 @@ const CRM_STAGES: { status: EmailStatus; label: string; colorClass: string; desc
   { status: 'Rejected', label: 'Rejected', colorClass: 'bg-red-50 dark:bg-red-950/10 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-950/30', desc: 'Archived leads' },
 ];
 
-export default function MorningDashboard() {
+function DashboardContent() {
+  const { user } = useAuth();
+  const router = useRouter();
+
+  const authFetch = async (url: string, options: RequestInit = {}) => {
+    if (!user) return fetch(url, options);
+    const token = await user.getIdToken();
+    return fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  };
   // CRM state
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
@@ -99,7 +115,7 @@ export default function MorningDashboard() {
   const fetchCompanies = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/companies');
+      const res = await authFetch('/api/companies');
       const data = await res.json();
       if (Array.isArray(data)) {
         setCompanies(data);
@@ -186,7 +202,7 @@ export default function MorningDashboard() {
   const triggerAICompanyBrief = async (company: Company) => {
     setIntelLoading(true);
     try {
-      const response = await fetch('/api/generate', {
+      const response = await authFetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notionId: company.notionId }),
@@ -237,7 +253,7 @@ export default function MorningDashboard() {
     if (!ingestCompany) return;
     setIngestLoading(true);
     try {
-      const res = await fetch('/api/companies/ingest', {
+      const res = await authFetch('/api/companies/ingest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ company: ingestCompany, role: ingestRole }),
@@ -260,7 +276,7 @@ export default function MorningDashboard() {
   const handleStatusUpdate = async (id: string, newStatus: EmailStatus) => {
     setActionLoading(id + newStatus);
     try {
-      await fetch('/api/companies', {
+      await authFetch('/api/companies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notionId: id, status: newStatus }),
@@ -285,7 +301,7 @@ export default function MorningDashboard() {
   const handleGenerateFollowUp = async (id: string) => {
     setActionLoading(id + 'followup');
     try {
-      const res = await fetch('/api/generate/followup', {
+      const res = await authFetch('/api/generate/followup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notionId: id }),
@@ -308,7 +324,7 @@ export default function MorningDashboard() {
   const handleSendEmail = async (id: string) => {
     setActionLoading(id + 'send');
     try {
-      const res = await fetch(`/api/send/${id}`, { method: 'POST' });
+      const res = await authFetch(`/api/send/${id}`, { method: 'POST' });
       const data = await res.json();
       if (data.success) {
         setCompanies(prev =>
@@ -332,7 +348,7 @@ export default function MorningDashboard() {
     setBulkLoading(true);
     const targets = companies.filter(c => c.emailStatus === 'Draft Ready');
     for (const c of targets) {
-      await fetch('/api/companies', {
+      await authFetch('/api/companies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notionId: c.notionId, status: 'Approved' }),
@@ -346,7 +362,7 @@ export default function MorningDashboard() {
 
   const handleBulkSend = async () => {
     setBulkLoading(true);
-    const res = await fetch('/api/send/bulk', { method: 'POST' });
+    const res = await authFetch('/api/send/bulk', { method: 'POST' });
     const data = await res.json();
     setBulkLoading(false);
     fetchCompanies();
@@ -361,7 +377,7 @@ export default function MorningDashboard() {
     if (!selectedCompany) return;
     setActionLoading(selectedCompanyId + 'save');
     try {
-      await fetch('/api/companies', {
+      await authFetch('/api/companies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notionId: selectedCompanyId, status: selectedCompany.emailStatus }),
@@ -1200,4 +1216,142 @@ export default function MorningDashboard() {
 
     </div>
   );
+}
+
+
+// ── MARKETING HOMEPAGE COMPONENT ──
+function MarketingHomepage() {
+  const router = useRouter();
+
+  return (
+    <div className="relative min-h-[90vh] overflow-hidden bg-[#f5f5f7] dark:bg-[#000000] transition-colors duration-300">
+      
+      {/* Aurora Breathing Ambient Glow */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-violet-500/10 dark:bg-violet-600/15 rounded-full blur-[120px] animate-pulse duration-[8000ms]"></div>
+      <div className="absolute bottom-10 left-10 w-[300px] h-[300px] bg-purple-500/5 dark:bg-purple-600/10 rounded-full blur-[100px] animate-pulse duration-[6000ms]"></div>
+
+      {/* Hero Section */}
+      <section className="relative z-10 max-w-5xl mx-auto px-6 pt-20 pb-16 text-center space-y-8">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/60 dark:bg-neutral-900/60 border border-white/40 dark:border-neutral-800/40 backdrop-blur-md shadow-sm">
+          <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse"></span>
+          <span className="text-[10px] font-bold tracking-wider uppercase text-neutral-500 dark:text-neutral-400">Version 2.0 Dynamic Engine</span>
+        </div>
+
+        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-neutral-900 dark:text-white leading-tight max-w-3xl mx-auto">
+          Your cold email pipeline. <span className="bg-gradient-to-r from-violet-600 to-indigo-600 dark:from-violet-400 dark:to-indigo-400 bg-clip-text text-transparent">On autopilot.</span>
+        </h1>
+
+        <p className="text-base sm:text-lg text-neutral-550 dark:text-neutral-400 max-w-2xl mx-auto leading-relaxed">
+          Connect Gmail and Notion. Wake up to personalized cold email drafts for 30+ companies generated by Claude. Review, approve, and send in minutes.
+        </p>
+
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+          <button
+            onClick={() => router.push('/login')}
+            className="w-full sm:w-auto px-8 h-13 rounded-2xl bg-black text-white dark:bg-white dark:text-black font-semibold text-sm hover:scale-102 transition-all duration-200 shadow-md shadow-violet-500/10 cursor-pointer"
+          >
+            Get Started Free
+          </button>
+          <a
+            href="https://utkarshkr13.notion.site/Job-Outreach-Tracker-154df656a87747e98d9ee812a1f9e812"
+            target="_blank"
+            rel="noreferrer"
+            className="w-full sm:w-auto px-8 h-13 rounded-2xl border border-neutral-300 dark:border-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-900/60 text-neutral-750 dark:text-neutral-300 font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+          >
+            Notion Template
+          </a>
+        </div>
+      </section>
+
+      {/* How it Works Section */}
+      <section className="relative z-10 max-w-5xl mx-auto px-6 py-16 border-t border-[#e8e8ed]/60 dark:border-neutral-900/60">
+        <h2 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white text-center mb-12">How it works</h2>
+        
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="p-6 rounded-2xl backdrop-blur-md bg-white/40 dark:bg-neutral-900/40 border border-white/50 dark:border-neutral-850/50 shadow-sm space-y-4">
+            <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-950/20 text-violet-600 dark:text-violet-400 flex items-center justify-center text-lg font-bold">1</div>
+            <h3 className="font-semibold text-sm text-neutral-900 dark:text-white">Add leads in Notion</h3>
+            <p className="text-xs text-neutral-500 dark:text-neutral-450 leading-relaxed">
+              Paste target company data and contact emails into your job tracker Notion CRM database using our template.
+            </p>
+          </div>
+          
+          <div className="p-6 rounded-2xl backdrop-blur-md bg-white/40 dark:bg-neutral-900/40 border border-white/50 dark:border-neutral-850/50 shadow-sm space-y-4">
+            <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-950/20 text-violet-600 dark:text-violet-400 flex items-center justify-center text-lg font-bold">2</div>
+            <h3 className="font-semibold text-sm text-neutral-900 dark:text-white">Claude creates drafts</h3>
+            <p className="text-xs text-neutral-500 dark:text-neutral-450 leading-relaxed">
+              Every morning, our AI engine digests your resume, profile bio, and target company to write highly personalized cold drafts.
+            </p>
+          </div>
+          
+          <div className="p-6 rounded-2xl backdrop-blur-md bg-white/40 dark:bg-neutral-900/40 border border-white/50 dark:border-neutral-850/50 shadow-sm space-y-4">
+            <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-950/20 text-violet-600 dark:text-violet-400 flex items-center justify-center text-lg font-bold">3</div>
+            <h3 className="font-semibold text-sm text-neutral-900 dark:text-white">Approve and send</h3>
+            <p className="text-xs text-neutral-500 dark:text-neutral-450 leading-relaxed">
+              Open your dashboard, read the generated drafts, and dispatch them directly from your Gmail with a single click.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Grid Section */}
+      <section className="relative z-10 max-w-5xl mx-auto px-6 py-16 border-t border-[#e8e8ed]/60 dark:border-neutral-900/60">
+        <h2 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white text-center mb-12">Core Features</h2>
+        
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[
+            { title: "Gmail Integration", desc: "No generic bulk senders. Emails originate and deliver directly from your personal Gmail address.", icon: "✉️" },
+            { title: "Resume Auto-Annex", desc: "Upload your resume PDF and let the system append it as an attachment to relevant outreaches.", icon: "📄" },
+            { title: "Approve, Reject, Redo", desc: "Complete manual control. Edit subjects and drafts, reject poor matches, or request AI revisions.", icon: "⚙️" },
+            { title: "Notion as your CRM", desc: "Maintain full control of your job search pipeline. No learning curve: just update Notion.", icon: "📓" },
+            { title: "Secure Multi-Tenancy", desc: "All Notion API keys and Claude credentials are fully encrypted using military grade AES-256-CBC.", icon: "🔒" },
+            { title: "Local Dev Sandbox", desc: "Fully offline capable development mode that allows complete exploration without API keys.", icon: "📦" }
+          ].map((f, i) => (
+            <div key={i} className="p-6 rounded-2xl bg-white/45 dark:bg-neutral-900/25 border border-neutral-200/50 dark:border-neutral-850/50 space-y-2">
+              <span className="text-xl block mb-2">{f.icon}</span>
+              <h4 className="font-semibold text-xs text-neutral-900 dark:text-white">{f.title}</h4>
+              <p className="text-[11px] text-neutral-500 dark:text-neutral-450 leading-relaxed">{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="relative z-10 max-w-5xl mx-auto px-6 py-16 text-center space-y-6">
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white">Take control of your outreach today</h2>
+        <p className="text-xs text-neutral-500 dark:text-neutral-450 max-w-md mx-auto">
+          Sign up now, duplicate the Notion template, and start sending highly personalized cold emails in minutes.
+        </p>
+        <button
+          onClick={() => router.push('/login')}
+          className="px-8 h-12 rounded-xl bg-black text-white dark:bg-white dark:text-black font-semibold text-sm hover:scale-102 transition-all cursor-pointer shadow-md"
+        >
+          Start for Free
+        </button>
+        <div className="text-[10px] text-neutral-400 mt-2">No credit card required. Free tier includes up to 20 monthly cold drafts.</div>
+      </section>
+    </div>
+  );
+}
+
+// ── MAIN CONDITIONAL EXPORT WRAPPER ──
+export default function MorningDashboard() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center bg-[#f5f5f7] dark:bg-black transition-colors duration-300">
+        <svg className="animate-spin h-8 w-8 text-neutral-500" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+        </svg>
+      </div>
+    );
+  }
+
+  if (user) {
+    return <DashboardContent />;
+  }
+
+  return <MarketingHomepage />;
 }

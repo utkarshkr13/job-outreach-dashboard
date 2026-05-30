@@ -3,15 +3,19 @@
 import { useEffect, useState } from 'react';
 import { Company } from '@/types';
 import Link from 'next/link';
+import { useAuth } from '@/lib/auth-context';
 
 export default function AnalyticsPage() {
+  const { user } = useAuth();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch('/api/companies');
+        const token = user ? await user.getIdToken() : '';
+        const headers: HeadersInit = token ? { 'Authorization': `Bearer ${token}` } : {};
+        const res = await fetch('/api/companies', { headers });
         const data = await res.json();
         if (Array.isArray(data)) {
           setCompanies(data);
@@ -23,7 +27,7 @@ export default function AnalyticsPage() {
       }
     }
     fetchData();
-  }, []);
+  }, [user]);
 
   if (loading) {
     return (

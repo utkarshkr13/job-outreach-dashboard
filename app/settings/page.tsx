@@ -1,749 +1,748 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/lib/auth-context';
+import { useRouter } from 'next/navigation';
 
-type ResumeType = 'global' | 'pm' | 'ba';
+type ActiveSection = 'profile' | 'gmail' | 'notion' | 'claude' | 'resume' | 'security';
 
 interface ResumeState {
   url: string | null;
   uploadedAt: string | null;
   loading: boolean;
   message: string;
-  filename?: string;
-  size?: string;
 }
 
 export default function SettingsPage() {
-  // Resumes upload and status state
-  const [resumes, setResumes] = useState<Record<ResumeType, ResumeState>>({
-    global: { url: null, uploadedAt: null, loading: false, message: '', filename: 'global-resume.pdf', size: '142 KB' },
-    pm: { url: null, uploadedAt: null, loading: false, message: '', filename: 'pm-resume.pdf', size: '158 KB' },
-    ba: { url: null, uploadedAt: null, loading: false, message: '', filename: 'ba-resume.pdf', size: '135 KB' },
+  const { user } = useAuth();
+  const router = useRouter();
+
+  const [activeSection, setActiveSection] = useState<ActiveSection>('profile');
+  const [loading, setLoading] = useState<boolean>(true);
+  const [saveLoading, setSaveLoading] = useState<boolean>(false);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Profile Form States
+  const [profileName, setProfileName] = useState<string>('');
+  const [profilePhone, setProfilePhone] = useState<string>('');
+  const [profileLinkedin, setProfileLinkedin] = useState<string>('');
+  const [profileBio, setProfileBio] = useState<string>('');
+  const [profileRoles, setProfileRoles] = useState<string>('');
+
+  // Credentials States
+  const [gmailUser, setGmailUser] = useState<string>('');
+  const [gmailConnected, setGmailConnected] = useState<boolean>(false);
+  
+  const [notionApiKey, setNotionApiKey] = useState<string>('');
+  const [notionDbId, setNotionDbId] = useState<string>('');
+  const [notionConnected, setNotionConnected] = useState<boolean>(false);
+  const [notionTesting, setNotionTesting] = useState<boolean>(false);
+
+  const [anthropicApiKey, setAnthropicApiKey] = useState<string>('');
+  const [anthropicConnected, setAnthropicConnected] = useState<boolean>(false);
+
+  // Resume State
+  const [resume, setResume] = useState<ResumeState>({
+    url: null,
+    uploadedAt: null,
+    loading: false,
+    message: '',
   });
 
-  // AI smart routing keywords (persisted locally)
-  const [pmKeywords, setPmKeywords] = useState<string[]>(['product', 'pm', 'agile', 'scrum', 'roadmap', 'owner', 'manager']);
-  const [baKeywords, setBaKeywords] = useState<string[]>(['business', 'analyst', 'data', 'sql', 'python', 'analytics', 'tableau']);
-  const [newPmKeyword, setNewPmKeyword] = useState('');
-  const [newBaKeyword, setNewBaKeyword] = useState('');
+  // Security States
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState<boolean>(false);
+  const [cronEnabled, setCronEnabled] = useState<boolean>(true);
+  const [cronHour, setCronHour] = useState<number>(4);
 
-  // Cold Outreach email signature and AI profile states (persisted locally)
-  const [userName, setUserName] = useState('Utkarsh Kumar');
-  const [userTitle, setUserTitle] = useState('Business Analyst & Associate PM Candidate');
-  const [userCalendly, setUserCalendly] = useState('calendly.com/utkarsh-kumar/15min');
-  const [userPhone, setUserPhone] = useState('+91 9969396063');
-  const [linkedinUrl, setLinkedinUrl] = useState('linkedin.com/in/utkarsh-kumar-rajput-76b673232');
-  
-  // AI Tailor Bio & Career background profile
-  const [aiBio, setAiBio] = useState('Dynamic operations and business systems analyst with 2+ years of hands-on experience owning end-to-end delivery at AI-first startups. Expert in Python data pipelines, relational SQL optimization, BRD design, and cross-functional agile orchestration.');
-  const [aiTone, setAiTone] = useState<'confident' | 'balanced' | 'highly-technical' | 'conversational'>('balanced');
-  const [selectedStrengths, setSelectedStrengths] = useState<string[]>(['BRD/PRD Writing', 'SQL/Python Analytics', 'Agile Delivery', 'UAT Testing']);
-  
-  // DevTools Database Reset controls
+  // DevTools reseed
   const [reseedLoading, setReseedLoading] = useState(false);
-  const [reseedMessage, setReseedMessage] = useState('');
 
-  // Load state from localStorage on startup
   useEffect(() => {
-    fetchResumeStatus('global');
-    fetchResumeStatus('pm');
-    fetchResumeStatus('ba');
+    if (user) {
+      loadSettings();
+    }
+  }, [user]);
 
-    const savedPm = localStorage.getItem('crm-pm-keywords');
-    if (savedPm) setPmKeywords(JSON.parse(savedPm));
-
-    const savedBa = localStorage.getItem('crm-ba-keywords');
-    if (savedBa) setBaKeywords(JSON.parse(savedBa));
-
-    const savedName = localStorage.getItem('crm-user-name');
-    if (savedName) setUserName(savedName);
-
-    const savedTitle = localStorage.getItem('crm-user-title');
-    if (savedTitle) setUserTitle(savedTitle);
-
-    const savedCalendly = localStorage.getItem('crm-user-calendly');
-    if (savedCalendly) setUserCalendly(savedCalendly);
-
-    const savedPhone = localStorage.getItem('crm-user-phone');
-    if (savedPhone) setUserPhone(savedPhone);
-
-    const savedLinkedin = localStorage.getItem('crm-user-linkedin');
-    if (savedLinkedin) setLinkedinUrl(savedLinkedin);
-
-    const savedBio = localStorage.getItem('crm-ai-bio');
-    if (savedBio) setAiBio(savedBio);
-
-    const savedTone = localStorage.getItem('crm-ai-tone');
-    if (savedTone) setAiTone(savedTone as any);
-
-    const savedStrengths = localStorage.getItem('crm-ai-strengths');
-    if (savedStrengths) setSelectedStrengths(JSON.parse(savedStrengths));
-  }, []);
-
-  const fetchResumeStatus = async (type: ResumeType) => {
+  const loadSettings = async () => {
+    setLoading(true);
+    setErrorMsg(null);
     try {
-      const companyIdParam = type !== 'global' ? `?companyId=${type}` : '';
-      const res = await fetch(`/api/resume${companyIdParam}`);
+      const token = await user?.getIdToken();
+      const res = await fetch('/api/settings/credentials', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch settings.');
+      }
+
+      const p = data.profile || {};
+      const c = data.credentials || {};
+      const s = data.settings || {};
+
+      setProfileName(p.senderName || user?.displayName || '');
+      setProfilePhone(p.phone || '');
+      setProfileLinkedin(p.linkedin || '');
+      setProfileBio(p.bio || '');
+      setProfileRoles(p.targetRoles || '');
+
+      setGmailUser(c.gmailUser || '');
+      setGmailConnected(c.gmailConnected || false);
       
-      setResumes(prev => ({
-        ...prev,
-        [type]: {
-          ...prev[type],
-          url: data.url,
-          uploadedAt: data.uploadedAt,
-        }
-      }));
-    } catch (err) {
-      console.error(`Failed to fetch ${type} resume status`, err);
+      setNotionApiKey(c.notionConnected ? '••••••••••••••••' : '');
+      setNotionDbId(c.notionDbId ? '••••••••••••••••' : '');
+      setNotionConnected(c.notionConnected || false);
+
+      setAnthropicApiKey(c.anthropicApiKeyConnected ? '••••••••••••••••' : '');
+      setAnthropicConnected(c.anthropicApiKeyConnected || false);
+
+      setCronEnabled(s.cronEnabled ?? true);
+      setCronHour(s.cronHour ?? 4);
+
+      // Fetch resume status
+      await fetchResumeStatus();
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Error loading settings from server.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: ResumeType) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    
-    const file = e.target.files[0];
+  const fetchResumeStatus = async () => {
+    try {
+      const token = await user?.getIdToken();
+      const res = await fetch('/api/resume', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      
+      setResume({
+        url: data.url,
+        uploadedAt: data.uploadedAt,
+        loading: false,
+        message: '',
+      });
+    } catch (err) {
+      console.error('Failed to retrieve resume status', err);
+    }
+  };
+
+  const handleProfileSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaveLoading(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    try {
+      const token = await user?.getIdToken();
+      const res = await fetch('/api/settings/credentials', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          profile: {
+            senderName: profileName,
+            phone: profilePhone,
+            linkedin: profileLinkedin,
+            bio: profileBio,
+            targetRoles: profileRoles,
+          },
+          settings: {
+            cronEnabled,
+            cronHour,
+          }
+        }),
+      });
+
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Failed to update profile.');
+
+      setSuccessMsg('Profile settings updated successfully!');
+      setTimeout(() => setSuccessMsg(null), 4000);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to save changes.');
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
+  // Gmail OAuth reconnect trigger
+  const handleGmailReconnect = async () => {
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    try {
+      const token = await user?.getIdToken();
+      window.location.href = `/api/gmail/oauth?token=${token}`;
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to trigger Gmail authentication.');
+    }
+  };
+
+  // Notion credentials test & save
+  const handleNotionSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaveLoading(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    try {
+      const token = await user?.getIdToken();
+
+      // If the fields are changed, save them
+      if (notionApiKey !== '••••••••••••••••' || notionDbId !== '••••••••••••••••') {
+        const res = await fetch('/api/onboarding/notion', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ notionApiKey, notionDbId }),
+        });
+        const data = await res.json();
+
+        if (!data.success) {
+          throw new Error(data.error || 'Failed to link Notion integration.');
+        }
+      }
+
+      setNotionConnected(true);
+      setSuccessMsg('Notion credentials tested & stored successfully!');
+      setTimeout(() => setSuccessMsg(null), 4000);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Connection test failed.');
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
+  // Claude API Key save
+  const handleClaudeSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaveLoading(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    try {
+      const token = await user?.getIdToken();
+
+      // Only save if modified
+      if (anthropicApiKey !== '••••••••••••••••') {
+        const res = await fetch('/api/settings/credentials', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            credentials: {
+              anthropicApiKey
+            }
+          }),
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Failed to update Claude API key.');
+      }
+
+      setAnthropicConnected(true);
+      setSuccessMsg('Claude Anthropic API key updated successfully!');
+      setTimeout(() => setSuccessMsg(null), 4000);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to save Claude key.');
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
+  // Resume Upload / Replace
+  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     if (file.type !== 'application/pdf') {
-      setResumes(prev => ({
-        ...prev,
-        [type]: { ...prev[type], message: 'Only PDF files are allowed.' }
-      }));
+      setResume(prev => ({ ...prev, message: 'Only PDF files are supported.' }));
       return;
     }
 
-    setResumes(prev => ({
-      ...prev,
-      [type]: { ...prev[type], loading: true, message: '' }
-    }));
-
+    setResume(prev => ({ ...prev, loading: true, message: '' }));
     try {
-      const companyIdParam = type !== 'global' ? `&companyId=${type}` : '';
-      const filename = type === 'global' ? 'global-resume.pdf' : `${type}-resume.pdf`;
-      
-      const res = await fetch(`/api/resume/upload?filename=${filename}${companyIdParam}`, {
+      const token = await user?.getIdToken();
+      const res = await fetch(`/api/resume/upload?filename=${encodeURIComponent(file.name)}`, {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/pdf'
+        },
         body: file,
       });
-
-      if (!res.ok) throw new Error('Upload failed');
-      
       const data = await res.json();
+
+      if (data.error) throw new Error(data.error);
+
+      setResume({
+        url: data.url,
+        uploadedAt: new Date().toISOString(),
+        loading: false,
+        message: 'Resume PDF uploaded successfully!'
+      });
       
-      setResumes(prev => ({
-        ...prev,
-        [type]: {
-          ...prev[type],
-          url: data.url,
-          uploadedAt: new Date().toISOString(),
-          loading: false,
-          size: `${Math.round(file.size / 1024)} KB`,
-          message: 'Resume parsed & uploaded successfully!'
-        }
-      }));
+      setTimeout(() => setResume(prev => ({ ...prev, message: '' })), 4000);
     } catch (err: any) {
-      setResumes(prev => ({
-        ...prev,
-        [type]: { ...prev[type], loading: false, message: 'Error: ' + err.message }
-      }));
+      setResume(prev => ({ ...prev, loading: false, message: 'Error: ' + err.message }));
     } finally {
       e.target.value = '';
-      setTimeout(() => {
-        setResumes(prev => ({
-          ...prev,
-          [type]: { ...prev[type], message: '' }
-        }));
-      }, 4000);
     }
   };
 
-  const handleDeleteCustomResume = async (type: ResumeType) => {
-    if (type === 'global') return; // Global deletion not allowed by CRM API
-    setResumes(prev => ({
-      ...prev,
-      [type]: { ...prev[type], loading: true }
-    }));
-
-    try {
-      const res = await fetch(`/api/resume?companyId=${type}`, {
-        method: 'DELETE'
-      });
-      if (!res.ok) throw new Error('Deletion failed');
-      
-      setResumes(prev => ({
-        ...prev,
-        [type]: {
-          ...prev[type],
-          url: null,
-          uploadedAt: null,
-          loading: false,
-          message: 'Custom resume deleted.'
-        }
-      }));
-    } catch (err: any) {
-      setResumes(prev => ({
-        ...prev,
-        [type]: { ...prev[type], loading: false, message: 'Delete error: ' + err.message }
-      }));
-    } finally {
-      setTimeout(() => {
-        setResumes(prev => ({
-          ...prev,
-          [type]: { ...prev[type], message: '' }
-        }));
-      }, 4000);
-    }
-  };
-
-  // Persisting smart settings state changes
-  const saveState = (key: string, value: any) => {
-    localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
-  };
-
-  const addKeyword = (type: 'pm' | 'ba') => {
-    if (type === 'pm') {
-      if (!newPmKeyword || pmKeywords.includes(newPmKeyword.trim())) return;
-      const updated = [...pmKeywords, newPmKeyword.trim().toLowerCase()];
-      setPmKeywords(updated);
-      saveState('crm-pm-keywords', updated);
-      setNewPmKeyword('');
-    } else {
-      if (!newBaKeyword || baKeywords.includes(newBaKeyword.trim())) return;
-      const updated = [...baKeywords, newBaKeyword.trim().toLowerCase()];
-      setBaKeywords(updated);
-      saveState('crm-ba-keywords', updated);
-      setNewBaKeyword('');
-    }
-  };
-
-  const removeKeyword = (type: 'pm' | 'ba', kw: string) => {
-    if (type === 'pm') {
-      const updated = pmKeywords.filter(k => k !== kw);
-      setPmKeywords(updated);
-      saveState('crm-pm-keywords', updated);
-    } else {
-      const updated = baKeywords.filter(k => k !== kw);
-      setBaKeywords(updated);
-      saveState('crm-ba-keywords', updated);
-    }
-  };
-
-  const toggleStrength = (strength: string) => {
-    const updated = selectedStrengths.includes(strength)
-      ? selectedStrengths.filter(s => s !== strength)
-      : [...selectedStrengths, strength];
-    setSelectedStrengths(updated);
-    saveState('crm-ai-strengths', updated);
-  };
-
-  // Re-seed Database trigger
+  // DevTools reseed
   const triggerDbReset = async () => {
     setReseedLoading(true);
-    setReseedMessage('');
+    setErrorMsg(null);
+    setSuccessMsg(null);
     try {
       const res = await fetch('/api/companies/reset', {
         method: 'POST',
       });
       const data = await res.json();
       if (data.success) {
-        setReseedMessage('Database seeded back to 10 pristine recruiter pipelines!');
+        setSuccessMsg('Database seeded back to 10 pristine recruiter pipelines!');
+        setTimeout(() => setSuccessMsg(null), 4000);
       } else {
-        setReseedMessage('Failed to reset: ' + data.error);
+        throw new Error(data.error || 'Failed to seed.');
       }
     } catch (e: any) {
-      setReseedMessage('Error seeding database: ' + e.message);
+      setErrorMsg('Error seeding database: ' + e.message);
     } finally {
       setReseedLoading(false);
-      setTimeout(() => setReseedMessage(''), 5000);
     }
   };
 
-  const strengthsList = [
-    'BRD/PRD Writing', 'SQL/Python Analytics', 'Agile Delivery', 'UAT Testing',
-    'User Flow Design', 'SaaS Billing Connect', 'CRM Automations', 'A/B Testing',
-    'AI Integration', 'Metric Dashboard Design'
-  ];
-
   return (
-    <div className="max-w-5xl mx-auto space-y-12 pb-24 transition-colors duration-300">
+    <div className="max-w-6xl mx-auto pb-24 transition-colors duration-300">
       
-      {/* ── HEADER ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[#e8e8ed] dark:border-neutral-900 pb-6">
+      {/* HEADER */}
+      <div className="border-b border-[#e8e8ed] dark:border-neutral-900 pb-6 mb-10 flex justify-between items-end">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-[#1d1d1f] dark:text-[#f5f5f7]">Settings</h1>
-          <p className="text-neutral-500 dark:text-neutral-400 text-sm mt-1">Configure recruiter CV files, AI prompt intelligence routing, and outbound signature kits.</p>
+          <p className="text-neutral-500 dark:text-neutral-400 text-sm mt-1">Manage profile bio inputs, linked Google/Notion credentials, and outreach security configurations.</p>
         </div>
-        <div className="mt-4 md:mt-0 flex gap-3 text-[10px] uppercase font-bold tracking-widest text-neutral-400">
-          <span>Control Panel</span>
-          <span>•</span>
-          <span>v2.4 Enterprise</span>
+        <div className="text-[10px] uppercase font-bold tracking-widest text-neutral-400 dark:text-neutral-500">
+          SaaS Engine Settings
         </div>
       </div>
 
-      {/* ── SECTION 1: RESUME ROUTING SUITE ── */}
-      <section className="space-y-6">
-        <div>
-          <h2 className="text-lg font-semibold text-[#1d1d1f] dark:text-neutral-200">1. Recruiter Document Routing</h2>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Attach role-specific targeted documents. The CRM dynamically checks job titles and auto-appends corresponding PDFs.</p>
+      {loading ? (
+        <div className="min-h-[50vh] flex items-center justify-center">
+          <svg className="animate-spin h-8 w-8 text-neutral-500" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          </svg>
         </div>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          {/* Card Component Generator */}
-          {([
-            {
-              type: 'global' as ResumeType,
-              title: 'Global Default Resume',
-              icon: '🌍',
-              desc: 'Fallback document sent automatically to general roles when no job-specific targeted profile is matched.',
-              accent: 'emerald',
-            },
-            {
-              type: 'pm' as ResumeType,
-              title: 'Product Manager Resume',
-              icon: '🎯',
-              desc: 'Product-focused profile automatically attached to all APM, Product Strategy, and Product Manager outreaches.',
-              accent: 'blue',
-            },
-            {
-              type: 'ba' as ResumeType,
-              title: 'Business Analyst Resume',
-              icon: '📊',
-              desc: 'Data-focused analytical resume routed directly to all Business Analyst, SQL, Python, or data roles.',
-              accent: 'purple',
-            }
-          ] as const).map(({ type, title, icon, desc, accent }) => {
-            const r = resumes[type];
-            const isActive = !!r.url;
-            
-            // Dynamic theme border colors
-            const borderStyle = isActive
-              ? accent === 'emerald'
-                ? 'border-emerald-200 dark:border-emerald-950/60 shadow-sm shadow-emerald-500/5'
-                : accent === 'blue'
-                  ? 'border-blue-200 dark:border-blue-950/60 shadow-sm shadow-blue-500/5'
-                  : 'border-purple-200 dark:border-purple-950/60 shadow-sm shadow-purple-500/5'
-              : 'border-[#e8e8ed] dark:border-neutral-900';
-
-            return (
-              <div 
-                key={type} 
-                className={`bg-white dark:bg-[#161617] border ${borderStyle} rounded-3xl p-6 apple-spring apple-sidebar-glow flex flex-col justify-between h-[360px] relative`}
+      ) : (
+        <div className="flex flex-col lg:flex-row gap-10 items-start">
+          
+          {/* LEFT SIDEBAR NAVIGATION */}
+          <aside className="w-full lg:w-64 shrink-0 space-y-1.5 p-3 rounded-2xl backdrop-blur-md bg-white/40 dark:bg-neutral-900/40 border border-white/50 dark:border-neutral-850">
+            {(
+              [
+                { id: 'profile', label: 'Profile Info', icon: '👤' },
+                { id: 'gmail', label: 'Gmail OAuth', icon: '✉️', status: gmailConnected },
+                { id: 'notion', label: 'Notion CRM', icon: '📓', status: notionConnected },
+                { id: 'claude', label: 'Claude AI API', icon: '🤖', status: anthropicConnected },
+                { id: 'resume', label: 'Resume Files', icon: '📄', status: !!resume.url },
+                { id: 'security', label: 'Account Security', icon: '🔒' }
+              ] as { id: ActiveSection; label: string; icon: string; status?: boolean }[]
+            ).map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => { setActiveSection(tab.id); setErrorMsg(null); setSuccessMsg(null); }}
+                className={`w-full px-4 py-3 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
+                  activeSection === tab.id
+                    ? 'bg-black text-white dark:bg-white dark:text-black shadow-sm'
+                    : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800/60'
+                }`}
               >
+                <span className="flex items-center gap-2.5">
+                  <span>{tab.icon}</span>
+                  <span>{tab.label}</span>
+                </span>
+                
+                {tab.status !== undefined && (
+                  <span className={`w-2 h-2 rounded-full ${
+                    tab.status ? 'bg-emerald-500 shadow-sm shadow-emerald-500/30' : 'bg-red-500'
+                  }`} />
+                )}
+              </button>
+            ))}
+          </aside>
+
+          {/* RIGHT PANE CARD CONTAINER */}
+          <div className="grow w-full space-y-6">
+            
+            {/* Global Success / Error Banners */}
+            {successMsg && (
+              <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-250 dark:border-emerald-900/30 text-xs text-emerald-800 dark:text-emerald-450 flex items-center gap-2 shadow-sm animate-fade-in">
+                <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                <span>{successMsg}</span>
+              </div>
+            )}
+
+            {errorMsg && (
+              <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-250 dark:border-red-900/30 text-xs text-red-650 dark:text-red-400 flex items-center gap-2 shadow-sm animate-fade-in">
+                <svg className="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                <span>{errorMsg}</span>
+              </div>
+            )}
+
+            {/* SECTION 1: PROFILE INFO */}
+            {activeSection === 'profile' && (
+              <form onSubmit={handleProfileSave} className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 shadow-sm space-y-6">
                 <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-2xl">{icon}</span>
-                    {isActive ? (
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                        accent === 'emerald' ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-950/30' :
-                        accent === 'blue' ? 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-950/30' :
-                        'bg-purple-50 dark:bg-purple-950/20 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-purple-950/30'
-                      }`}>
-                        Active Profile
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-900 text-neutral-400 dark:text-neutral-500 border border-neutral-200 dark:border-neutral-850">
-                        Missing
-                      </span>
-                    )}
-                  </div>
-                  
-                  <h3 className="text-sm font-semibold text-[#1d1d1f] dark:text-neutral-100 mb-1">{title}</h3>
-                  <p className="text-[11px] leading-relaxed text-neutral-500 dark:text-neutral-400">{desc}</p>
+                  <h3 className="text-base font-bold text-neutral-900 dark:text-white">Profile Information</h3>
+                  <p className="text-xs text-neutral-450 dark:text-neutral-500 mt-1">Configure the identity metadata injected into AI generation drafts and email signature modules.</p>
                 </div>
 
-                <div className="space-y-4 mt-auto">
-                  {/* File status container */}
-                  {isActive ? (
-                    <div className="apple-profile-popover bg-[#f5f5f7] dark:bg-neutral-900/50 border border-neutral-200/50 dark:border-neutral-850 p-3 flex items-center justify-between">
-                      <div className="flex flex-col min-w-0 pr-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Full Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={profileName}
+                      onChange={(e) => setProfileName(e.target.value)}
+                      className="w-full h-11 px-4 rounded-xl border border-neutral-250 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Phone Number</label>
+                    <input
+                      type="text"
+                      value={profilePhone}
+                      onChange={(e) => setProfilePhone(e.target.value)}
+                      className="w-full h-11 px-4 rounded-xl border border-neutral-250 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">LinkedIn URL</label>
+                    <input
+                      type="text"
+                      value={profileLinkedin}
+                      onChange={(e) => setProfileLinkedin(e.target.value)}
+                      className="w-full h-11 px-4 rounded-xl border border-neutral-250 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Target Roles</label>
+                    <input
+                      type="text"
+                      required
+                      value={profileRoles}
+                      onChange={(e) => setProfileRoles(e.target.value)}
+                      className="w-full h-11 px-4 rounded-xl border border-neutral-250 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Professional Bio</label>
+                  <textarea
+                    required
+                    rows={4}
+                    value={profileBio}
+                    onChange={(e) => setProfileBio(e.target.value)}
+                    className="w-full p-4 rounded-xl border border-neutral-250 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white transition-colors resize-none leading-relaxed"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 border-t border-neutral-100 dark:border-neutral-850 pt-6">
+                  <button
+                    type="submit"
+                    disabled={saveLoading}
+                    className="px-6 h-11 rounded-xl bg-black text-white dark:bg-white dark:text-black font-semibold text-sm hover:scale-102 transition-all cursor-pointer shadow-sm disabled:opacity-50"
+                  >
+                    {saveLoading ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* SECTION 2: GMAIL CONNECTION */}
+            {activeSection === 'gmail' && (
+              <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 shadow-sm space-y-6">
+                <div>
+                  <h3 className="text-base font-bold text-neutral-900 dark:text-white">Gmail Integration</h3>
+                  <p className="text-xs text-neutral-450 dark:text-neutral-500 mt-1">Dynamic connection to dispatch outreach emails from your actual Gmail inbox.</p>
+                </div>
+
+                <div className="flex items-center gap-4 p-5 rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-850">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white shrink-0 ${
+                    gmailConnected ? 'bg-emerald-500' : 'bg-red-500'
+                  }`}>
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 00-2 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-sm block">
+                      {gmailConnected ? 'Gmail Link Connected' : 'Gmail Connection Disconnected'}
+                    </span>
+                    <span className="text-xs text-neutral-450 dark:text-neutral-500">
+                      {gmailConnected ? `Connected account: ${gmailUser}` : 'Please authenticate to activate dynamic email dispatch.'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-4 border-t border-neutral-100 dark:border-neutral-850">
+                  <button
+                    onClick={handleGmailReconnect}
+                    className="px-6 h-11 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-750 text-neutral-850 dark:text-neutral-200 font-semibold text-xs border border-neutral-200 dark:border-neutral-700 transition-all cursor-pointer"
+                  >
+                    {gmailConnected ? 'Reconnect Gmail Inbox' : 'Link Gmail Account'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* SECTION 3: NOTION CRM */}
+            {activeSection === 'notion' && (
+              <form onSubmit={handleNotionSave} className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 shadow-sm space-y-6">
+                <div>
+                  <h3 className="text-base font-bold text-neutral-900 dark:text-white">Notion Database CRM</h3>
+                  <p className="text-xs text-neutral-450 dark:text-neutral-500 mt-1">Configure your personal Notion database credentials for pipeline tracking.</p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Notion API Integration Token</label>
+                    <input
+                      type="password"
+                      required
+                      placeholder="secret_..."
+                      value={notionApiKey}
+                      onChange={(e) => setNotionApiKey(e.target.value)}
+                      className="w-full h-11 px-4 rounded-xl border border-neutral-250 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Notion Database ID</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Hexadecimal Database ID"
+                      value={notionDbId}
+                      onChange={(e) => setNotionDbId(e.target.value)}
+                      className="w-full h-11 px-4 rounded-xl border border-neutral-250 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 border-t border-neutral-100 dark:border-neutral-850 pt-6">
+                  <button
+                    type="submit"
+                    disabled={saveLoading}
+                    className="px-6 h-11 rounded-xl bg-black text-white dark:bg-white dark:text-black font-semibold text-sm hover:scale-102 transition-all cursor-pointer shadow-sm disabled:opacity-50"
+                  >
+                    {saveLoading ? 'Testing...' : 'Test & Save Notion Link'}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* SECTION 4: CLAUDE AI API KEY */}
+            {activeSection === 'claude' && (
+              <form onSubmit={handleClaudeSave} className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 shadow-sm space-y-6">
+                <div>
+                  <h3 className="text-base font-bold text-neutral-900 dark:text-white">Claude AI Engine</h3>
+                  <p className="text-xs text-neutral-450 dark:text-neutral-500 mt-1">Configure your personal Anthropic Claude API key for dynamic email generation.</p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Anthropic API Key</label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="sk-ant-..."
+                    value={anthropicApiKey}
+                    onChange={(e) => setAnthropicApiKey(e.target.value)}
+                    className="w-full h-11 px-4 rounded-xl border border-neutral-250 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white"
+                  />
+                  <span className="text-[10px] text-neutral-450 dark:text-neutral-500 mt-1 block">
+                    All key characters are stored AES-256 encrypted using platform-level env key maps.
+                  </span>
+                </div>
+
+                <div className="flex justify-end pt-6 border-t border-neutral-100 dark:border-neutral-850">
+                  <button
+                    type="submit"
+                    disabled={saveLoading}
+                    className="px-6 h-11 rounded-xl bg-black text-white dark:bg-white dark:text-black font-semibold text-sm hover:scale-102 transition-all cursor-pointer shadow-sm disabled:opacity-50"
+                  >
+                    {saveLoading ? 'Saving...' : 'Save AI Key'}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* SECTION 5: RESUME MANAGEMENT */}
+            {activeSection === 'resume' && (
+              <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 shadow-sm space-y-6">
+                <div>
+                  <h3 className="text-base font-bold text-neutral-900 dark:text-white">Resume Document Storage</h3>
+                  <p className="text-xs text-neutral-450 dark:text-neutral-500 mt-1">Manage PDF resumes attached dynamically during cold outreach pipelines.</p>
+                </div>
+
+                {resume.url ? (
+                  <div className="p-6 rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-850 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center text-neutral-700 dark:text-neutral-350">
+                        📄
+                      </div>
+                      <div>
                         <a 
-                          href={r.url || '#'} 
+                          href={resume.url} 
                           target="_blank" 
                           rel="noreferrer"
-                          className="text-[11px] font-semibold text-[#0071e3] hover:underline flex items-center gap-1 truncate"
+                          className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline block break-all"
                         >
-                          <span>📄</span> <span className="truncate">{r.filename || `${type}-resume.pdf`}</span>
+                          View Current Uploaded PDF Resume
                         </a>
-                        <span className="text-[9px] text-neutral-400 dark:text-neutral-500 mt-0.5 flex items-center gap-1.5">
-                          <span>{r.size || '120 KB'}</span>
-                          <span>•</span>
-                          <span>{r.uploadedAt ? new Date(r.uploadedAt).toLocaleDateString() : 'Active'}</span>
+                        <span className="text-[10px] text-neutral-450 dark:text-neutral-500 block mt-0.5">
+                          Synced: {resume.uploadedAt ? new Date(resume.uploadedAt).toLocaleDateString() : 'Active'}
                         </span>
                       </div>
-                      
-                      {type !== 'global' && (
-                        <button
-                          onClick={() => handleDeleteCustomResume(type)}
-                          disabled={r.loading}
-                          className="p-1.5 rounded-full text-neutral-400 hover:text-red-500 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-all cursor-pointer"
-                          title="Remove custom resume"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      )}
                     </div>
-                  ) : (
-                    <div className="bg-neutral-50 dark:bg-neutral-900/20 border border-dashed border-neutral-200 dark:border-neutral-850 rounded-2xl p-4 text-center">
-                      <p className="text-[10px] text-neutral-400 dark:text-neutral-500 italic">No PDF document attached</p>
-                    </div>
-                  )}
+                  </div>
+                ) : (
+                  <div className="p-5 rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-dashed border-neutral-200 dark:border-neutral-850 text-center text-neutral-400 dark:text-neutral-550 italic text-xs">
+                    No main PDF resume uploaded. General outreach tasks will dispatch without resume attachment.
+                  </div>
+                )}
 
-                  {/* Upload action container */}
-                  <div className="relative">
-                    <input 
-                      type="file" 
-                      accept="application/pdf"
-                      onChange={(e) => handleUpload(e, type)}
-                      id={`upload-${type}`}
-                      className="hidden"
-                      disabled={r.loading}
-                    />
-                    <label 
-                      htmlFor={`upload-${type}`}
-                      className={`w-full py-2.5 rounded-2xl text-[11px] font-semibold cursor-pointer select-none text-center block transition-all duration-200 border ${
-                        isActive
-                          ? 'bg-[#f5f5f7] hover:bg-[#e8e8ed] dark:bg-neutral-900 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-300 border-neutral-200 dark:border-neutral-850'
-                          : 'bg-[#0071e3] hover:bg-[#0077ed] text-white border-transparent shadow-sm'
+                <div className="flex justify-end gap-3 pt-6 border-t border-neutral-100 dark:border-neutral-850">
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    onChange={handleResumeUpload}
+                    id="resume-file-upload-settings"
+                    className="hidden"
+                    disabled={resume.loading}
+                  />
+                  <label
+                    htmlFor="resume-file-upload-settings"
+                    className="px-6 h-11 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-750 text-neutral-850 dark:text-neutral-200 font-semibold text-xs border border-neutral-200 dark:border-neutral-700 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    {resume.loading ? 'Uploading...' : 'Upload/Replace PDF Resume'}
+                  </label>
+                </div>
+                {resume.message && (
+                  <p className="text-[10px] text-center font-semibold text-emerald-500 mt-2">{resume.message}</p>
+                )}
+              </div>
+            )}
+
+            {/* SECTION 6: ACCOUNT SECURITY */}
+            {activeSection === 'security' && (
+              <div className="space-y-6">
+                
+                {/* 2FA Card */}
+                <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 shadow-sm space-y-6">
+                  <div>
+                    <h3 className="text-base font-bold text-neutral-900 dark:text-white">Multi-Factor Authentication (2FA)</h3>
+                    <p className="text-xs text-neutral-450 dark:text-neutral-500 mt-1">Protect your SaaS account with an extra verification layer (phone/TOTP).</p>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-850">
+                    <div>
+                      <span className="font-semibold text-xs text-neutral-800 dark:text-neutral-200 block">Google Authenticator (TOTP)</span>
+                      <span className="text-[10px] text-neutral-450 dark:text-neutral-500 block mt-0.5">Scan QR code using Google Authenticator or Duo security apps.</span>
+                    </div>
+                    <button
+                      onClick={() => setTwoFactorEnabled(!twoFactorEnabled)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer focus:outline-none ${
+                        twoFactorEnabled ? 'bg-emerald-500' : 'bg-neutral-300 dark:bg-neutral-800'
                       }`}
                     >
-                      {r.loading ? (
-                        <span className="flex items-center justify-center gap-1.5">
-                          <svg className="animate-spin h-3.5 w-3.5 text-current" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                          </svg>
-                          Processing PDF...
-                        </span>
-                      ) : (
-                        <span>📎 {isActive ? 'Replace Resume PDF' : 'Upload Resume PDF'}</span>
-                      )}
-                    </label>
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        twoFactorEnabled ? 'translate-x-6' : 'translate-x-1'
+                      }`} />
+                    </button>
                   </div>
-                  
-                  {r.message && (
-                    <p className={`text-[10px] font-medium text-center animate-fade-in ${r.message.includes('Error') ? 'text-red-500' : 'text-emerald-500'}`}>
-                      {r.message}
-                    </p>
-                  )}
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
 
-      {/* ── SECTION 2: AI SMART ROUTING RULEBOOK ── */}
-      <section className="space-y-6">
-        <div>
-          <h2 className="text-lg font-semibold text-[#1d1d1f] dark:text-neutral-200">2. Smart Routing Core</h2>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Customize keyword matching rules. Leads containing these phrases in the role description automatically route to the corresponding CV profile.</p>
-        </div>
+                {/* Auto Generation Scheduler */}
+                <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 shadow-sm space-y-6">
+                  <div>
+                    <h3 className="text-base font-bold text-neutral-900 dark:text-white">Daily Summary Cron</h3>
+                    <p className="text-xs text-neutral-450 dark:text-neutral-500 mt-1">Toggle whether the automated AI engine runs daily drafts at 4am in the morning.</p>
+                  </div>
 
-        <div className="grid md:grid-cols-2 gap-8 glass-subpixel rounded-3xl p-6 md:p-8">
-          {/* PM ROUTER */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-                PM Keyword Matches
-              </span>
-              <span className="text-[10px] text-neutral-400">{pmKeywords.length} tags loaded</span>
-            </div>
-
-            <div className="flex flex-wrap gap-1.5 min-h-[90px] p-4 bg-[#f5f5f7] dark:bg-neutral-900/60 rounded-2xl border border-neutral-200/40 dark:border-neutral-850">
-              {pmKeywords.map(kw => (
-                <span 
-                  key={kw} 
-                  className="bg-white dark:bg-neutral-800 text-[#1d1d1f] dark:text-neutral-200 text-[10px] px-2.5 py-1 rounded-full border border-neutral-200/60 dark:border-neutral-700 flex items-center gap-1 shadow-sm font-medium"
-                >
-                  {kw}
-                  <button 
-                    onClick={() => removeKeyword('pm', kw)}
-                    className="hover:text-red-500 font-bold ml-0.5 text-[9px] cursor-pointer"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-              {pmKeywords.length === 0 && (
-                <span className="text-[10px] text-neutral-400 italic">No rules active. Matching falls back to Global.</span>
-              )}
-            </div>
-
-            <div className="flex gap-2">
-              <input 
-                type="text" 
-                placeholder="e.g. associate pm"
-                value={newPmKeyword}
-                onChange={e => setNewPmKeyword(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && addKeyword('pm')}
-                className="flex-1 bg-[#f5f5f7] dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-1.5 text-xs text-[#1d1d1f] dark:text-neutral-200 placeholder-neutral-400 dark:placeholder-neutral-600 apple-focus-ring"
-              />
-              <button 
-                onClick={() => addKeyword('pm')}
-                className="bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 border border-neutral-200 dark:border-neutral-700 px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer text-[#1d1d1f] dark:text-neutral-200 transition-colors"
-              >
-                Add Rule
-              </button>
-            </div>
-          </div>
-
-          {/* BA ROUTER */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
-                BA Keyword Matches
-              </span>
-              <span className="text-[10px] text-neutral-400">{baKeywords.length} tags loaded</span>
-            </div>
-
-            <div className="flex flex-wrap gap-1.5 min-h-[90px] p-4 bg-[#f5f5f7] dark:bg-neutral-900/60 rounded-2xl border border-neutral-200/40 dark:border-neutral-850">
-              {baKeywords.map(kw => (
-                <span 
-                  key={kw} 
-                  className="bg-white dark:bg-neutral-800 text-[#1d1d1f] dark:text-neutral-200 text-[10px] px-2.5 py-1 rounded-full border border-neutral-200/60 dark:border-neutral-700 flex items-center gap-1 shadow-sm font-medium"
-                >
-                  {kw}
-                  <button 
-                    onClick={() => removeKeyword('ba', kw)}
-                    className="hover:text-red-500 font-bold ml-0.5 text-[9px] cursor-pointer"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-              {baKeywords.length === 0 && (
-                <span className="text-[10px] text-neutral-400 italic">No rules active. Matching falls back to Global.</span>
-              )}
-            </div>
-
-            <div className="flex gap-2">
-              <input 
-                type="text" 
-                placeholder="e.g. data engineer"
-                value={newBaKeyword}
-                onChange={e => setNewBaKeyword(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && addKeyword('ba')}
-                className="flex-1 bg-[#f5f5f7] dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-1.5 text-xs text-[#1d1d1f] dark:text-neutral-200 placeholder-neutral-400 dark:placeholder-neutral-600 apple-focus-ring"
-              />
-              <button 
-                onClick={() => addKeyword('ba')}
-                className="bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 border border-neutral-200 dark:border-neutral-700 px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer text-[#1d1d1f] dark:text-neutral-200 transition-colors"
-              >
-                Add Rule
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── SECTION 3: OUTBOUND PERSONALIZATION ENGINE ── */}
-      <section className="space-y-6">
-        <div>
-          <h2 className="text-lg font-semibold text-[#1d1d1f] dark:text-neutral-200">3. Outbound Personalization Engine</h2>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Customize your AI profile dossier and rich email signature appended to outbound drafts.</p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8">
-          
-          {/* AI Tailoring dossier */}
-          <div className="bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-6 md:p-8 space-y-6 flex flex-col justify-between">
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-[#1d1d1f] dark:text-neutral-100 flex items-center gap-1.5">
-                <span>🤖</span> AI Ingestion Bio-Dossier
-              </h3>
-              
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Professional background & bio</label>
-                <textarea 
-                  value={aiBio}
-                  onChange={e => { setAiBio(e.target.value); saveState('crm-ai-bio', e.target.value); }}
-                  rows={4}
-                  className="w-full bg-[#f5f5f7] dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-4 text-xs text-[#1d1d1f] dark:text-neutral-200 placeholder-neutral-400 dark:placeholder-neutral-600 apple-focus-ring resize-none leading-relaxed"
-                  placeholder="Paste your quick elevator pitch and core accomplishments..."
-                />
-              </div>
-
-              <div className="space-y-2.5">
-                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Primary Competencies & Core Strengths</label>
-                <div className="flex flex-wrap gap-1.5">
-                  {strengthsList.map(strength => {
-                    const selected = selectedStrengths.includes(strength);
-                    return (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-850">
+                      <div>
+                        <span className="font-semibold text-xs text-neutral-800 dark:text-neutral-200 block">Enable Morning Generation</span>
+                        <span className="text-[10px] text-neutral-450 dark:text-neutral-500 block mt-0.5">Triggers automatic daily pipeline scans.</span>
+                      </div>
                       <button
-                        key={strength}
-                        onClick={() => toggleStrength(strength)}
-                        className={`text-[9px] px-2.5 py-1 rounded-full border transition-all cursor-pointer font-medium ${
-                          selected 
-                            ? 'bg-[#0071e3] border-transparent text-white shadow-sm' 
-                            : 'bg-[#f5f5f7] dark:bg-neutral-900 border-neutral-200/50 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-850'
+                        onClick={() => setCronEnabled(!cronEnabled)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer focus:outline-none ${
+                          cronEnabled ? 'bg-emerald-500' : 'bg-neutral-300 dark:bg-neutral-800'
                         }`}
                       >
-                        {strength}
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          cronEnabled ? 'translate-x-6' : 'translate-x-1'
+                        }`} />
                       </button>
-                    );
-                  })}
-                </div>
-              </div>
+                    </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Outreach Writing Style Tone</label>
-                <div className="grid grid-cols-4 gap-1.5 bg-[#f5f5f7] dark:bg-neutral-900 p-1 rounded-xl">
-                  {(['confident', 'balanced', 'highly-technical', 'conversational'] as const).map(t => (
-                    <button
-                      key={t}
-                      onClick={() => { setAiTone(t); saveState('crm-ai-tone', t); }}
-                      className={`text-[9px] py-1.5 rounded-lg capitalize transition-all cursor-pointer font-semibold ${
-                        aiTone === t
-                          ? 'bg-white dark:bg-neutral-800 text-[#0071e3] dark:text-neutral-100 shadow-sm'
-                          : 'text-neutral-400 dark:text-neutral-500 hover:text-neutral-700'
-                      }`}
-                    >
-                      {t.replace('-', ' ')}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-            
-            <p className="text-[10px] text-neutral-400 dark:text-neutral-500 italic mt-4">
-              * Changing these states updates the custom prompts fed into the LLM when creating outreach drafts.
-            </p>
-          </div>
-
-          {/* Email Signature Composer with Live Preview */}
-          <div className="bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-6 md:p-8 space-y-6 flex flex-col justify-between">
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-[#1d1d1f] dark:text-neutral-100 flex items-center gap-1.5">
-                <span>✒️</span> Cold Email Signature Kit
-              </h3>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">Full Name</label>
-                  <input 
-                    type="text"
-                    value={userName}
-                    onChange={e => { setUserName(e.target.value); saveState('crm-user-name', e.target.value); }}
-                    className="w-full bg-[#f5f5f7] dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-1.5 text-xs text-[#1d1d1f] dark:text-neutral-200 apple-focus-ring"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">Professional Title</label>
-                  <input 
-                    type="text"
-                    value={userTitle}
-                    onChange={e => { setUserTitle(e.target.value); saveState('crm-user-title', e.target.value); }}
-                    className="w-full bg-[#f5f5f7] dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-1.5 text-xs text-[#1d1d1f] dark:text-neutral-200 apple-focus-ring"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">Calendly link</label>
-                  <input 
-                    type="text"
-                    value={userCalendly}
-                    onChange={e => { setUserCalendly(e.target.value); saveState('crm-user-calendly', e.target.value); }}
-                    className="w-full bg-[#f5f5f7] dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-1.5 text-xs text-[#1d1d1f] dark:text-neutral-200 apple-focus-ring"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">Mobile Contact</label>
-                  <input 
-                    type="text"
-                    value={userPhone}
-                    onChange={e => { setUserPhone(e.target.value); saveState('crm-user-phone', e.target.value); }}
-                    className="w-full bg-[#f5f5f7] dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-1.5 text-xs text-[#1d1d1f] dark:text-neutral-200 apple-focus-ring"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">LinkedIn Profile URL</label>
-                <input 
-                  type="text"
-                  value={linkedinUrl}
-                  onChange={e => { setLinkedinUrl(e.target.value); saveState('crm-user-linkedin', e.target.value); }}
-                  className="w-full bg-[#f5f5f7] dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-1.5 text-xs text-[#1d1d1f] dark:text-neutral-200 apple-focus-ring"
-                />
-              </div>
-
-              {/* LIVE HTML RENDER PREVIEW */}
-              <div className="space-y-2 pt-2">
-                <span className="text-[9px] font-bold text-[#0071e3] uppercase tracking-wider block">Live Render Preview (HTML/Rich-Text)</span>
-                <div className="bg-[#f5f5f7]/50 dark:bg-neutral-950/40 border border-neutral-200 dark:border-neutral-900 rounded-2xl p-4 text-[11px] leading-relaxed text-neutral-800 dark:text-neutral-300 font-sans shadow-inner">
-                  <p className="font-semibold text-neutral-900 dark:text-white text-xs">{userName}</p>
-                  <p className="text-neutral-500 dark:text-neutral-400 text-[10px] mt-0.5">{userTitle}</p>
-                  <p className="text-[#0071e3] dark:text-blue-400 hover:underline cursor-pointer text-[10px] font-medium mt-1.5 flex items-center gap-1">
-                    <span>📅</span> Booking Link: {userCalendly}
-                  </p>
-                  <div className="flex gap-3 text-neutral-400 dark:text-neutral-500 text-[9px] mt-2 border-t border-neutral-200/50 dark:border-neutral-900/60 pt-2">
-                    <span className="flex items-center gap-0.5">📞 {userPhone}</span>
-                    <span>•</span>
-                    <span className="flex items-center gap-0.5">🔗 {linkedinUrl}</span>
+                    <div className="flex items-center justify-between p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-850">
+                      <div>
+                        <span className="font-semibold text-xs text-neutral-800 dark:text-neutral-200 block">Trigger Hour (GMT/UTC)</span>
+                        <span className="text-[10px] text-neutral-450 dark:text-neutral-500 block mt-0.5">Specific hour of dispatch.</span>
+                      </div>
+                      <select
+                        value={cronHour}
+                        onChange={(e) => setCronHour(Number(e.target.value))}
+                        className="bg-transparent text-xs font-semibold focus:outline-none border border-neutral-250 dark:border-neutral-800 rounded-lg px-2.5 py-1"
+                      >
+                        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23].map((h) => (
+                          <option key={h} value={h}>{h}:00</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
+
+                {/* Developer Utilities Reset */}
+                <div className="p-6 md:p-8 rounded-3xl bg-[#fff3cd] dark:bg-neutral-900/20 border border-[#ffeeba] dark:border-neutral-850 shadow-sm space-y-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-neutral-800 dark:text-neutral-200 flex items-center gap-1.5">
+                      <span>⚠️</span> Platform DevTools: Reset Pipeline
+                    </h3>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">Resets your local demo lead database back to the default 10 leads.</p>
+                  </div>
+                  <button
+                    onClick={triggerDbReset}
+                    disabled={reseedLoading}
+                    className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-red-50 hover:bg-red-100 dark:bg-red-950/10 dark:hover:bg-red-950/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-950/40 cursor-pointer disabled:opacity-50"
+                  >
+                    {reseedLoading ? 'Resetting...' : 'Reset Leads Database'}
+                  </button>
+                </div>
+
               </div>
-            </div>
-            
-            <span className="text-[9px] text-neutral-400 italic">
-              * Active template automatically appends to outbound approved drafts in the review drawer.
-            </span>
-          </div>
-
-        </div>
-      </section>
-
-      {/* ── SECTION 4: MOCK PLATFORM POWER UTILITIES ── */}
-      <section className="space-y-6">
-        <div>
-          <h2 className="text-lg font-semibold text-[#1d1d1f] dark:text-neutral-200">4. CRM Power Utilities</h2>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Developer operations to manage and maintain the job outreach environment.</p>
-        </div>
-
-        <div className="bg-[#fff3cd] dark:bg-neutral-900/20 border border-[#ffeeba] dark:border-neutral-850 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-1">
-            <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-1.5">
-              <span>⚠️</span> DevTools: Reset Mock CRM Lead Database
-            </h3>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 max-w-2xl leading-relaxed">
-              Resets the database file to its initial state, creating 10 pristine recruiter pipelines (Stripe, Vercel, Retool, Slack, etc.) and clearing any manual changes. Highly useful to re-run demo flows.
-            </p>
-          </div>
-
-          <div className="flex flex-col items-start md:items-end justify-center gap-2">
-            <button
-              onClick={triggerDbReset}
-              disabled={reseedLoading}
-              className={`px-5 py-2.5 rounded-2xl text-xs font-semibold select-none cursor-pointer transition-all duration-200 border ${
-                reseedLoading 
-                  ? 'bg-neutral-200 dark:bg-neutral-850 text-neutral-400 border-transparent' 
-                  : 'bg-red-50 hover:bg-red-100 dark:bg-red-950/10 dark:hover:bg-red-950/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-950/40 shadow-sm apple-glow-rose-destructive'
-              }`}
-            >
-              {reseedLoading ? (
-                <span className="flex items-center gap-1">
-                  <svg className="animate-spin h-3.5 w-3.5 text-current" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  Resetting...
-                </span>
-              ) : 'Reset Database'}
-            </button>
-            {reseedMessage && (
-              <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold animate-fade-in mt-1">
-                {reseedMessage}
-              </p>
             )}
+
           </div>
         </div>
-      </section>
-
+      )}
     </div>
   );
 }

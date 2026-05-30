@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react';
 import { Company, EmailStatus } from '@/types';
 import Link from 'next/link';
+import { useAuth } from '@/lib/auth-context';
 
 export default function CompaniesPage() {
+  const { user } = useAuth();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -12,15 +14,23 @@ export default function CompaniesPage() {
   const [filterType, setFilterType] = useState<'All' | 'Stable' | 'Startup'>('All');
 
   useEffect(() => {
-    fetch('/api/companies')
-      .then(r => r.json())
-      .then(data => {
+    async function loadData() {
+      try {
+        const token = user ? await user.getIdToken() : '';
+        const headers: HeadersInit = token ? { 'Authorization': `Bearer ${token}` } : {};
+        const res = await fetch('/api/companies', { headers });
+        const data = await res.json();
         if (Array.isArray(data)) {
           setCompanies(data);
         }
+      } catch (err) {
+        console.error('Failed to load companies:', err);
+      } finally {
         setLoading(false);
-      });
-  }, []);
+      }
+    }
+    loadData();
+  }, [user]);
 
   // Mouse movement effect for Apple Glow Cards
   useEffect(() => {

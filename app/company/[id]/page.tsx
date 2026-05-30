@@ -1,9 +1,23 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/auth-context';
 import { Company } from '@/types';
 
 export default function CompanyPage() {
+  const { user } = useAuth();
+
+  const authFetch = async (url: string, options: RequestInit = {}) => {
+    if (!user) return fetch(url, options);
+    const token = await user.getIdToken();
+    return fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  };
   const params = useParams();
   const router = useRouter();
   const [company, setCompany] = useState<Company | null>(null);
@@ -20,7 +34,7 @@ export default function CompanyPage() {
   const [resumeMsg, setResumeMsg] = useState('');
 
   useEffect(() => {
-    fetch('/api/companies').then(r => r.json()).then((data: Company[]) => {
+    authFetch('/api/companies').then(r => r.json()).then((data: Company[]) => {
       const c = data.find(x => x.notionId === params.id);
       if (c) {
         setCompany(c);
@@ -31,7 +45,7 @@ export default function CompanyPage() {
     });
 
     // Fetch custom resume status for this company
-    fetch(`/api/resume?companyId=${params.id}`)
+    authFetch(`/api/resume?companyId=${params.id}`)
       .then(r => r.json())
       .then(data => {
         if (data.status) {
@@ -51,7 +65,7 @@ export default function CompanyPage() {
     setUploadingResume(true);
     setResumeMsg('');
     try {
-      const res = await fetch(`/api/resume/upload?companyId=${params.id}&filename=custom-${params.id}.pdf`, {
+      const res = await authFetch(`/api/resume/upload?companyId=${params.id}&filename=custom-${params.id}.pdf`, {
         method: 'POST',
         body: file,
       });
@@ -71,12 +85,12 @@ export default function CompanyPage() {
     
     setUploadingResume(true);
     try {
-      const res = await fetch(`/api/resume?companyId=${params.id}`, {
+      const res = await authFetch(`/api/resume?companyId=${params.id}`, {
         method: 'DELETE',
       });
       if (!res.ok) throw new Error('Delete failed');
       
-      const checkRes = await fetch(`/api/resume?companyId=${params.id}`);
+      const checkRes = await authFetch(`/api/resume?companyId=${params.id}`);
       const checkData = await checkRes.json();
       setResumeStatus(checkData.status);
       setResumeMsg('Custom resume removed. Reverted to default.');
@@ -90,15 +104,15 @@ export default function CompanyPage() {
 
   const handleApproveAndSend = async () => {
     setSending(true);
-    await fetch(`/api/approve/${params.id}`, { method: 'POST' });
-    await fetch(`/api/send/${params.id}`, { method: 'POST' });
+    await authFetch(`/api/approve/${params.id}`, { method: 'POST' });
+    await authFetch(`/api/send/${params.id}`, { method: 'POST' });
     setSending(false);
     router.push('/');
   };
 
   const handleRedo = async () => {
     setRedoing(true);
-    const res = await fetch(`/api/redo/${params.id}`, { method: 'POST' });
+    const res = await authFetch(`/api/redo/${params.id}`, { method: 'POST' });
     const data = await res.json();
     if (data.result) {
       setEditedSubject(data.result.subject);
@@ -108,7 +122,7 @@ export default function CompanyPage() {
   };
 
   const handleReject = async () => {
-    await fetch(`/api/reject/${params.id}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: 'Manually rejected from preview' }) });
+    await authFetch(`/api/reject/${params.id}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: 'Manually rejected from preview' }) });
     router.push('/');
   };
 
