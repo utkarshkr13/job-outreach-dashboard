@@ -1,6 +1,6 @@
-# Job Outreach Dashboard — Full Implementation Document
+﻿# Job Outreach Dashboard â€” Full Implementation Document
 **Version**: As of 2026-05-30
-**Status**: 95% complete — one credential fix remaining
+**Status**: 95% complete â€” one credential fix remaining
 **Live URL**: https://job-outreach-dashboard.vercel.app
 **GitHub**: https://github.com/utkarshkr13/job-outreach-dashboard (private)
 **Local code**: `C:\Users\Utkarsh\.gemini\antigravity\scratch\job-outreach-dashboard`
@@ -12,13 +12,13 @@
 1. What This System Does
 2. Full Tech Stack
 3. Complete File Structure
-4. Every File — What It Does
+4. Every File â€” What It Does
 5. Notion Database Schema
-6. Environment Variables — Full Reference
+6. Environment Variables â€” Full Reference
 7. Email Template & Generation Rules
 8. GitHub Commit History
 9. Everything That Was Tried (and Why It Failed)
-10. Current State — What Works, What Doesn't
+10. Current State â€” What Works, What Doesn't
 11. The One Remaining Fix
 12. Post-Fix Checklist
 13. QA Sanity Checklist
@@ -30,11 +30,11 @@
 
 Utkarsh has a Notion database of companies he wants to apply to for Associate PM / Business Analyst roles. This dashboard automates the outreach pipeline:
 
-1. **Every morning at 3am IST** — Vercel cron hits `/api/cron/generate` which pulls all companies with status "New" from Notion and generates a personalised cold email draft for each using Claude.
+1. **Every morning at 3am IST** â€” Vercel cron hits `/api/cron/generate` which pulls all companies with status "New" from Notion and generates a personalised cold email draft for each using Claude.
 2. **Utkarsh reviews drafts** in the dashboard UI at `job-outreach-dashboard.vercel.app`. He reads each draft, can edit it inline, approve it or reject it.
-3. **One-click Send** — clicking Send fires the email directly from `utkarshwork13@gmail.com` via Gmail OAuth2, attaches his resume PDF automatically, and updates the Notion row to "Sent".
+3. **One-click Send** â€” clicking Send fires the email directly from `utkarshwork13@gmail.com` via Gmail OAuth2, attaches his resume PDF automatically, and updates the Notion row to "Sent".
 
-The system also has a **Settings page** where Utkarsh uploads his resume PDF once — it gets stored in Vercel Blob and auto-attached to every email going forward.
+The system also has a **Settings page** where Utkarsh uploads his resume PDF once â€” it gets stored in Vercel Blob and auto-attached to every email going forward.
 
 ---
 
@@ -59,100 +59,100 @@ The system also has a **Settings page** where Utkarsh uploads his resume PDF onc
 
 ```
 job-outreach-dashboard/
-├── app/
-│   ├── layout.tsx                        # Root layout, global styles
-│   ├── page.tsx                          # Dashboard home — company table
-│   ├── company/
-│   │   └── [id]/
-│   │       └── page.tsx                  # Company detail — view/edit draft
-│   ├── sent/
-│   │   └── page.tsx                      # Sent emails history
-│   ├── settings/
-│   │   └── page.tsx                      # Resume upload UI
-│   └── api/
-│       ├── companies/
-│       │   └── route.ts                  # GET — fetch all companies from Notion
-│       ├── generate/
-│       │   ├── route.ts                  # POST — generate draft for one company
-│       │   └── bulk/
-│       │       └── route.ts              # POST — generate drafts for all "New"
-│       ├── approve/
-│       │   └── [id]/
-│       │       └── route.ts              # POST — set status to "Approved"
-│       ├── reject/
-│       │   └── [id]/
-│       │       └── route.ts              # POST — set status to "Rejected"
-│       ├── redo/
-│       │   └── [id]/
-│       │       └── route.ts              # POST — regenerate draft
-│       ├── send/
-│       │   ├── [id]/
-│       │   │   └── route.ts              # POST — send one email
-│       │   └── bulk/
-│       │       └── route.ts              # POST — send all "Approved" companies
-│       ├── cron/
-│       │   └── generate/
-│       │       └── route.ts              # POST — cron endpoint (3am IST daily)
-│       └── resume/
-│           ├── route.ts                  # GET — check if resume exists in Blob
-│           ├── upload/
-│           │   └── route.ts              # POST — upload resume PDF to Vercel Blob
-│           └── download/
-│               └── route.ts             # GET — signed download URL for resume
-├── lib/
-│   ├── notion.ts                         # Notion API client
-│   ├── agents.ts                         # Claude email generation (UPDATED 2026-05-30)
-│   ├── mailer.ts                         # Gmail OAuth2 email sender
-│   └── zapier.ts                         # DEPRECATED — do not use
-├── types/
-│   └── index.ts                          # TypeScript types
-├── vercel.json                           # Cron job config
-├── .env.local                            # Secrets (NOT in git)
-├── package.json
-├── tsconfig.json
-├── tailwind.config.ts
-└── next.config.ts
+â”œâ”€â”€ app/
+â”‚   â”œâ”€â”€ layout.tsx                        # Root layout, global styles
+â”‚   â”œâ”€â”€ page.tsx                          # Dashboard home â€” company table
+â”‚   â”œâ”€â”€ company/
+â”‚   â”‚   â””â”€â”€ [id]/
+â”‚   â”‚       â””â”€â”€ page.tsx                  # Company detail â€” view/edit draft
+â”‚   â”œâ”€â”€ sent/
+â”‚   â”‚   â””â”€â”€ page.tsx                      # Sent emails history
+â”‚   â”œâ”€â”€ settings/
+â”‚   â”‚   â””â”€â”€ page.tsx                      # Resume upload UI
+â”‚   â””â”€â”€ api/
+â”‚       â”œâ”€â”€ companies/
+â”‚       â”‚   â””â”€â”€ route.ts                  # GET â€” fetch all companies from Notion
+â”‚       â”œâ”€â”€ generate/
+â”‚       â”‚   â”œâ”€â”€ route.ts                  # POST â€” generate draft for one company
+â”‚       â”‚   â””â”€â”€ bulk/
+â”‚       â”‚       â””â”€â”€ route.ts              # POST â€” generate drafts for all "New"
+â”‚       â”œâ”€â”€ approve/
+â”‚       â”‚   â””â”€â”€ [id]/
+â”‚       â”‚       â””â”€â”€ route.ts              # POST â€” set status to "Approved"
+â”‚       â”œâ”€â”€ reject/
+â”‚       â”‚   â””â”€â”€ [id]/
+â”‚       â”‚       â””â”€â”€ route.ts              # POST â€” set status to "Rejected"
+â”‚       â”œâ”€â”€ redo/
+â”‚       â”‚   â””â”€â”€ [id]/
+â”‚       â”‚       â””â”€â”€ route.ts              # POST â€” regenerate draft
+â”‚       â”œâ”€â”€ send/
+â”‚       â”‚   â”œâ”€â”€ [id]/
+â”‚       â”‚   â”‚   â””â”€â”€ route.ts              # POST â€” send one email
+â”‚       â”‚   â””â”€â”€ bulk/
+â”‚       â”‚       â””â”€â”€ route.ts              # POST â€” send all "Approved" companies
+â”‚       â”œâ”€â”€ cron/
+â”‚       â”‚   â””â”€â”€ generate/
+â”‚       â”‚       â””â”€â”€ route.ts              # POST â€” cron endpoint (3am IST daily)
+â”‚       â””â”€â”€ resume/
+â”‚           â”œâ”€â”€ route.ts                  # GET â€” check if resume exists in Blob
+â”‚           â”œâ”€â”€ upload/
+â”‚           â”‚   â””â”€â”€ route.ts              # POST â€” upload resume PDF to Vercel Blob
+â”‚           â””â”€â”€ download/
+â”‚               â””â”€â”€ route.ts             # GET â€” signed download URL for resume
+â”œâ”€â”€ lib/
+â”‚   â”œâ”€â”€ notion.ts                         # Notion API client
+â”‚   â”œâ”€â”€ agents.ts                         # Claude email generation (UPDATED 2026-05-30)
+â”‚   â”œâ”€â”€ mailer.ts                         # Gmail OAuth2 email sender
+â”‚   â””â”€â”€ zapier.ts                         # DEPRECATED â€” do not use
+â”œâ”€â”€ types/
+â”‚   â””â”€â”€ index.ts                          # TypeScript types
+â”œâ”€â”€ vercel.json                           # Cron job config
+â”œâ”€â”€ .env.local                            # Secrets (NOT in git)
+â”œâ”€â”€ package.json
+â”œâ”€â”€ tsconfig.json
+â”œâ”€â”€ tailwind.config.ts
+â””â”€â”€ next.config.ts
 ```
 
 ---
 
-## 4. EVERY FILE — WHAT IT DOES
+## 4. EVERY FILE â€” WHAT IT DOES
 
 ### `lib/notion.ts`
 Handles all Notion API reads and writes.
 
 Functions:
-- `getAllCompanies()` — queries entire DB, sorted by Number property ascending. Returns array of Company objects.
-- `getCompaniesByStatus(status | status[])` — filters DB by Email Status select property.
-- `updateEmailDraft(notionId, subject, body, notes, status)` — writes generated draft back to Notion (Email Subject, Email Draft, Draft Notes, Email Status).
-- `updateStatus(notionId, status, notes?)` — updates Email Status. If status = 'Sent', also ticks the Emailed checkbox.
+- `getAllCompanies()` â€” queries entire DB, sorted by Number property ascending. Returns array of Company objects.
+- `getCompaniesByStatus(status | status[])` â€” filters DB by Email Status select property.
+- `updateEmailDraft(notionId, subject, body, notes, status)` â€” writes generated draft back to Notion (Email Subject, Email Draft, Draft Notes, Email Status).
+- `updateStatus(notionId, status, notes?)` â€” updates Email Status. If status = 'Sent', also ticks the Emailed checkbox.
 
-Field mappings (exact Notion property names — do not change):
+Field mappings (exact Notion property names â€” do not change):
 ```
-Company           → title
-Role              → rich_text
-Email             → email
-Contact Name      → rich_text
-Contact Title     → rich_text
-Company Type      → select (Startup | Stable)
-Salary Range (LPA)→ rich_text
-Source            → select
-Source URL        → url
-Location          → rich_text
-Notes             → rich_text
-Email Status      → select (New | Draft Ready | Approved | Sent | Rejected | Redo)
-Email Subject     → rich_text
-Email Draft       → rich_text
-Draft Notes       → rich_text
-Emailed           → checkbox
-Date Added        → date
-Number            → number
+Company           â†’ title
+Role              â†’ rich_text
+Email             â†’ email
+Contact Name      â†’ rich_text
+Contact Title     â†’ rich_text
+Company Type      â†’ select (Startup | Stable)
+Salary Range (LPA)â†’ rich_text
+Source            â†’ select
+Source URL        â†’ url
+Location          â†’ rich_text
+Notes             â†’ rich_text
+Email Status      â†’ select (New | Draft Ready | Approved | Sent | Rejected | Redo)
+Email Subject     â†’ rich_text
+Email Draft       â†’ rich_text
+Draft Notes       â†’ rich_text
+Emailed           â†’ checkbox
+Date Added        â†’ date
+Number            â†’ number
 ```
 
 ### `lib/agents.ts` (UPDATED 2026-05-30)
 Generates cold email drafts using Claude. Contains 3 functions + 1 main export.
 
-**Fixed constants (hardcoded — never touched by AI):**
+**Fixed constants (hardcoded â€” never touched by AI):**
 ```
 FIXED_INTRO_LINE = "I am Utkarsh, a Business Analyst who has shipped end-to-end at an AI-first company, owning everything from BRDs and sprint planning to UAT cycles and client go-lives."
 
@@ -162,11 +162,11 @@ TARGET_ROLES = "Associate PM or Business Analyst"
 ```
 
 **Functions:**
-- `companyHookAgent(company)` — AI generates 2-3 specific opening sentences about the company. Has strict rules: no generic lines, no em dashes, no filler phrases.
-- `subjectLineAgent(company)` — AI generates subject line in format "Associate PM / BA Interest at [Company] | Utkarsh Kumar" (40-55 chars).
-- `qualityGateAgent(subject, body, company)` — reviews the assembled email on 7 criteria, returns {score, approved, feedback}.
-- `assembleEmail(firstName, companyHook, companyName)` — combines hook + FIXED_INTRO_LINE + ask + CTA + SIGNATURE into final email. Only the hook is AI-generated; everything else is hardcoded.
-- `runAgentPipeline(company)` — main export. Runs hook + subject in parallel, assembles email, quality gates with one retry. Returns {subject, body, score, notes}.
+- `companyHookAgent(company)` â€” AI generates 2-3 specific opening sentences about the company. Has strict rules: no generic lines, no em dashes, no filler phrases.
+- `subjectLineAgent(company)` â€” AI generates subject line in format "Associate PM / BA Interest at [Company] | Utkarsh Kumar" (40-55 chars).
+- `qualityGateAgent(subject, body, company)` â€” reviews the assembled email on 7 criteria, returns {score, approved, feedback}.
+- `assembleEmail(firstName, companyHook, companyName)` â€” combines hook + FIXED_INTRO_LINE + ask + CTA + SIGNATURE into final email. Only the hook is AI-generated; everything else is hardcoded.
+- `runAgentPipeline(company)` â€” main export. Runs hook + subject in parallel, assembles email, quality gates with one retry. Returns {subject, body, score, notes}.
 
 **Email template produced:**
 ```
@@ -191,9 +191,9 @@ Sends emails via Gmail OAuth2 using Nodemailer. Also auto-attaches resume from V
 Required env vars: `GMAIL_USER`, `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`
 
 Flow:
-1. Validates all 4 OAuth2 env vars are present — throws descriptive error if not.
+1. Validates all 4 OAuth2 env vars are present â€” throws descriptive error if not.
 2. Creates Nodemailer transporter with `type: 'OAuth2'` auth.
-3. Fetches resume PDF from Vercel Blob (pathname = 'resume.pdf') — non-fatal if not found.
+3. Fetches resume PDF from Vercel Blob (pathname = 'resume.pdf') â€” non-fatal if not found.
 4. Calls `transporter.sendMail()` with from, to, subject, html, text, replyTo, attachments.
 5. Returns `true` on success.
 
@@ -221,7 +221,7 @@ POST handler for bulk draft generation.
 ### `app/api/cron/generate/route.ts`
 POST handler called by Vercel cron at 3am IST.
 1. Validates `x-cron-secret` header matches `CRON_SECRET` env var.
-2. Same logic as bulk generate — fetches New companies and generates drafts.
+2. Same logic as bulk generate â€” fetches New companies and generates drafts.
 3. This is the fully automated daily pipeline.
 
 ### `app/settings/page.tsx`
@@ -239,7 +239,7 @@ Resume upload UI. Lets Utkarsh upload a PDF once. File gets stored in Vercel Blo
 }
 ```
 Schedule: `30 22 * * *` = 22:30 UTC = 4:00 AM IST.
-(Note: was previously documented as 3am IST / 21:30 UTC — actual value in file is 22:30 UTC = 4am IST. Verify and update if needed.)
+(Note: was previously documented as 3am IST / 21:30 UTC â€” actual value in file is 22:30 UTC = 4am IST. Verify and update if needed.)
 
 ---
 
@@ -273,9 +273,9 @@ Schedule: `30 22 * * *` = 22:30 UTC = 4:00 AM IST.
 
 **Email Status flow:**
 ```
-New → (cron generates) → Draft Ready → (Utkarsh approves) → Approved → (sends) → Sent
-                                     → (Utkarsh rejects) → Rejected
-                                     → (Utkarsh redoes)  → Draft Ready (regenerated)
+New â†’ (cron generates) â†’ Draft Ready â†’ (Utkarsh approves) â†’ Approved â†’ (sends) â†’ Sent
+                                     â†’ (Utkarsh rejects) â†’ Rejected
+                                     â†’ (Utkarsh redoes)  â†’ Draft Ready (regenerated)
 ```
 
 **Test row (for QA):**
@@ -287,11 +287,11 @@ New → (cron generates) → Draft Ready → (Utkarsh approves) → Approved →
 
 ---
 
-## 6. ENVIRONMENT VARIABLES — FULL REFERENCE
+## 6. ENVIRONMENT VARIABLES â€” FULL REFERENCE
 
 ### `.env.local` (local development)
 Path: `C:\Users\Utkarsh\.gemini\antigravity\scratch\job-outreach-dashboard\.env.local`
-**This file is gitignored — never commit it.**
+**This file is gitignored â€” never commit it.**
 
 ```env
 ANTHROPIC_API_KEY=sk-ant-api03-qOiSMj6uu5mslw_bsOALTxRdMOnth_CeMM-bJHkhNph0A7RloloZH_oMAMvfkD0Lm9zdxj8lEsr3DjGICxO9jA-bb1QqwAA
@@ -303,15 +303,15 @@ CRON_SECRET=b6e3f2d1e4c5a6b7f8c9d0e1f2a3b4c5
 GMAIL_USER=utkarshwork13@gmail.com
 GMAIL_CLIENT_ID=711970967574-oiqjog95i003l447opq91irqhgsovdc2.apps.googleusercontent.com
 GMAIL_CLIENT_SECRET=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
-GMAIL_REFRESH_TOKEN=<NEEDS REGENERATING — see Section 11>
+GMAIL_REFRESH_TOKEN=<NEEDS REGENERATING â€” see Section 11>
 SENDER_NAME=Utkarsh Rajput
 
-# Vercel Blob (auto-set by Vercel integration — do not set manually in production)
+# Vercel Blob (auto-set by Vercel integration â€” do not set manually in production)
 # BLOB_READ_WRITE_TOKEN=<set by Vercel>
 ```
 
-### Vercel Production — Project tab
-(Set via Vercel dashboard → job-outreach-dashboard → Settings → Environments → Production → Project tab)
+### Vercel Production â€” Project tab
+(Set via Vercel dashboard â†’ job-outreach-dashboard â†’ Settings â†’ Environments â†’ Production â†’ Project tab)
 
 | Variable | Value | Status |
 |---|---|---|
@@ -324,14 +324,14 @@ SENDER_NAME=Utkarsh Rajput
 | BLOB_READ_WRITE_TOKEN | (set by Vercel Blob integration) | Set |
 | GMAIL_APP_PASSWORD | (old, unused) | Can delete |
 
-### Vercel Production — Shared tab
-(Set via Vercel dashboard → Settings → Environments → Production → Shared tab)
+### Vercel Production â€” Shared tab
+(Set via Vercel dashboard â†’ Settings â†’ Environments â†’ Production â†’ Shared tab)
 
 | Variable | Value | Status |
 |---|---|---|
 | GMAIL_CLIENT_ID | 711970967574-oiqjog...googleusercontent.com | Set |
 | GMAIL_CLIENT_SECRET | GOCSPX-BZI0p... | Set |
-| GMAIL_REFRESH_TOKEN | 1//04iLbjrW-... | **INVALID — needs regeneration** |
+| GMAIL_REFRESH_TOKEN | 1//04iLbjrW-... | **INVALID â€” needs regeneration** |
 
 ### Google Cloud OAuth2 Credentials
 - Console: https://console.cloud.google.com
@@ -348,7 +348,7 @@ SENDER_NAME=Utkarsh Rajput
 
 ## 7. EMAIL TEMPLATE & GENERATION RULES
 
-### Fixed elements (hardcoded — AI never touches these)
+### Fixed elements (hardcoded â€” AI never touches these)
 ```
 INTRO LINE (word for word, every email):
 "I am Utkarsh, a Business Analyst who has shipped end-to-end at an AI-first company, owning everything from BRDs and sprint planning to UAT cycles and client go-lives."
@@ -386,10 +386,10 @@ Utkarsh Kumar
 linkedin.com/in/utkarsh-kumar-rajput-76b673232
 ```
 
-### Hard rules — never do these
+### Hard rules â€” never do these
 | Never | Instead |
 |---|---|
-| Em dash (—) anywhere | Hyphen (-) or restructure |
+| Em dash (â€”) anywhere | Hyphen (-) or restructure |
 | "Hope this finds you well" | Open directly with company hook |
 | "I wanted to reach out" | Just write the hook |
 | Two CTAs | One only |
@@ -411,7 +411,7 @@ Branch: main (16 commits total)
 
 ```
 2dea065  feat: align email generation with Job Hunt SKILL.md template
-         (Updated agents.ts — fixed intro line, correct signature, 120-140 words,
+         (Updated agents.ts â€” fixed intro line, correct signature, 120-140 words,
           parallel generation, quality gate with 7 criteria)
 
 34e5972  chore: trigger redeploy for Gmail OAuth2 env vars
@@ -421,10 +421,10 @@ d0977e7  feat: switch to Gmail OAuth2 for SMTP (App Passwords unavailable)
          (Rewrote lib/mailer.ts to use Nodemailer OAuth2 transport)
 
 c9f68a2  fix: switch email from Gmail SMTP to Resend API
-         (Resend approach — later rejected by user, Gmail domain required)
+         (Resend approach â€” later rejected by user, Gmail domain required)
 
 a6720d1  fix: switch SMTP from Outlook to Gmail (utkarshwork13@gmail.com)
-         (Gmail SMTP + App Password — failed, App Passwords unavailable on account)
+         (Gmail SMTP + App Password â€” failed, App Passwords unavailable on account)
 
 a9c15e1  Fix send route to fetch company by page ID directly
          (send/[id]/route.ts now uses notion.pages.retrieve for fresh data)
@@ -454,7 +454,7 @@ cc8637b  Fix blob private store issue
 This section is critical context for anyone picking this up.
 
 ### Attempt 1: Zapier
-**Approach**: Zapier Zap with Webhook trigger → send email step → update Notion.
+**Approach**: Zapier Zap with Webhook trigger â†’ send email step â†’ update Notion.
 **Why it failed**: Zapier Webhooks by Zapier trigger requires the **Pro plan** ($19/mo). The free Hobby plan cannot use it. Zap was built and all steps configured but could not be published.
 **Decision**: Abandon Zapier entirely. Replace with direct code in Next.js.
 
@@ -470,19 +470,19 @@ This section is critical context for anyone picking this up.
 
 ### Attempt 4: Resend.com
 **Approach**: Use Resend SDK (`import { Resend } from 'resend'`). Transactional email API, no SMTP config.
-**Why it failed**: Resend sends from their own domain (`onboarding@resend.dev`) by default on free tier. Utkarsh explicitly rejected this — he needs emails to appear as coming **from utkarshwork13@gmail.com**. Sending from a resend.dev domain would look unprofessional and spammy to recruiters.
+**Why it failed**: Resend sends from their own domain (`onboarding@resend.dev`) by default on free tier. Utkarsh explicitly rejected this â€” he needs emails to appear as coming **from utkarshwork13@gmail.com**. Sending from a resend.dev domain would look unprofessional and spammy to recruiters.
 **Decision**: Must use Gmail directly. Only remaining option is Gmail OAuth2.
 
 ### Attempt 5: Gmail OAuth2 via Nodemailer (CURRENT)
 **Approach**: `nodemailer.createTransport({ service: 'gmail', auth: { type: 'OAuth2', user, clientId, clientSecret, refreshToken } })`
 **Status**: Code is correct and deployed. Credentials are in Vercel. ONE issue remains.
 **Current error**: `unauthorized_client: Unauthorized`
-**Root cause**: When generating the refresh token on OAuth2 Playground, the playground was NOT switched to "use your own OAuth credentials" before authorising. The refresh token got generated against Google's own playground client credentials, not Utkarsh's. When the app tries to use Utkarsh's Client ID + Secret with a refresh token tied to Google's client — Google rejects it.
+**Root cause**: When generating the refresh token on OAuth2 Playground, the playground was NOT switched to "use your own OAuth credentials" before authorising. The refresh token got generated against Google's own playground client credentials, not Utkarsh's. When the app tries to use Utkarsh's Client ID + Secret with a refresh token tied to Google's client â€” Google rejects it.
 **Fix**: Regenerate the refresh token with the playground correctly configured (see Section 11).
 
 ---
 
-## 10. CURRENT STATE — WHAT WORKS, WHAT DOESN'T
+## 10. CURRENT STATE â€” WHAT WORKS, WHAT DOESN'T
 
 ### Working
 - Dashboard loads at https://job-outreach-dashboard.vercel.app
@@ -502,7 +502,7 @@ This section is critical context for anyone picking this up.
 - Email template now matches Job Hunt SKILL.md exactly
 
 ### Not Working
-- **Email sending** — `POST /api/send/[id]` returns `{"error":"unauthorized_client: Unauthorized"}`
+- **Email sending** â€” `POST /api/send/[id]` returns `{"error":"unauthorized_client: Unauthorized"}`
 - Root cause: Invalid Gmail OAuth2 refresh token (generated incorrectly)
 - Fix: 5-minute credential regeneration (see Section 11)
 
@@ -518,10 +518,10 @@ This section is critical context for anyone picking this up.
 **Problem**: The GMAIL_REFRESH_TOKEN in Vercel is tied to Google's own OAuth client, not Utkarsh's.
 **Time to fix**: 5 minutes.
 
-### Step 1 — Open OAuth2 Playground
+### Step 1 â€” Open OAuth2 Playground
 Go to: https://developers.google.com/oauthplayground
 
-### Step 2 — CRITICAL: Enter your credentials BEFORE authorising
+### Step 2 â€” CRITICAL: Enter your credentials BEFORE authorising
 Click the **gear icon** (top-right corner of the page).
 Check the box: **"Use your own OAuth credentials"**
 Fill in:
@@ -529,40 +529,40 @@ Fill in:
 - OAuth Client Secret: `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`
 Close the gear panel.
 
-### Step 3 — Authorise Gmail scope
+### Step 3 â€” Authorise Gmail scope
 In the left panel, scroll down to find **"Gmail API v1"**.
 Expand it. Tick the checkbox next to: `https://mail.google.com/`
 Click the blue **"Authorize APIs"** button.
 Google sign-in will open. Sign in as **utkarshwork13@gmail.com**.
 Click **Allow**.
 
-### Step 4 — Exchange for tokens
+### Step 4 â€” Exchange for tokens
 You will be redirected back to the playground at Step 2.
 Click **"Exchange authorization code for tokens"**.
 A Refresh token will appear in the left panel.
 Copy the entire **Refresh token** value (it starts with `1//`).
-Do not copy the Access token — it expires in 1 hour and is not needed.
+Do not copy the Access token â€” it expires in 1 hour and is not needed.
 
-### Step 5 — Update Vercel
+### Step 5 â€” Update Vercel
 1. Go to https://vercel.com/dashboard
 2. Click **job-outreach-dashboard**
-3. Settings → Environments → Production → click the **Shared** tab
-4. Find **GMAIL_REFRESH_TOKEN** → click **...** → **Edit**
-5. Paste the new refresh token → Save
+3. Settings â†’ Environments â†’ Production â†’ click the **Shared** tab
+4. Find **GMAIL_REFRESH_TOKEN** â†’ click **...** â†’ **Edit**
+5. Paste the new refresh token â†’ Save
 
-### Step 6 — Redeploy
+### Step 6 â€” Redeploy
 Either:
 - Push any change to GitHub (Vercel auto-deploys from main), OR
-- Vercel dashboard → Deployments → click **...** on latest → **Redeploy**
+- Vercel dashboard â†’ Deployments â†’ click **...** on latest â†’ **Redeploy**
 
-### Step 7 — Test
+### Step 7 â€” Test
 Run this in PowerShell:
 ```powershell
 Invoke-WebRequest -Uri "https://job-outreach-dashboard.vercel.app/api/send/35e1c6af-4a06-81db-9ca7-c5882ab013a1" -Method POST -ContentType "application/json" -UseBasicParsing
 ```
 Expected: `StatusCode 200`, body `{"success":true}`
 Check: email arrives at ukumardj@gmail.com from utkarshwork13@gmail.com.
-Check: Notion row "Test Company (DELETE ME)" → Email Status = "Sent", Emailed checkbox = ticked.
+Check: Notion row "Test Company (DELETE ME)" â†’ Email Status = "Sent", Emailed checkbox = ticked.
 
 ---
 
@@ -571,12 +571,12 @@ Check: Notion row "Test Company (DELETE ME)" → Email Status = "Sent", Emailed 
 Once email sending is confirmed working:
 
 - [ ] Delete test Notion row: page ID `35e1c6af-4a06-81db-9ca7-c5882ab013a1`
-- [ ] Upload resume PDF: go to https://job-outreach-dashboard.vercel.app/settings → upload PDF
+- [ ] Upload resume PDF: go to https://job-outreach-dashboard.vercel.app/settings â†’ upload PDF
 - [ ] Generate drafts for all real companies: `POST /api/generate/bulk` (or use dashboard bulk button)
 - [ ] Review 5-10 drafts manually to confirm quality
 - [ ] Approve the good ones, reject or redo the bad ones
-- [ ] Confirm cron: Vercel dashboard → project → Settings → Cron Jobs → should show `/api/cron/generate` at `30 22 * * *`
-- [ ] Monitor next morning — check that drafts auto-generated overnight
+- [ ] Confirm cron: Vercel dashboard â†’ project â†’ Settings â†’ Cron Jobs â†’ should show `/api/cron/generate` at `30 22 * * *`
+- [ ] Monitor next morning â€” check that drafts auto-generated overnight
 - [ ] Delete old GMAIL_APP_PASSWORD var from Vercel Project tab (cleanup)
 
 ---
@@ -586,12 +586,12 @@ Once email sending is confirmed working:
 ### Email quality checks (run on 5 sample drafts)
 - [ ] Subject line is 40-55 characters
 - [ ] Subject line format: "Associate PM / BA Interest at [Company] | Utkarsh Kumar"
-- [ ] Email opens with "Hi [Real First Name]," — never a placeholder
-- [ ] Opening 2-3 sentences are specific to the company — not generic
+- [ ] Email opens with "Hi [Real First Name]," â€” never a placeholder
+- [ ] Opening 2-3 sentences are specific to the company â€” not generic
 - [ ] Fixed intro line present word-for-word: "I am Utkarsh, a Business Analyst who has shipped end-to-end at an AI-first company, owning everything from BRDs and sprint planning to UAT cycles and client go-lives."
 - [ ] Only one CTA (either 15-min call OR "let me know")
 - [ ] Signature is: "Utkarsh Kumar / +91 9969396063 / linkedin.com/in/utkarsh-kumar-rajput-76b673232"
-- [ ] No em dashes (—) anywhere
+- [ ] No em dashes (â€”) anywhere
 - [ ] No unfilled [bracket] placeholders
 - [ ] No "Hope this finds you well"
 - [ ] No "I wanted to reach out"
@@ -599,18 +599,18 @@ Once email sending is confirmed working:
 - [ ] Only Associate PM or Business Analyst mentioned as target roles
 
 ### API endpoint checks
-- [ ] `GET /api/companies` — returns array, 200
-- [ ] `POST /api/generate` with body `{"notionId":"..."}` — returns subject + body, 200
-- [ ] `POST /api/generate/bulk` — generates drafts for all New companies, 200
-- [ ] `POST /api/approve/[id]` — Notion row status changes to "Approved", 200
-- [ ] `POST /api/reject/[id]` — Notion row status changes to "Rejected", 200
-- [ ] `POST /api/redo/[id]` — new draft generated and saved, status back to Draft Ready, 200
-- [ ] `POST /api/send/[id]` — email arrives, Notion row → Sent, Emailed = true, 200
-- [ ] `POST /api/send/bulk` — sends all Approved companies
-- [ ] `GET /api/resume` — returns blob info if resume uploaded, 200
-- [ ] `POST /api/resume/upload` — uploads PDF, stores in Vercel Blob as resume.pdf, 200
-- [ ] `POST /api/cron/generate` with header `x-cron-secret: b6e3f2d1e4c5a6b7f8c9d0e1f2a3b4c5` — generates drafts, 200
-- [ ] `POST /api/cron/generate` without header — returns 401
+- [ ] `GET /api/companies` â€” returns array, 200
+- [ ] `POST /api/generate` with body `{"notionId":"..."}` â€” returns subject + body, 200
+- [ ] `POST /api/generate/bulk` â€” generates drafts for all New companies, 200
+- [ ] `POST /api/approve/[id]` â€” Notion row status changes to "Approved", 200
+- [ ] `POST /api/reject/[id]` â€” Notion row status changes to "Rejected", 200
+- [ ] `POST /api/redo/[id]` â€” new draft generated and saved, status back to Draft Ready, 200
+- [ ] `POST /api/send/[id]` â€” email arrives, Notion row â†’ Sent, Emailed = true, 200
+- [ ] `POST /api/send/bulk` â€” sends all Approved companies
+- [ ] `GET /api/resume` â€” returns blob info if resume uploaded, 200
+- [ ] `POST /api/resume/upload` â€” uploads PDF, stores in Vercel Blob as resume.pdf, 200
+- [ ] `POST /api/cron/generate` with header `x-cron-secret: b6e3f2d1e4c5a6b7f8c9d0e1f2a3b4c5` â€” generates drafts, 200
+- [ ] `POST /api/cron/generate` without header â€” returns 401
 
 ### Notion sync checks
 - [ ] Generating a draft updates Email Status to "Draft Ready"
@@ -632,32 +632,73 @@ Once email sending is confirmed working:
 
 These are planned but not yet built. In priority order:
 
-### P1 — Company Auto-Ingestion (High value, next to build)
+### P1 â€” Company Auto-Ingestion (High value, next to build)
 Currently companies must be manually added to Notion. The plan is an agent that:
 1. Takes a list of target companies or role keywords
 2. Uses Claude + web search to find HR/TA contacts and their emails
 3. Uses `createCompanyEntry()` in `lib/notion.ts` to add rows automatically
 4. Connects to the existing daily cron so the full pipeline runs without manual intervention
 
-### P2 — LinkedIn/Indeed Scraper Integration
-The scheduled "Job Hunt" task already scrapes jobs daily via Apify. Connect that pipeline so new jobs found by the scraper automatically get added to the Notion DB (instead of Gmail drafts being created there — use this dashboard for sending instead).
+### P2 â€” LinkedIn/Indeed Scraper Integration
+The scheduled "Job Hunt" task already scrapes jobs daily via Apify. Connect that pipeline so new jobs found by the scraper automatically get added to the Notion DB (instead of Gmail drafts being created there â€” use this dashboard for sending instead).
 
-### P3 — Email Open/Reply Tracking
+### P3 â€” Email Open/Reply Tracking
 Currently there's no visibility into whether emails are opened or replied to. Options:
 - Add a tracking pixel via a Next.js API route
 - Use Gmail API to poll for replies and update Notion accordingly
 
-### P4 — Analytics Dashboard
+### P4 â€” Analytics Dashboard
 A /analytics page showing:
 - Total outreach sent by week
 - Response rate
 - Companies by city, role, status
 - Draft quality score distribution
 
-### P5 — Resume Personalisation
+### P5 â€” Resume Personalisation
 Currently one resume is attached to all emails. Future: upload multiple resume versions (APM-focused, BA-focused) and auto-select based on the role type.
 
 ---
 
 *Document generated: 2026-05-30*
 *Next session: Start with Section 11 (refresh token fix), then run QA checklist from Section 13.*
+
+
+---
+
+## 🚀 Deploy Your Own Instance
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/utkarshkr13/job-outreach-dashboard&env=ANTHROPIC_API_KEY,NOTION_API_KEY,NOTION_DB_ID,CRON_SECRET,GMAIL_USER,GMAIL_CLIENT_ID,GMAIL_CLIENT_SECRET,GMAIL_REFRESH_TOKEN,SENDER_NAME,SENDER_PHONE,SENDER_LINKEDIN,SENDER_BIO,TARGET_ROLES&envDescription=See%20SETUP.md%20for%20instructions&project-name=job-outreach-dashboard&repository-name=job-outreach-dashboard)
+
+Click the button above. Vercel will ask you to fill in your own credentials during setup.
+
+### What you need before deploying
+
+| Variable | What it is | Where to get it |
+|---|---|---|
+| ANTHROPIC_API_KEY | Claude API key | console.anthropic.com |
+| NOTION_API_KEY | Notion integration token | notion.so/my-integrations |
+| NOTION_DB_ID | Your Notion database ID | Copy from DB URL |
+| CRON_SECRET | Any random string | Generate at random.org |
+| GMAIL_USER | Your Gmail address | Your Google account |
+| GMAIL_CLIENT_ID | Google OAuth2 client ID | console.cloud.google.com |
+| GMAIL_CLIENT_SECRET | Google OAuth2 secret | console.cloud.google.com |
+| GMAIL_REFRESH_TOKEN | Gmail refresh token | developers.google.com/oauthplayground |
+| SENDER_NAME | Your full name | e.g. Jane Smith |
+| SENDER_PHONE | Your phone number | e.g. +91 9999999999 |
+| SENDER_LINKEDIN | Your LinkedIn URL | linkedin.com/in/your-profile |
+| SENDER_BIO | 1-sentence professional bio | e.g. I am Jane, a PM who has shipped... |
+| TARGET_ROLES | Roles you are targeting | e.g. Product Manager or Business Analyst |
+
+### Gmail OAuth2 setup (5 min)
+1. Go to [console.cloud.google.com](https://console.cloud.google.com) → New Project → Enable Gmail API
+2. APIs & Services → Credentials → Create OAuth client ID (Web application)
+3. Add redirect URI: https://developers.google.com/oauthplayground
+4. Go to [OAuth2 Playground](https://developers.google.com/oauthplayground) → gear icon → "Use your own OAuth credentials" → enter Client ID + Secret
+5. Select Gmail API v1 > https://mail.google.com/ → Authorize → Exchange for tokens → copy Refresh token
+
+### Notion setup (2 min)
+1. Go to [notion.so/my-integrations](https://notion.so/my-integrations) → New integration → copy the token
+2. Create a new database with these properties: Company (title), Email, Role, Contact Name, Contact Title, Email Status (select: New/Draft Ready/Approved/Sent/Rejected/Redo), Email Subject, Email Draft, Draft Notes, Emailed (checkbox)
+3. Share the database with your integration
+4. Copy the database ID from the URL
+

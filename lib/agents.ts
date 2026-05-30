@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk';
+﻿import Anthropic from '@anthropic-ai/sdk';
 import { Company, AgentResult } from '@/types';
 import { mockGenerateDraftPipeline } from './mockDb';
 
@@ -7,18 +7,22 @@ const client = process.env.NEXT_PUBLIC_APP_MODE !== 'demo' && process.env.ANTHRO
   : null as any;
 const MODEL = 'claude-3-5-sonnet-20241022';
 
-// ─── FIXED CONSTANTS (never change these) ───────────────────────────────────
+// ─── USER CONFIG (all from env vars — no hardcoding) ─────────────────────────
 
-const FIXED_INTRO_LINE =
-  'I am Utkarsh, a Business Analyst who has shipped end-to-end at an AI-first company, owning everything from BRDs and sprint planning to UAT cycles and client go-lives.';
+const SENDER_NAME     = process.env.SENDER_NAME     || 'Your Name';
+const SENDER_PHONE    = process.env.SENDER_PHONE    || '';
+const SENDER_LINKEDIN = process.env.SENDER_LINKEDIN || '';
+const TARGET_ROLES    = process.env.TARGET_ROLES    || 'Associate PM or Business Analyst';
+const SENDER_BIO      = process.env.SENDER_BIO      ||
+  'I am a professional with experience shipping products end-to-end.';
 
-const SIGNATURE = `Utkarsh Kumar
-+91 9969396063
-linkedin.com/in/utkarsh-kumar-rajput-76b673232`;
+const SIGNATURE = [
+  SENDER_NAME,
+  SENDER_PHONE,
+  SENDER_LINKEDIN,
+].filter(Boolean).join('\n');
 
-const TARGET_ROLES = 'Associate PM or Business Analyst';
-
-// ─── HELPER ─────────────────────────────────────────────────────────────────
+// ─── HELPER ──────────────────────────────────────────────────────────────────
 
 async function ask(systemPrompt: string, userMessage: string): Promise<string> {
   const response = await client.messages.create({
@@ -30,14 +34,12 @@ async function ask(systemPrompt: string, userMessage: string): Promise<string> {
   return (response.content[0] as any).text;
 }
 
-// ─── AGENT 1: COMPANY HOOK ────────────────────────────────────────────────
-// Writes 2-3 sentences that are specific to THIS company.
-// These are the opening lines of the email — before the fixed intro.
+// ─── AGENT 1: COMPANY HOOK ───────────────────────────────────────────────────
 
 async function companyHookAgent(company: Company): Promise<string> {
   return ask(
     `You write the opening 2-3 sentences of a cold job application email.
-    
+
 RULES — ALL MANDATORY:
 - Be specific to this exact company. Reference their actual product, the problem they solve, their market, or a recent development.
 - Sound genuine and interested, not flattering or sycophantic.
@@ -55,23 +57,25 @@ Source URL: ${company.sourceUrl ?? ''}`
   );
 }
 
-// ─── AGENT 2: SUBJECT LINE ────────────────────────────────────────────────
+// ─── AGENT 2: SUBJECT LINE ───────────────────────────────────────────────────
 
 async function subjectLineAgent(company: Company): Promise<string> {
   return ask(
     `Write a cold email subject line for a job application.
 
-FORMAT: "Associate PM / BA Interest at [Company Name] | Utkarsh Kumar"
+FORMAT: "[TARGET_ROLES] Interest at [Company Name] | [SENDER_NAME]"
 - Replace [Company Name] with the actual company name.
-- Keep total length between 40-55 characters.
-- If the company name is long, abbreviate naturally to stay within 55 chars.
+- Replace [TARGET_ROLES] with: ${TARGET_ROLES}
+- Replace [SENDER_NAME] with: ${SENDER_NAME}
+- Keep total length between 40-60 characters.
+- If the company name is long, abbreviate naturally to stay within 60 chars.
 - NO em dashes (—). Use a hyphen (-) if needed.
 - Output only the subject line. Nothing else.`,
     `Company: ${company.company}`
   );
 }
 
-// ─── AGENT 3: QUALITY GATE ───────────────────────────────────────────────
+// ─── AGENT 3: QUALITY GATE ───────────────────────────────────────────────────
 
 async function qualityGateAgent(
   subject: string,
@@ -83,12 +87,12 @@ async function qualityGateAgent(
 
 Score each criterion 1-10, then return the average:
 1. Specificity — does the opening reference concrete details about this company? Not generic?
-2. Fixed intro line present — does the email contain this exact line word for word: "${FIXED_INTRO_LINE}"
-3. Word count — is the body between 120-140 words? (score 10 if yes, 1 if not)
+2. Bio line present — does the email contain a professional introduction sentence?
+3. Word count — is the body between 100-150 words? (score 10 if yes, 1 if not)
 4. No em dashes — does the email contain any em dash (—)? (score 10 if none found, 1 if found)
 5. No placeholders — are there any unfilled [brackets] or placeholder text? (score 10 if clean, 1 if found)
 6. One CTA only — is there exactly one call to action?
-7. Correct signature — does it end with "Utkarsh Kumar", phone, and LinkedIn?
+7. Has signature — does it end with sender name and contact details?
 
 Return a JSON object: { "score": <average>, "approved": <true if score >= 7>, "feedback": "<what to fix, or Approved>" }`,
     `Company: ${company.company}
@@ -106,7 +110,7 @@ ${body}`
   return { score: 7, approved: true, feedback: 'Approved' };
 }
 
-// ─── ASSEMBLE FINAL EMAIL ────────────────────────────────────────────────
+// ─── ASSEMBLE FINAL EMAIL ─────────────────────────────────────────────────────
 
 function assembleEmail(
   contactFirstName: string,
@@ -117,42 +121,36 @@ function assembleEmail(
 
 ${companyHook}
 
-${FIXED_INTRO_LINE}
+${SENDER_BIO}
 
 I am currently looking for ${TARGET_ROLES} roles and would love to explore if there is a fit at ${companyName}. Happy to connect for a quick 15-minute call.
 
 ${SIGNATURE}`;
 }
 
-// ─── MAIN EXPORT ─────────────────────────────────────────────────────────
+// ─── MAIN EXPORT ──────────────────────────────────────────────────────────────
 
 export async function runAgentPipeline(company: Company): Promise<AgentResult> {
   if (process.env.NEXT_PUBLIC_APP_MODE === 'demo') {
     return mockGenerateDraftPipeline(company);
   }
 
-  // Derive first name from contactName (e.g. "Priya Sharma" -> "Priya")
   const firstName = company.contactName
     ? company.contactName.trim().split(' ')[0]
     : 'there';
 
-  // Run company hook + subject in parallel
   const [companyHook, subject] = await Promise.all([
     companyHookAgent(company),
     subjectLineAgent(company),
   ]);
 
-  // Assemble body using fixed template
   let body = assembleEmail(firstName, companyHook.trim(), company.company);
-
-  // Quality gate with one retry if needed
   let quality = await qualityGateAgent(subject, body, company);
 
   if (!quality.approved) {
-    // Retry only the company hook (most likely failure point)
     const betterHook = await ask(
       `You write the opening 2-3 sentences of a cold job application email.
-      
+
 RULES — ALL MANDATORY:
 - Be specific to this exact company. Reference their actual product, the problem they solve, their market.
 - Sound genuine and interested.
