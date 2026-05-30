@@ -1406,3 +1406,35 @@ body::-webkit-scrollbar-thumb:hover {
   border-color: rgba(48, 213, 200, 0.45) !important;
 }
 
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 35 ─────────────────────── */
+
+/* Apple Silicon Transition Sweep with dynamic HSL Saturation curves */
+@keyframes saturationSweep {
+  0% { filter: saturate(30%); }
+  100% { filter: saturate(190%); }
+}
+.apple-saturation-sweep {
+  animation: saturationSweep 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+/* macOS Finder Info-Inspector Segment separator subpixel hairline */
+.apple-separator-subpixel {
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, rgba(232, 232, 237, 0.4), transparent);
+}
+.dark .apple-separator-subpixel {
+  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.05), transparent);
+}
+
+/* Breathing Emerald-Teal aura highlight for Job Offer stages */
+@keyframes breathingEmeraldTealGlow {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.05); }
+  50% { box-shadow: 0 0 14px 3px rgba(16, 185, 129, 0.22); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.05); }
+}
+.apple-glow-emerald-teal {
+  animation: breathingEmeraldTealGlow 3.5s infinite ease-in-out;
+  border-color: rgba(16, 185, 129, 0.45) !important;
+}
+
+

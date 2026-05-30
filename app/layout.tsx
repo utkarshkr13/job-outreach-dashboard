@@ -76,7 +76,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="apple-dock-divider-line apple-dock-divider-sweep"></div>
+            <div className="apple-dock-divider-line apple-dock-divider-sweep apple-separator-subpixel h-5"></div>
             {/* Elegant light/dark toggle switcher */}
             <button
               onClick={toggleTheme}
