@@ -2,12 +2,14 @@
 
 import { Inter } from 'next/font/google';
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const pathname = usePathname();
 
   // Load and apply theme on startup
   useEffect(() => {
@@ -46,10 +48,30 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               Outreach CRM
             </span>
             <div className="flex items-center gap-6">
-              <a href="/" className="text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-400 dark:hover:text-neutral-200 text-xs font-medium transition-colors">Dashboard</a>
-              <a href="/sent" className="text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-400 dark:hover:text-neutral-200 text-xs font-medium transition-colors">Sent</a>
-              <a href="/analytics" className="text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-400 dark:hover:text-neutral-200 text-xs font-medium transition-colors">Analytics</a>
-              <a href="/settings" className="text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-400 dark:hover:text-neutral-200 text-xs font-medium transition-colors">Settings</a>
+              <a
+                href="/"
+                className={`apple-dock-indicator ${pathname === '/' ? 'active text-[#1d1d1f] dark:text-[#f5f5f7]' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-400 dark:hover:text-neutral-200'} text-xs font-medium transition-colors`}
+              >
+                Dashboard
+              </a>
+              <a
+                href="/sent"
+                className={`apple-dock-indicator ${pathname === '/sent' ? 'active text-[#1d1d1f] dark:text-[#f5f5f7]' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-400 dark:hover:text-neutral-200'} text-xs font-medium transition-colors`}
+              >
+                Sent
+              </a>
+              <a
+                href="/analytics"
+                className={`apple-dock-indicator ${pathname === '/analytics' ? 'active text-[#1d1d1f] dark:text-[#f5f5f7]' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-400 dark:hover:text-neutral-200'} text-xs font-medium transition-colors`}
+              >
+                Analytics
+              </a>
+              <a
+                href="/settings"
+                className={`apple-dock-indicator ${pathname === '/settings' ? 'active text-[#1d1d1f] dark:text-[#f5f5f7]' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-400 dark:hover:text-neutral-200'} text-xs font-medium transition-colors`}
+              >
+                Settings
+              </a>
             </div>
           </div>
 

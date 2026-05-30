@@ -115,6 +115,22 @@ export default function MorningDashboard() {
     fetchCompanies();
   }, []);
 
+  // Mouse movement effect for Apple Glow Cards
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const cards = document.querySelectorAll('.apple-glow-card');
+      cards.forEach(card => {
+        const rect = (card as HTMLElement).getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        (card as HTMLElement).style.setProperty('--mouse-x', `${x}px`);
+        (card as HTMLElement).style.setProperty('--mouse-y', `${y}px`);
+      });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
   // Keyboard navigation shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -409,7 +425,7 @@ export default function MorningDashboard() {
       )}
 
       {/* APPLE-INSPIRED HEADER BLOCK WITH STREAK & MORNING BRIEF */}
-      <div className="bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 backdrop-blur-xl rounded-3xl p-6 shadow-[0_4px_12px_rgba(0,0,0,0.015)] dark:shadow-none flex flex-col md:flex-row justify-between items-start md:items-center gap-6 transition-colors duration-300">
+      <div className="apple-glow-card bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 backdrop-blur-xl rounded-3xl p-6 shadow-[0_4px_12px_rgba(0,0,0,0.015)] dark:shadow-none flex flex-col md:flex-row justify-between items-start md:items-center gap-6 transition-colors duration-300">
         
         <div className="flex items-center gap-6">
           {/* Minimal progress ring */}
@@ -487,7 +503,7 @@ export default function MorningDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Ingestion Panel */}
-        <form onSubmit={handleIngest} className="bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-5 shadow-[0_4px_12px_rgba(0,0,0,0.015)] dark:shadow-none flex flex-col justify-between gap-4 transition-colors duration-300">
+        <form onSubmit={handleIngest} className="apple-glow-card bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-5 shadow-[0_4px_12px_rgba(0,0,0,0.015)] dark:shadow-none flex flex-col justify-between gap-4 transition-colors duration-300">
           <div>
             <h2 className="text-xs font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">Recruiter Ingestion</h2>
             <p className="text-[10px] text-neutral-500 mt-0.5">Finds target recruiters using Claude intelligence</p>
@@ -525,7 +541,7 @@ export default function MorningDashboard() {
         </form>
 
         {/* Filter and sorting */}
-        <div className="lg:col-span-2 bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-5 shadow-[0_4px_12px_rgba(0,0,0,0.015)] dark:shadow-none flex flex-col justify-between gap-4 transition-colors duration-300">
+        <div className="apple-glow-card lg:col-span-2 bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-5 shadow-[0_4px_12px_rgba(0,0,0,0.015)] dark:shadow-none flex flex-col justify-between gap-4 transition-colors duration-300">
           <div>
             <h2 className="text-xs font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">Search & Control Console</h2>
             <p className="text-[10px] text-neutral-500 mt-0.5">Fuzzy search and list parameters sorting</p>
