@@ -198,6 +198,20 @@ export function getCompanyResumeStatus(notionId: string): 'custom' | 'global' | 
     return 'custom';
   }
 
+  // Dual Resume Routing Check: Check role and see if pm-resume.pdf or ba-resume.pdf exists
+  const db = readDb();
+  const company = db.mockCompanies.find(c => c.notionId === notionId);
+  if (company) {
+    const isPm = company.role.toLowerCase().includes('pm') || company.role.toLowerCase().includes('product');
+    const isBa = company.role.toLowerCase().includes('analyst') || company.role.toLowerCase().includes('ba');
+    
+    const pmPath = path.join(process.cwd(), 'lib', 'resumes', 'pm-resume.pdf');
+    const baPath = path.join(process.cwd(), 'lib', 'resumes', 'ba-resume.pdf');
+
+    if (isPm && fs.existsSync(pmPath)) return 'global';
+    if (isBa && fs.existsSync(baPath)) return 'global';
+  }
+
   const globalPath = process.env.VERCEL
     ? '/tmp/global-resume.pdf'
     : path.join(process.cwd(), 'lib', 'resumes', 'global-resume.pdf');
@@ -355,4 +369,99 @@ export function setMockResumeUploaded(uploaded: boolean): void {
   const db = readDb();
   db.mockResumeUploaded = uploaded;
   writeDb(db);
+}
+
+export function mockResetDb(): void {
+  writeDb({
+    mockCompanies: [...SEED_COMPANIES],
+    mockResumeUploaded: false
+  });
+}
+
+// ─── NEW INDUSTRIAL CRM API HELPERS ──────────────────────────────────────────
+
+export function mockIngestCompany(companyName: string, roleName: string): Company {
+  const db = readDb();
+  
+  const names = ['Rachel Jenkins', 'Alex Rivera', 'Siddharth Roy', 'Jennifer Lopez', 'Michael Scott', 'Emily Green'];
+  const titles = ['Technical Recruiter', 'Talent Acquisition Partner', 'HR Manager', 'Lead Product Recruiter'];
+  const locations = ['Bangalore (Hybrid)', 'Remote (India)', 'Mumbai', 'Chennai'];
+  const sources = ['LinkedIn', 'Naukri', 'Career Page', 'Indeed'];
+  
+  const random = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+  const name = random(names);
+  const companyId = `demo-${companyName.toLowerCase().replace(/[^a-z0-9]/g, '')}-${Date.now().toString().slice(-4)}`;
+
+  const newCompany: Company = {
+    notionId: companyId,
+    company: companyName,
+    role: roleName,
+    email: `recruiting@${companyName.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+    contactName: name,
+    contactTitle: random(titles),
+    companyType: Math.random() > 0.5 ? 'Startup' : 'Stable',
+    salaryRange: '18-24',
+    source: random(sources),
+    sourceUrl: `https://${companyName.toLowerCase()}.com/careers`,
+    location: random(locations),
+    notes: 'Automatically discovered by our background recruiter search agent.',
+    emailStatus: 'New',
+    emailSubject: '',
+    emailDraft: '',
+    draftNotes: '',
+    emailed: false,
+    dateAdded: new Date().toISOString().split('T')[0],
+    openCount: 0,
+    resumeType: roleName.toLowerCase().includes('pm') || roleName.toLowerCase().includes('product') ? 'pm' : 'ba'
+  };
+
+  db.mockCompanies.unshift(newCompany);
+  writeDb(db);
+  return newCompany;
+}
+
+export function mockRegisterOpen(notionId: string): void {
+  const db = readDb();
+  db.mockCompanies = db.mockCompanies.map(c => {
+    if (c.notionId === notionId) {
+      return {
+        ...c,
+        openCount: (c.openCount ?? 0) + 1,
+      };
+    }
+    return c;
+  });
+  writeDb(db);
+}
+
+export function mockGenerateFollowUp(notionId: string): AgentResult {
+  const db = readDb();
+  const company = db.mockCompanies.find(c => c.notionId === notionId);
+  if (!company) {
+    throw new Error('Company not found');
+  }
+
+  const companyName = company.company;
+  const firstName = company.contactName ? company.contactName.trim().split(' ')[0] : 'there';
+  const roles = "Associate PM or Business Analyst";
+  const signature = "Utkarsh Kumar\n+91 9969396063\nlinkedin.com/in/utkarsh-kumar-rajput-76b673232";
+
+  const subject = `Re: Associate PM / BA Interest at ${companyName} | Utkarsh Kumar`;
+  const body = `Hi ${firstName},
+
+I wanted to quickly bubble this up in case it got buried in your inbox. I'd love to connect for a brief 15-minute chat to explore if my Business Analyst background shipping end-to-end at an AI startup aligns with what you are building at ${companyName}.
+
+Let me know if you have any availability for a call next week.
+
+${signature}`;
+
+  // Update status back to Draft Ready for follow-up review
+  mockUpdateEmailDraft(notionId, subject, body, 'Score: 9.6. Approved (Follow-Up Cadence). Polished second-touchpoint email.', 'Draft Ready');
+
+  return {
+    subject,
+    body,
+    score: 9.6,
+    notes: 'Score: 9.6. Approved (Follow-Up Cadence). Polished second-touchpoint email.'
+  };
 }

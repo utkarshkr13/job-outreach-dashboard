@@ -94,11 +94,15 @@ export async function sendEmail(payload: EmailPayload): Promise<boolean> {
     console.error('Failed to attach resume (non-fatal):', err);
   }
 
+  // Append invisible open tracking pixel (using live Vercel domain)
+  const trackingPixelUrl = `https://job-outreach-dashboard.vercel.app/api/track/${payload.notionId}/open`;
+  const trackedHtml = `${payload.emailBody.replace(/\n/g, '<br>')}<br><br><img src="${trackingPixelUrl}" width="1" height="1" style="display:none;" alt="" />`;
+
   await transporter.sendMail({
     from: `"${process.env.SENDER_NAME || 'Utkarsh Rajput'}" <${user}>`,
     to: payload.toEmail,
     subject: payload.subject,
-    html: payload.emailBody.replace(/\n/g, '<br>'),
+    html: trackedHtml,
     text: payload.emailBody,
     replyTo: user,
     attachments,

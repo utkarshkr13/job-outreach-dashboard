@@ -62,6 +62,7 @@ export default function CompanyPage() {
       setResumeMsg('Error: ' + err.message);
     } finally {
       setUploadingResume(false);
+      setTimeout(() => setResumeMsg(''), 4000);
     }
   };
 
@@ -83,6 +84,7 @@ export default function CompanyPage() {
       setResumeMsg('Error: ' + err.message);
     } finally {
       setUploadingResume(false);
+      setTimeout(() => setResumeMsg(''), 4000);
     }
   };
 
@@ -110,49 +112,86 @@ export default function CompanyPage() {
     router.push('/');
   };
 
-  if (loading) return <div className="text-center py-20 text-gray-500">Loading...</div>;
-  if (!company) return <div className="text-center py-20 text-gray-500">Company not found</div>;
+  if (loading) return <div className="text-center py-20 text-neutral-500">Loading lead data...</div>;
+  if (!company) return <div className="text-center py-20 text-neutral-500 font-semibold">Lead record not found</div>;
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <button onClick={() => router.back()} className="text-gray-400 hover:text-white text-sm mb-6">← Back</button>
+    <div className="max-w-3xl mx-auto space-y-6 pb-20">
+      
+      {/* ── BACK NAVIGATION ── */}
+      <button 
+        onClick={() => router.back()} 
+        className="group flex items-center gap-1.5 text-[#0071e3] hover:underline text-xs font-semibold select-none cursor-pointer"
+      >
+        <span className="text-[10px] transform group-hover:-translate-x-0.5 transition-transform">←</span> 
+        <span>Back to Pipeline</span>
+      </button>
 
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-        <h1 className="text-2xl font-bold mb-1">{company.company}</h1>
-        <p className="text-gray-400">{company.role} · {company.location} · {company.salaryRange} LPA</p>
+      {/* ── COMPANY BRIEFING CARD ── */}
+      <div className="bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-6 md:p-8 shadow-sm shadow-[rgba(0,0,0,0.01)]">
+        <div className="flex items-start justify-between flex-wrap gap-2">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-[#1d1d1f] dark:text-[#f5f5f7]">{company.company}</h1>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 flex flex-wrap items-center gap-1.5 font-medium">
+              <span className="bg-[#f5f5f7] dark:bg-neutral-900 px-2 py-0.5 rounded-md border border-neutral-200 dark:border-neutral-800">{company.role}</span>
+              <span>•</span>
+              <span>{company.location || 'Remote'}</span>
+              <span>•</span>
+              <span>{company.salaryRange ? `${company.salaryRange} LPA` : 'Competitive'}</span>
+            </p>
+          </div>
+          {company.companyType && (
+            <span className="text-[9px] uppercase font-bold tracking-widest px-2.5 py-1 rounded-full bg-neutral-100 dark:bg-neutral-900 text-neutral-500 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-800">
+              {company.companyType}
+            </span>
+          )}
+        </div>
+        
         {company.draftNotes && (
-          <p className="mt-2 text-yellow-500 text-sm">{company.draftNotes}</p>
+          <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-950/30 rounded-2xl text-[11px] leading-relaxed">
+            <span className="font-semibold block mb-0.5">⚠️ Ingestion Intelligence:</span>
+            {company.draftNotes}
+          </div>
         )}
       </div>
 
-      {/* Custom Resume Overrides Widget */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-        <h2 className="text-sm font-medium text-gray-400 mb-3 uppercase tracking-wider">Attachment Configuration</h2>
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      {/* ── CUSTOM RESUME OVERRIDES WIDGET ── */}
+      <div className="bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-6 shadow-sm shadow-[rgba(0,0,0,0.01)] space-y-4">
+        <div>
+          <h2 className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">Recruiter CV Override</h2>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Define a customized document attached strictly to emails sent to {company.company}.</p>
+        </div>
+
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pt-1">
           <div>
             {resumeStatus === 'custom' ? (
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                <span className="font-semibold text-blue-400 text-sm">📎 Company-Specific Resume Attached</span>
-              </div>
+              <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                Company-Specific Resume Attached
+              </span>
             ) : resumeStatus === 'global' ? (
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span>
-                <span className="font-semibold text-green-400 text-sm">📎 Global Default Resume Attached</span>
-              </div>
+              <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                Global Default Resume Active
+              </span>
             ) : (
-              <div className="flex items-center gap-2 animate-pulse">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                <span className="font-semibold text-amber-500 text-sm">⚠️ No Resume Uploaded Yet</span>
-              </div>
+              <span className="text-[11px] font-bold text-orange-600 dark:text-orange-400 flex items-center gap-1.5 animate-pulse">
+                <span className="w-2 h-2 rounded-full bg-orange-500"></span>
+                No Document Attached
+              </span>
             )}
-            <p className="text-gray-500 text-xs mt-1.5 leading-relaxed">
+            <p className="text-[10px] leading-relaxed text-neutral-400 dark:text-neutral-500 mt-1">
               {resumeStatus === 'custom' 
-                ? 'This company has a customized resume override. Sending this email will attach this specific PDF.' 
-                : 'This company will receive your global default resume (uploaded in Settings) when sending.'}
+                ? `Outreach CRM will attach the company-specific custom PDF override for ${company.company}.`
+                : `Outreach CRM will automatically fall back to your global resume uploaded in Settings.`}
             </p>
-            {resumeMsg && <p className={`text-xs mt-2 ${resumeMsg.includes('Error') ? 'text-red-400' : 'text-green-400'}`}>{resumeMsg}</p>}
+            {resumeMsg && (
+              <p className={`text-[10px] font-semibold mt-2 animate-fade-in ${resumeMsg.includes('Error') ? 'text-red-500' : 'text-emerald-500'}`}>
+                {resumeMsg}
+              </p>
+            )}
           </div>
+
           <div className="flex items-center gap-2 w-full md:w-auto self-center">
             <input 
               type="file" 
@@ -164,7 +203,7 @@ export default function CompanyPage() {
             />
             <label 
               htmlFor="custom-resume-file"
-              className="bg-gray-800 hover:bg-gray-700 text-center px-4 py-2 rounded-lg text-xs font-semibold cursor-pointer border border-gray-700 select-none block w-full md:w-auto disabled:opacity-50"
+              className="flex-1 md:flex-none text-center bg-[#f5f5f7] hover:bg-[#e8e8ed] dark:bg-neutral-900 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200 px-4 py-2.5 rounded-2xl text-[11px] font-bold border border-neutral-200 dark:border-neutral-850 cursor-pointer select-none block transition-all"
             >
               {uploadingResume ? 'Uploading...' : '📎 Upload Custom PDF'}
             </label>
@@ -172,7 +211,7 @@ export default function CompanyPage() {
               <button 
                 onClick={handleDeleteCustomResume}
                 disabled={uploadingResume}
-                className="bg-red-950/50 hover:bg-red-900/50 text-red-400 border border-red-900/50 px-3 py-2 rounded-lg text-xs font-semibold disabled:opacity-50"
+                className="bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30 text-red-600 dark:text-red-400 border border-red-150 dark:border-red-950/40 px-3.5 py-2.5 rounded-2xl text-[11px] font-bold cursor-pointer transition-all"
               >
                 Delete Custom
               </button>
@@ -181,46 +220,70 @@ export default function CompanyPage() {
         </div>
       </div>
 
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-        <h2 className="text-sm font-medium text-gray-400 mb-3 uppercase tracking-wider">Email Subject</h2>
+      {/* ── EMAIL SUBJECT COMPOSER ── */}
+      <div className="bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-6 shadow-sm shadow-[rgba(0,0,0,0.01)] space-y-3">
+        <label className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">Email Subject Line</label>
         <input
           value={editedSubject}
           onChange={e => setEditedSubject(e.target.value)}
-          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
-          placeholder="Subject line..."
+          className="w-full bg-[#f5f5f7] dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl px-4 py-3 text-xs text-[#1d1d1f] dark:text-[#f5f5f7] focus:outline-none focus:border-[#0071e3] transition-all font-medium"
+          placeholder="Enter pitch subject line..."
         />
       </div>
 
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-        <h2 className="text-sm font-medium text-gray-400 mb-3 uppercase tracking-wider">Email Body</h2>
+      {/* ── EMAIL BODY EDITOR ── */}
+      <div className="bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-6 shadow-sm shadow-[rgba(0,0,0,0.01)] space-y-3">
+        <div className="flex justify-between items-center">
+          <label className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">Email Body (Markdown/Plaintext)</label>
+          <span className="text-[9px] text-neutral-400">{editedBody.length} characters</span>
+        </div>
         <textarea
           value={editedBody}
           onChange={e => setEditedBody(e.target.value)}
-          rows={14}
-          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 font-mono text-sm resize-none"
+          rows={12}
+          className="w-full bg-[#f5f5f7] dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-850 rounded-3xl px-4 py-4 text-xs text-[#1d1d1f] dark:text-[#f5f5f7] focus:outline-none focus:border-[#0071e3] transition-all font-mono leading-relaxed resize-none"
         />
       </div>
 
-      <div className="flex gap-3">
+      {/* ── CRM PIPELINE ACTIONS ── */}
+      <div className="flex flex-col sm:flex-row gap-3 pt-2">
         <button
           onClick={handleApproveAndSend}
           disabled={sending}
-          className="flex-1 bg-blue-700 hover:bg-blue-600 py-3 rounded-xl font-semibold disabled:opacity-50"
+          className="flex-1 bg-[#0071e3] hover:bg-[#0077ed] text-white py-3 rounded-2xl font-bold text-xs shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 select-none"
         >
-          {sending ? 'Sending...' : '🚀 Approve & Send Now'}
+          {sending ? (
+            <span className="flex items-center gap-1.5">
+              <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              Sending Email...
+            </span>
+          ) : '🚀 Approve & Deliver Pitch'}
         </button>
+        
         <button
           onClick={handleRedo}
           disabled={redoing}
-          className="bg-yellow-900 hover:bg-yellow-800 px-6 py-3 rounded-xl font-semibold disabled:opacity-50"
+          className="sm:w-36 bg-[#f5f5f7] hover:bg-[#e8e8ed] dark:bg-neutral-900 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-850 py-3 rounded-2xl font-bold text-xs cursor-pointer flex items-center justify-center gap-1.5 select-none transition-colors"
         >
-          {redoing ? 'Regenerating...' : '🔄 Redo'}
+          {redoing ? (
+            <span className="flex items-center gap-1.5">
+              <svg className="animate-spin h-3.5 w-3.5 text-current" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              Drafting...
+            </span>
+          ) : '🔄 Redo AI Draft'}
         </button>
+
         <button
           onClick={handleReject}
-          className="bg-red-900 hover:bg-red-800 px-6 py-3 rounded-xl font-semibold"
+          className="sm:w-32 bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30 text-red-600 dark:text-red-400 border border-red-150 dark:border-red-950/40 py-3 rounded-2xl font-bold text-xs cursor-pointer select-none transition-colors"
         >
-          ❌ Reject
+          ❌ Reject Lead
         </button>
       </div>
     </div>

@@ -24,3 +24,449 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ─── PREMIUM CRM GLASSMORPHISM & ANIMATION TIMINGS ──────────────────────── */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes float-up {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(-800px) rotate(720deg) scale(0.4);
+    opacity: 0;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Custom scrollbars for a cleaner visual look */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ─── ELITE APPLE-INSPIRED VISUAL UTILITIES ──────────────────────── */
+
+/* Elastic spring physics-based scale-up and scale-down transition */
+.apple-spring {
+  transition: transform 0.45s cubic-bezier(0.165, 0.84, 0.44, 1), background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.apple-spring:hover {
+  transform: translateY(-2px) scale(1.008);
+}
+.apple-spring:active {
+  transform: translateY(0) scale(0.975);
+}
+
+/* High-end translucent glass overlay with sub-pixel border */
+.glass-subpixel {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.012);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+.dark .glass-subpixel {
+  background: rgba(22, 22, 23, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.25);
+}
+
+/* Apple system input focus glow rings */
+.apple-focus-ring {
+  transition: box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+.apple-focus-ring:focus {
+  border-color: #0071e3 !important;
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.22) !important;
+  outline: none !important;
+}
+
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 2 ──────────────────────── */
+
+/* System-accent text selection colors */
+::selection {
+  background-color: rgba(0, 113, 227, 0.15);
+  color: inherit;
+}
+::-moz-selection {
+  background-color: rgba(0, 113, 227, 0.15);
+  color: inherit;
+}
+
+/* Refined frosted glass tooltip popover bubble */
+.apple-tooltip {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  font-size: 10px;
+  color: #1d1d1f;
+  padding: 6px 10px;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.dark .apple-tooltip {
+  background: rgba(22, 22, 23, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f5f5f7;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Inner shadow state capsule presses mimicking HIG tactile gestures */
+.apple-capsule-active {
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+  transform: scale(0.97);
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.dark .apple-capsule-active {
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 3 ──────────────────────── */
+
+/* Focused element outline border and shadow glow combination */
+.apple-input-glow {
+  transition: border-color 0.25s ease-in-out, box-shadow 0.25s ease-in-out;
+}
+.apple-input-glow:focus-within {
+  border-color: rgba(0, 113, 227, 0.45) !important;
+  box-shadow: 0 0 0 1px rgba(0, 113, 227, 0.22) !important;
+}
+
+/* macOS Close/Minimize/Zoom native desktop window-dots */
+.apple-window-dots {
+  display: flex;
+  gap: 5.5px;
+  align-items: center;
+}
+.apple-dot {
+  width: 9.5px;
+  height: 9.5px;
+  border-radius: 50%;
+}
+.apple-dot-close { background-color: #ff5f56; border: 0.5px solid #e0443e; }
+.apple-dot-minimize { background-color: #ffbd2e; border: 0.5px solid #dfa123; }
+.apple-dot-zoom { background-color: #27c93f; border: 0.5px solid #1aab29; }
+
+/* Sub-pixel translucent linear-gradient hairline divider */
+.apple-divider {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(232, 232, 237, 0.1) 0%, rgba(232, 232, 237, 0.85) 50%, rgba(232, 232, 237, 0.1) 100%);
+}
+.dark .apple-divider {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.01) 0%, rgba(255, 255, 255, 0.06) 50%, rgba(255, 255, 255, 0.01) 100%);
+}
+
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 4 ──────────────────────── */
+
+/* System soft-glow status badge overlay */
+.apple-badge-glow {
+  background: rgba(0, 113, 227, 0.06);
+  border: 1px solid rgba(0, 113, 227, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 113, 227, 0.04);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dark .apple-badge-glow {
+  background: rgba(0, 113, 227, 0.12);
+  border: 1px solid rgba(0, 113, 227, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 113, 227, 0.08);
+}
+
+/* macOS Close button circular red highlights */
+.apple-close-hover {
+  transition: background-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+}
+.apple-close-hover:hover {
+  background-color: rgba(255, 95, 86, 0.12) !important;
+  color: #ff5f56 !important;
+  transform: scale(1.05);
+}
+
+/* Physical surface layered low-intensity box shadow lift */
+.apple-surface-lift {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.01), 0 8px 24px rgba(0, 0, 0, 0.012);
+  transition: box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.apple-surface-lift:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.01), 0 16px 36px rgba(0, 0, 0, 0.025);
+}
+
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 5 ──────────────────────── */
+
+/* Soft edge drop-shadow borders simulating structural thickness */
+.apple-blur-border {
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.015), 0 2px 12px rgba(0, 0, 0, 0.01);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.dark .apple-blur-border {
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15), 0 2px 12px rgba(0, 0, 0, 0.12);
+}
+
+/* Micro-icons elastic hover scaling triggers */
+.apple-icon-scale {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+}
+.apple-icon-scale:hover {
+  transform: scale(1.12);
+  opacity: 1;
+}
+.apple-icon-scale:active {
+  transform: scale(0.92);
+}
+
+/* High-fidelity page/component mount easing animation */
+@keyframes appleMount {
+  from { opacity: 0; transform: translateY(12px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.apple-transition-mount {
+  animation: appleMount 0.52s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 6 ──────────────────────── */
+
+/* Pulsing emerald status dot for active telemetry signals */
+@keyframes applePulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.4); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(52, 199, 89, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); }
+}
+.apple-pulse-green {
+  animation: applePulse 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+/* Easing elastic search input border expansions */
+.apple-search-focus {
+  transition: all 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.apple-search-focus:focus {
+  transform: scale(1.012);
+  border-color: #0071e3 !important;
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15) !important;
+  outline: none !important;
+}
+
+/* Double-inset visual card layers creating depth profiles */
+.apple-card-overlay {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.02) inset, 0 1px 3px rgba(0, 0, 0, 0.01);
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
+}
+.dark .apple-card-overlay {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03) inset, 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 7 ──────────────────────── */
+
+/* Easing green focus shadow outlines for status filters */
+.apple-focus-accent {
+  transition: border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.apple-focus-accent:focus-within {
+  border-color: rgba(52, 199, 89, 0.45) !important;
+  box-shadow: 0 0 0 3px rgba(52, 199, 89, 0.15) !important;
+  outline: none !important;
+}
+
+/* macOS Minimize button circular orange highlights */
+.apple-minimize-hover {
+  transition: background-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+}
+.apple-minimize-hover:hover {
+  background-color: rgba(255, 189, 46, 0.12) !important;
+  color: #ffbd2e !important;
+  transform: scale(1.05);
+}
+
+/* Translucent gradient layout surface panel blend */
+.apple-surface-blend {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.5) 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.01);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+.dark .apple-surface-blend {
+  background: linear-gradient(135deg, rgba(22, 22, 23, 0.8) 0%, rgba(22, 22, 23, 0.5) 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.04);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 8 ──────────────────────── */
+
+/* Destructive outline borders with soft red shadow glows */
+.apple-focus-destructive {
+  transition: border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.apple-focus-destructive:focus-within {
+  border-color: rgba(255, 95, 86, 0.45) !important;
+  box-shadow: 0 0 0 3px rgba(255, 95, 86, 0.15) !important;
+  outline: none !important;
+}
+
+/* macOS Zoom button circular green highlights */
+.apple-zoom-hover {
+  transition: background-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+}
+.apple-zoom-hover:hover {
+  background-color: rgba(39, 201, 63, 0.12) !important;
+  color: #27c93f !important;
+  transform: scale(1.05);
+}
+
+/* macOS System folder blue interactive outline overlays */
+.apple-folder-accent {
+  box-shadow: 0 0 0 1.5px #0071e3 inset, 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
+}
+.dark .apple-folder-accent {
+  box-shadow: 0 0 0 1.5px #0071e3 inset, 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 10 ─────────────────────── */
+
+/* Easing green success focus shadow outlines for status filters */
+.apple-focus-success {
+  transition: border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.apple-focus-success:focus-within {
+  border-color: rgba(52, 199, 89, 0.45) !important;
+  box-shadow: 0 0 0 3px rgba(52, 199, 89, 0.15) !important;
+  outline: none !important;
+}
+
+/* macOS Zoom button circular green highlights with scale lift */
+.apple-zoom-scale {
+  transition: background-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+}
+.apple-zoom-scale:hover {
+  background-color: rgba(39, 201, 63, 0.15) !important;
+  color: #27c93f !important;
+  transform: scale(1.08);
+}
+
+/* Translucent gradient layout panel depth surface */
+.apple-panel-depth {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.3) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.012);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+.dark .apple-panel-depth {
+  background: linear-gradient(135deg, rgba(22, 22, 23, 0.6) 0%, rgba(22, 22, 23, 0.3) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
+}
+
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 11 ─────────────────────── */
+
+/* Easing orange warning focus shadow outlines for status filters */
+.apple-focus-warning {
+  transition: border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.apple-focus-warning:focus-within {
+  border-color: rgba(255, 149, 0, 0.45) !important;
+  box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.15) !important;
+  outline: none !important;
+}
+
+/* macOS Zoom button circular green highlights with rotation */
+.apple-zoom-rotate {
+  transition: background-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+}
+.apple-zoom-rotate:hover {
+  background-color: rgba(39, 201, 63, 0.12) !important;
+  color: #27c93f !important;
+  transform: scale(1.05) rotate(15deg);
+}
+
+/* Translucent gradient layout backdrop depth panel */
+.apple-surface-backdrop {
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.015);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+.dark .apple-surface-backdrop {
+  background: rgba(22, 22, 23, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+
+
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 9 ──────────────────────── */
+
+/* Focused element outline border and blue shadow glow combination */
+.apple-focus-blue {
+  transition: border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.apple-focus-blue:focus-within {
+  border-color: rgba(0, 113, 227, 0.45) !important;
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15) !important;
+  outline: none !important;
+}
+
+/* macOS Maximize button circular green highlights */
+.apple-maximize-hover {
+  transition: background-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+}
+.apple-maximize-hover:hover {
+  background-color: rgba(39, 201, 63, 0.12) !important;
+  color: #27c93f !important;
+  transform: scale(1.05);
+}
+
+/* Translucent gradient layout surface panel card */
+.apple-surface-card {
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.01);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+.dark .apple-surface-card {
+  background: rgba(22, 22, 23, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.25);
+}
+
+
+
+
+
+
+
+
+
+

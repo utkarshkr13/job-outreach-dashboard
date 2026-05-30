@@ -1,4 +1,4 @@
-export type EmailStatus = 'New' | 'Draft Ready' | 'Approved' | 'Sent' | 'Rejected' | 'Redo';
+export type EmailStatus = 'New' | 'Draft Ready' | 'Approved' | 'Sent' | 'Rejected' | 'Redo' | 'Replied' | 'Interview' | 'Offer';
 
 export interface Company {
   notionId: string;
@@ -20,6 +20,8 @@ export interface Company {
   emailed: boolean;
   dateAdded: string;
   resumeStatus?: 'custom' | 'global' | 'none';
+  openCount?: number;
+  resumeType?: 'pm' | 'ba' | 'custom' | null;
 }
 
 export interface AgentResult {
