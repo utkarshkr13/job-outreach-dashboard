@@ -859,6 +859,41 @@ div:hover > .apple-hover-actions {
   border-color: rgba(255, 149, 0, 0.35) !important;
 }
 
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 21 ─────────────────────── */
+
+/* Interactive Glassmorphic Hover Highlight for Pipeline Header Buttons */
+.apple-tab-elastic {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.apple-tab-elastic:hover {
+  transform: scale(1.025) translateY(-0.5px);
+  box-shadow: 0 4px 12px rgba(0, 113, 227, 0.08) !important;
+}
+.apple-tab-elastic:active {
+  transform: scale(0.975);
+}
+
+/* Apple Custom Range Slider Thumb Dynamic Scale hover */
+.apple-slider-thumb-elastic input[type="range"]::-webkit-slider-thumb {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+}
+.apple-slider-thumb-elastic input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.18);
+  box-shadow: 0 0 8px rgba(0, 113, 227, 0.3) !important;
+}
+
+/* Breathing Blue Aura highlight for primary active items */
+@keyframes breathingBlueGlow {
+  0% { box-shadow: 0 0 0 0 rgba(0, 113, 227, 0.05); }
+  50% { box-shadow: 0 0 12px 2px rgba(0, 113, 227, 0.15); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 113, 227, 0.05); }
+}
+.apple-glow-blue {
+  animation: breathingBlueGlow 3.5s infinite ease-in-out;
+  border-color: rgba(0, 113, 227, 0.35) !important;
+}
+
+
 
 
 
