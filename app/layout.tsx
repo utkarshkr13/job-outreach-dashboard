@@ -50,25 +50,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="flex items-center gap-6">
               <a
                 href="/"
-                className={`apple-dock-indicator apple-nav-border ${pathname === '/' ? 'active text-[#1d1d1f] dark:text-[#f5f5f7]' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-400 dark:hover:text-neutral-200'} text-xs font-medium transition-colors`}
+                className={`apple-dock-indicator apple-nav-border apple-zoom-indicator ${pathname === '/' ? 'active text-[#1d1d1f] dark:text-[#f5f5f7]' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-400 dark:hover:text-neutral-200'} text-xs font-medium transition-colors`}
               >
                 Dashboard
               </a>
               <a
                 href="/sent"
-                className={`apple-dock-indicator apple-nav-border ${pathname === '/sent' ? 'active text-[#1d1d1f] dark:text-[#f5f5f7]' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-400 dark:hover:text-neutral-200'} text-xs font-medium transition-colors`}
+                className={`apple-dock-indicator apple-nav-border apple-zoom-indicator ${pathname === '/sent' ? 'active text-[#1d1d1f] dark:text-[#f5f5f7]' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-400 dark:hover:text-neutral-200'} text-xs font-medium transition-colors`}
               >
                 Sent
               </a>
               <a
                 href="/analytics"
-                className={`apple-dock-indicator apple-nav-border ${pathname === '/analytics' ? 'active text-[#1d1d1f] dark:text-[#f5f5f7]' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-400 dark:hover:text-neutral-200'} text-xs font-medium transition-colors`}
+                className={`apple-dock-indicator apple-nav-border apple-zoom-indicator ${pathname === '/analytics' ? 'active text-[#1d1d1f] dark:text-[#f5f5f7]' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-400 dark:hover:text-neutral-200'} text-xs font-medium transition-colors`}
               >
                 Analytics
               </a>
               <a
                 href="/settings"
-                className={`apple-dock-indicator apple-nav-border ${pathname === '/settings' ? 'active text-[#1d1d1f] dark:text-[#f5f5f7]' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-400 dark:hover:text-neutral-200'} text-xs font-medium transition-colors`}
+                className={`apple-dock-indicator apple-nav-border apple-zoom-indicator ${pathname === '/settings' ? 'active text-[#1d1d1f] dark:text-[#f5f5f7]' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-400 dark:hover:text-neutral-200'} text-xs font-medium transition-colors`}
               >
                 Settings
               </a>
