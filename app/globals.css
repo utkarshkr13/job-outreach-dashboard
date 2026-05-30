@@ -1021,6 +1021,48 @@ div:hover > .apple-hover-actions {
   border-color: rgba(48, 176, 198, 0.35) !important;
 }
 
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 26 ─────────────────────── */
+
+/* Interactive Glassmorphic Hover Highlight for spreadsheet columns */
+.apple-column-hover {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.apple-column-hover:hover {
+  background: rgba(0, 113, 227, 0.02) !important;
+}
+
+/* Mac-Dock Active Navigation Dock active link sweep highlight */
+.apple-link-sweep {
+  position: relative;
+}
+.apple-link-sweep::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: #0071e3;
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+.apple-link-sweep:hover::after,
+.apple-link-sweep.active::after {
+  transform: scaleX(1);
+}
+
+/* Breathing Pink Aura highlight for recruiter replied elements */
+@keyframes breathingPinkGlow {
+  0% { box-shadow: 0 0 0 0 rgba(255, 45, 85, 0.05); }
+  50% { box-shadow: 0 0 12px 2px rgba(255, 45, 85, 0.15); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 45, 85, 0.05); }
+}
+.apple-glow-pink {
+  animation: breathingPinkGlow 3.5s infinite ease-in-out;
+  border-color: rgba(255, 45, 85, 0.35) !important;
+}
+
+
 
 
 

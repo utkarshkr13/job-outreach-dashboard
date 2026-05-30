@@ -663,7 +663,7 @@ export default function MorningDashboard() {
                           <span className="font-semibold text-neutral-800 dark:text-neutral-100 text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                             {company.company}
                           </span>
-                          <span className={`text-[8.5px] font-semibold px-2 py-0.5 rounded-full ${crmStage ? crmStage.colorClass : 'bg-neutral-100 text-neutral-500'} ${company.emailStatus === 'Redo' ? 'apple-glow-amber border' : ''} ${company.emailStatus === 'New' ? 'apple-glow-cyan border' : ''} ${company.emailStatus === 'Approved' ? 'apple-glow-teal border' : ''}`}>
+                          <span className={`text-[8.5px] font-semibold px-2 py-0.5 rounded-full ${crmStage ? crmStage.colorClass : 'bg-neutral-100 text-neutral-500'} ${company.emailStatus === 'Redo' ? 'apple-glow-amber border' : ''} ${company.emailStatus === 'New' ? 'apple-glow-cyan border' : ''} ${company.emailStatus === 'Approved' ? 'apple-glow-teal border' : ''} ${company.emailStatus === 'Replied' ? 'apple-glow-pink border' : ''}`}>
                             {company.emailStatus}
                           </span>
                         </div>
