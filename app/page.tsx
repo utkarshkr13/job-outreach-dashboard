@@ -692,7 +692,7 @@ export default function MorningDashboard() {
                       {/* Telemetry open counts */}
                       <td className="py-4 px-6">
                         {(company.emailStatus === 'Sent' || company.emailed) ? (
-                          <span className={`text-[9.5px] font-semibold px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${(company.openCount ?? 0) > 0 ? 'bg-emerald-50 dark:bg-emerald-950/10 text-emerald-600 dark:text-emerald-400' : 'bg-neutral-100 dark:bg-neutral-900 text-neutral-400'}`}>
+                          <span className={`text-[9.5px] font-semibold px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${(company.openCount ?? 0) > 0 ? 'apple-glow-success bg-emerald-50 dark:bg-emerald-950/10 text-emerald-600 dark:text-emerald-400 border' : 'bg-neutral-100 dark:bg-neutral-900 text-neutral-400'}`}>
                             👁 {(company.openCount ?? 0) > 0 ? `${company.openCount} Opens` : 'Delivered'}
                           </span>
                         ) : (
@@ -702,7 +702,7 @@ export default function MorningDashboard() {
 
                       {/* Card Operations */}
                       <td className="py-3 px-6 text-right" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="apple-hover-actions flex items-center justify-end gap-2">
                           {company.emailStatus === 'Approved' && (
                             <button
                               onClick={() => handleSendEmail(company.notionId)}

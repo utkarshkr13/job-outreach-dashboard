@@ -584,6 +584,44 @@ body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 14 ─────────────────────── */
+
+/* macOS Finder/Mail style dynamic reveal action panel on row hover */
+.apple-hover-actions {
+  opacity: 0;
+  transform: translateX(8px) scale(0.96);
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+tr:hover .apple-hover-actions,
+div:hover > .apple-hover-actions {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+  pointer-events: auto;
+}
+
+/* macOS dock vertical sub-pixel hairline partition line */
+.apple-dock-divider-line {
+  width: 1px;
+  height: 20px;
+  background: linear-gradient(to bottom, transparent, rgba(0, 113, 227, 0.2) 20%, rgba(0, 113, 227, 0.2) 80%, transparent);
+}
+.dark .apple-dock-divider-line {
+  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.08) 20%, rgba(255, 255, 255, 0.08) 80%, transparent);
+}
+
+/* Soft breathing glowing emerald success ambient ring for status markers */
+@keyframes breathingSuccessGlow {
+  0% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.05); }
+  50% { box-shadow: 0 0 12px 2px rgba(52, 199, 89, 0.12); }
+  100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.05); }
+}
+.apple-glow-success {
+  animation: breathingSuccessGlow 3s infinite ease-in-out;
+  border-color: rgba(52, 199, 89, 0.3) !important;
+}
+
+
 
 
 
