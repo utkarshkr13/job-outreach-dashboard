@@ -524,7 +524,7 @@ export default function MorningDashboard() {
             <select
               value={ingestRole}
               onChange={e => setIngestRole(e.target.value)}
-              className="w-full bg-[#f5f5f7]/60 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-3 py-2 text-xs text-neutral-700 dark:text-neutral-300 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-700 transition-colors"
+              className="apple-select-elastic w-full bg-[#f5f5f7]/60 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-3 py-2 text-xs text-neutral-700 dark:text-neutral-300 focus:outline-none transition-all"
             >
               <option value="Associate PM">Associate PM</option>
               <option value="Business Analyst">Business Analyst</option>
@@ -853,7 +853,7 @@ export default function MorningDashboard() {
                   </span>
                   
                   {selectedCompany.resumeStatus === 'custom' ? (
-                    <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-600/10 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-purple-600/20">
+                    <span className="apple-glow-indigo text-[9px] font-semibold px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-600/10 text-purple-600 dark:text-purple-400 border transition-all">
                       📎 APM/BA Resume Mapped
                     </span>
                   ) : selectedCompany.resumeStatus === 'global' ? (
