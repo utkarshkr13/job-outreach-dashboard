@@ -33,17 +33,28 @@ export async function getCompaniesByStatus(
   const { notion, DB_ID } = connection;
   const statuses = Array.isArray(status) ? status : [status];
   
-  const response = await notion.databases.query({
-    database_id: DB_ID,
-    filter: {
-      or: statuses.map(s => ({
-        property: 'Email Status',
-        select: { equals: s }
-      }))
-    }
-  });
+  let results: any[] = [];
+  let hasMore = true;
+  let cursor: string | undefined = undefined;
 
-  return response.results.map((page: any) => ({
+  while (hasMore) {
+    const response = await notion.databases.query({
+      database_id: DB_ID,
+      start_cursor: cursor,
+      filter: {
+        or: statuses.map(s => ({
+          property: 'Email Status',
+          select: { equals: s }
+        }))
+      }
+    });
+
+    results = results.concat(response.results);
+    hasMore = response.has_more;
+    cursor = response.next_cursor || undefined;
+  }
+
+  return results.map((page: any) => ({
     notionId: page.id,
     company: page.properties['Company']?.title?.[0]?.text?.content ?? '',
     role: page.properties['Role']?.rich_text?.[0]?.text?.content ?? '',
@@ -72,12 +83,23 @@ export async function getAllCompanies(connection: NotionConnection): Promise<Com
   }
 
   const { notion, DB_ID } = connection;
-  const response = await notion.databases.query({
-    database_id: DB_ID,
-    sorts: [{ property: 'Number', direction: 'ascending' }]
-  });
+  let results: any[] = [];
+  let hasMore = true;
+  let cursor: string | undefined = undefined;
 
-  return response.results.map((page: any) => ({
+  while (hasMore) {
+    const response = await notion.databases.query({
+      database_id: DB_ID,
+      start_cursor: cursor,
+      sorts: [{ property: 'Number', direction: 'ascending' }]
+    });
+
+    results = results.concat(response.results);
+    hasMore = response.has_more;
+    cursor = response.next_cursor || undefined;
+  }
+
+  return results.map((page: any) => ({
     notionId: page.id,
     company: page.properties['Company']?.title?.[0]?.text?.content ?? '',
     role: page.properties['Role']?.rich_text?.[0]?.text?.content ?? '',

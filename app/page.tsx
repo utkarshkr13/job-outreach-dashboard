@@ -642,7 +642,58 @@ function DashboardContent() {
 
       {/* LEADS LIST / KANBAN COMPONENT */}
       {loading ? (
-        <div className="text-center py-24 text-neutral-500 font-semibold animate-pulse">Loading database...</div>
+        <div className="bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl overflow-hidden transition-colors duration-300">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left">
+              <thead>
+                <tr className="border-b border-[#e8e8ed] dark:border-neutral-900 text-[10px] uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-bold bg-[#fafafa]/50 dark:bg-neutral-900/10">
+                  <th className="py-4 px-6">Company</th>
+                  <th className="py-4 px-6">Target Role</th>
+                  <th className="py-4 px-6">Recruiter Contact</th>
+                  <th className="py-4 px-6">Source</th>
+                  <th className="py-4 px-6">Telemetry</th>
+                  <th className="py-4 px-6">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: 5 }).map((_, idx) => (
+                  <tr key={idx} className="border-b border-[#e8e8ed] dark:border-neutral-900 animate-pulse">
+                    <td className="py-5 px-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-neutral-200 dark:bg-neutral-850"></div>
+                        <div className="space-y-2">
+                          <div className="w-24 h-4 bg-neutral-200 dark:bg-neutral-800 rounded-md"></div>
+                          <div className="w-16 h-3 bg-neutral-100 dark:bg-neutral-850 rounded-md"></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-5 px-6">
+                      <div className="space-y-2">
+                        <div className="w-32 h-4 bg-neutral-200 dark:bg-neutral-800 rounded-md"></div>
+                        <div className="w-20 h-3 bg-neutral-100 dark:bg-neutral-850 rounded-md"></div>
+                      </div>
+                    </td>
+                    <td className="py-5 px-6">
+                      <div className="space-y-2">
+                        <div className="w-28 h-4 bg-neutral-200 dark:bg-neutral-800 rounded-md"></div>
+                        <div className="w-20 h-3 bg-neutral-100 dark:bg-neutral-850 rounded-md"></div>
+                      </div>
+                    </td>
+                    <td className="py-5 px-6">
+                      <div className="w-16 h-4 bg-neutral-200 dark:bg-neutral-800 rounded-md"></div>
+                    </td>
+                    <td className="py-5 px-6">
+                      <div className="w-20 h-5 bg-neutral-200 dark:bg-neutral-800/60 rounded-full"></div>
+                    </td>
+                    <td className="py-5 px-6">
+                      <div className="w-24 h-8 bg-neutral-200 dark:bg-neutral-800 rounded-full"></div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       ) : filteredCompanies.length === 0 ? (
         <div className="bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl py-24 text-center text-neutral-500 transition-colors duration-300">
           No matching leads in active CRM filter constraints.
