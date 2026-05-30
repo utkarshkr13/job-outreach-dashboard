@@ -1235,3 +1235,45 @@ body::-webkit-scrollbar-thumb:hover {
   animation: breathingEmeraldGlowMilestone 3.5s infinite ease-in-out;
   border-color: rgba(52, 199, 89, 0.4) !important;
 }
+
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 31 ─────────────────────── */
+
+/* Interactive Glassmorphic Ingestion Select Expand boundaries */
+.apple-select-bounds {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.apple-select-bounds:focus {
+  transform: scale(1.01);
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15), 0 8px 24px rgba(0, 0, 0, 0.04) !important;
+  outline: none !important;
+}
+
+/* Mac-Dock active navigation dock partition divider hover sweeps */
+.apple-dock-divider-sweep {
+  position: relative;
+  overflow: hidden;
+}
+.apple-dock-divider-sweep::before {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: 0;
+  right: 0;
+  height: 100%;
+  background: linear-gradient(to bottom, transparent, #0071e3, transparent);
+  transition: transform 0.5s ease;
+}
+.apple-dock-divider-sweep:hover::before {
+  transform: translateY(200%);
+}
+
+/* Breathing Fuchsia-Purple Aura highlight for PM/BA customized overridden status badges */
+@keyframes breathingFuchsiaGlowCustom {
+  0% { box-shadow: 0 0 0 0 rgba(235, 94, 218, 0.05); }
+  50% { box-shadow: 0 0 12px 2px rgba(235, 94, 218, 0.2); }
+  100% { box-shadow: 0 0 0 0 rgba(235, 94, 218, 0.05); }
+}
+.apple-glow-fuchsia-custom {
+  animation: breathingFuchsiaGlowCustom 3.5s infinite ease-in-out;
+  border-color: rgba(235, 94, 218, 0.4) !important;
+}
