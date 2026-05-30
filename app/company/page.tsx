@@ -87,7 +87,7 @@ export default function CompaniesPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-5 shadow-[0_4px_12px_rgba(0,0,0,0.01)] flex flex-col justify-between h-28">
+        <div className="apple-glow-violet-teal bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-5 shadow-[0_4px_12px_rgba(0,0,0,0.01)] flex flex-col justify-between h-28">
           <span className="text-[10px] uppercase font-bold text-neutral-400 dark:text-neutral-500 tracking-wider">Active Interviews</span>
           <div className="flex items-baseline gap-1 mt-1">
             <span className="text-3xl font-extrabold text-amber-500">{activeInterviews}</span>
@@ -181,7 +181,7 @@ export default function CompaniesPage() {
               <Link 
                 key={c.notionId}
                 href={`/company/${c.notionId}`}
-                className="apple-glow-card bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-6 shadow-[0_4px_12px_rgba(0,0,0,0.01)] dark:shadow-none apple-spring hover:border-[#0071e3]/45 flex flex-col justify-between h-[230px] relative overflow-hidden transition-all duration-300"
+                className="apple-glow-card apple-grid-spring bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-6 shadow-[0_4px_12px_rgba(0,0,0,0.01)] dark:shadow-none apple-spring hover:border-[#0071e3]/45 flex flex-col justify-between h-[230px] relative overflow-hidden transition-all duration-300"
               >
                 <div>
                   <div className="flex justify-between items-start">
