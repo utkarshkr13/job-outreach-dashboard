@@ -663,7 +663,7 @@ export default function MorningDashboard() {
                           <span className="font-semibold text-neutral-800 dark:text-neutral-100 text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                             {company.company}
                           </span>
-                          <span className={`text-[8.5px] font-semibold px-2 py-0.5 rounded-full ${crmStage ? crmStage.colorClass : 'bg-neutral-100 text-neutral-500'} ${company.emailStatus === 'Redo' ? 'apple-glow-amber border' : ''} ${company.emailStatus === 'New' ? 'apple-glow-cyan-new border' : ''} ${company.emailStatus === 'Approved' ? 'apple-glow-teal border' : ''} ${company.emailStatus === 'Replied' ? 'apple-glow-pink border' : ''} ${company.emailStatus === 'Interview' ? 'apple-glow-violet border' : ''} ${company.emailStatus === 'Offer' ? 'apple-glow-lime border' : ''}`}>
+                          <span className={`text-[8.5px] font-semibold px-2 py-0.5 rounded-full ${crmStage ? crmStage.colorClass : 'bg-neutral-100 text-neutral-500'} ${company.emailStatus === 'Redo' ? 'apple-glow-amber border' : ''} ${company.emailStatus === 'New' ? 'apple-glow-cyan-new border' : ''} ${company.emailStatus === 'Approved' ? 'apple-glow-teal border' : ''} ${company.emailStatus === 'Replied' ? 'apple-glow-teal-cyan border' : ''} ${company.emailStatus === 'Interview' ? 'apple-glow-violet border' : ''} ${company.emailStatus === 'Offer' ? 'apple-glow-lime border' : ''}`}>
                             {company.emailStatus}
                           </span>
                         </div>
@@ -757,7 +757,7 @@ export default function MorningDashboard() {
             return (
               <div
                 key={stage.status}
-                className="bg-[#fafafa]/60 dark:bg-[#161617]/20 border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-4 shadow-[0_4px_12px_rgba(0,0,0,0.005)] dark:shadow-none min-w-[290px] flex flex-col h-[65vh] justify-between transition-colors duration-300"
+                className="apple-folder-drag-glow bg-[#fafafa]/60 dark:bg-[#161617]/20 border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-4 shadow-[0_4px_12px_rgba(0,0,0,0.005)] dark:shadow-none min-w-[290px] flex flex-col h-[65vh] justify-between transition-colors duration-300"
               >
                 {/* Stage Header */}
                 <div className="space-y-1 mb-4">

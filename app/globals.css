@@ -1366,3 +1366,43 @@ body::-webkit-scrollbar-thumb:hover {
   animation: breathingCyanGlowNew 3.5s infinite ease-in-out;
   border-color: rgba(90, 200, 250, 0.4) !important;
 }
+
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 34 ─────────────────────── */
+
+/* macOS Sonoma Folder Drag & Active Drop highlight */
+.apple-folder-drag-glow {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.apple-folder-drag-glow:hover,
+.apple-folder-drag-glow.active-drop {
+  transform: scale(1.008);
+  box-shadow: 0 0 0 2px rgba(52, 199, 89, 0.35), 0 8px 32px rgba(52, 199, 89, 0.1) !important;
+  border-color: rgba(52, 199, 89, 0.5) !important;
+}
+
+/* Apple Control Center Frosted Popover outline blend */
+.apple-profile-popover {
+  backdrop-filter: blur(30px) saturate(210%);
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06), inset 0 0 0 1px rgba(255, 255, 255, 0.2) !important;
+  border-radius: 20px;
+}
+.dark .apple-profile-popover {
+  backdrop-filter: blur(30px) saturate(210%);
+  background: rgba(28, 28, 30, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.02) !important;
+}
+
+/* Breathing Teal-Cyan Aura highlight for elite replied or offered pipelines */
+@keyframes breathingTealCyanGlow {
+  0% { box-shadow: 0 0 0 0 rgba(48, 213, 200, 0.05); }
+  50% { box-shadow: 0 0 14px 3px rgba(48, 213, 200, 0.25); }
+  100% { box-shadow: 0 0 0 0 rgba(48, 213, 200, 0.05); }
+}
+.apple-glow-teal-cyan {
+  animation: breathingTealCyanGlow 3.5s infinite ease-in-out;
+  border-color: rgba(48, 213, 200, 0.45) !important;
+}
+

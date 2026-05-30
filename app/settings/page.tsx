@@ -353,7 +353,7 @@ export default function SettingsPage() {
                 <div className="space-y-4 mt-auto">
                   {/* File status container */}
                   {isActive ? (
-                    <div className="bg-[#f5f5f7] dark:bg-neutral-900/50 border border-neutral-200/50 dark:border-neutral-850 rounded-2xl p-3 flex items-center justify-between">
+                    <div className="apple-profile-popover bg-[#f5f5f7] dark:bg-neutral-900/50 border border-neutral-200/50 dark:border-neutral-850 p-3 flex items-center justify-between">
                       <div className="flex flex-col min-w-0 pr-2">
                         <a 
                           href={r.url || '#'} 
