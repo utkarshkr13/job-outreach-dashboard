@@ -326,7 +326,7 @@ export default function SettingsPage() {
             return (
               <div 
                 key={type} 
-                className={`bg-white dark:bg-[#161617] border ${borderStyle} rounded-3xl p-6 apple-spring flex flex-col justify-between h-[360px] relative`}
+                className={`bg-white dark:bg-[#161617] border ${borderStyle} rounded-3xl p-6 apple-spring apple-sidebar-glow flex flex-col justify-between h-[360px] relative`}
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">
