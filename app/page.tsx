@@ -634,7 +634,7 @@ export default function MorningDashboard() {
       ) : currentView === 'list' ? (
         
         /* ──── PREMIUM DYNAMIC LIST SPREADSHEET ROW VIEW ──── */
-        <div className="bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.015)] dark:shadow-none transition-colors duration-300">
+        <div className="apple-slide-mount bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.015)] dark:shadow-none transition-colors duration-300">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-left">
               <thead>
@@ -857,7 +857,7 @@ export default function MorningDashboard() {
                       📎 APM/BA Resume Mapped
                     </span>
                   ) : selectedCompany.resumeStatus === 'global' ? (
-                    <span className="apple-glow-emerald text-[9px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 border transition-all">
+                    <span className="apple-glow-emerald-cyan-custom text-[9px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 border transition-all">
                       📎 Global Resume Attached
                     </span>
                   ) : (

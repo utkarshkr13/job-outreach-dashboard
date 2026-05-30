@@ -1520,6 +1520,50 @@ body::-webkit-scrollbar-thumb:hover {
   border-color: rgba(52, 211, 153, 0.45) !important;
 }
 
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 38 ─────────────────────── */
+
+/* Apple Silicon Hardware-Accelerated Layout Slide Mount */
+@keyframes slideMount {
+  0% { transform: translateY(16px) scale(0.99); opacity: 0; }
+  100% { transform: translateY(0px) scale(1); opacity: 1; }
+}
+.apple-slide-mount {
+  animation: slideMount 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* macOS Control Center Toggle Slider Rail Track */
+.apple-slider-rail-custom {
+  position: relative;
+}
+.apple-slider-rail-custom::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 4px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 2px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.dark .apple-slider-rail-custom::before {
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Breathing Emerald-Cyan Aurora Milestone outline glow */
+@keyframes breathingEmeraldCyanCustomGlow {
+  0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.05); }
+  50% { box-shadow: 0 0 14px 3px rgba(52, 211, 153, 0.25); }
+  100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.05); }
+}
+.apple-glow-emerald-cyan-custom {
+  animation: breathingEmeraldCyanCustomGlow 3.5s infinite ease-in-out;
+  border-color: rgba(52, 211, 153, 0.45) !important;
+}
+
+
 
 
 
