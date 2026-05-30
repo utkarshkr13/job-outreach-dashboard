@@ -655,7 +655,7 @@ export default function MorningDashboard() {
                     <tr
                       key={company.notionId}
                       onClick={() => openReviewDrawer(company.notionId)}
-                      className={`apple-row-focus apple-row-focus-sweep apple-row-hover apple-row-divider hover:bg-[#fafafa]/80 dark:hover:bg-neutral-900/20 transition-all cursor-pointer group ${isFocused ? 'active bg-blue-50/30 dark:bg-blue-950/5 border-l-2 border-blue-600' : ''}`}
+                      className={`apple-row-sweep-border apple-row-focus apple-row-focus-sweep apple-row-hover apple-row-divider hover:bg-[#fafafa]/80 dark:hover:bg-neutral-900/20 transition-all cursor-pointer group ${isFocused ? 'active bg-blue-50/30 dark:bg-blue-950/5 border-l-2 border-blue-600' : ''}`}
                     >
                       {/* Company Name & status */}
                       <td className="py-4 px-6">
@@ -841,7 +841,7 @@ export default function MorningDashboard() {
           <div className="flex-1" onClick={() => setSelectedCompanyId(null)}></div>
 
           {/* Drawer container styled as iPad multitasking sheet */}
-          <div className="w-full max-w-3xl bg-white dark:bg-[#161617]/90 apple-drawer-glass-border h-full flex flex-col justify-between shadow-2xl animate-slide-in transition-colors duration-300">
+          <div className="apple-backdrop-spring w-full max-w-3xl bg-white dark:bg-[#161617]/90 apple-drawer-glass-border h-full flex flex-col justify-between shadow-2xl animate-slide-in transition-colors duration-300">
             
             {/* Header */}
             <div className="border-b border-[#e8e8ed] dark:border-neutral-900 p-6 bg-[#fafafa]/60 dark:bg-neutral-900/10 flex justify-between items-center transition-colors">
@@ -853,7 +853,7 @@ export default function MorningDashboard() {
                   </span>
                   
                   {selectedCompany.resumeStatus === 'custom' ? (
-                    <span className="apple-glow-fuchsia-custom text-[9px] font-semibold px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-600/10 text-purple-600 dark:text-purple-400 border transition-all">
+                    <span className="apple-glow-fuchsia-indigo text-[9px] font-semibold px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-600/10 text-purple-600 dark:text-purple-400 border transition-all">
                       📎 APM/BA Resume Mapped
                     </span>
                   ) : selectedCompany.resumeStatus === 'global' ? (

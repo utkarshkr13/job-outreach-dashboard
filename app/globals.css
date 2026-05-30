@@ -1437,4 +1437,44 @@ body::-webkit-scrollbar-thumb:hover {
   border-color: rgba(16, 185, 129, 0.45) !important;
 }
 
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 36 ─────────────────────── */
+
+/* Apple Sonoma Desktop Dynamic Backdrop Blur transition */
+.apple-backdrop-spring {
+  backdrop-filter: blur(40px) saturate(220%) !important;
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* macOS Finder/Mail Hover Row Accent Border Sweeper */
+.apple-row-sweep-border {
+  position: relative;
+}
+.apple-row-sweep-border::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10%;
+  bottom: 10%;
+  width: 3px;
+  background: linear-gradient(to bottom, #0071e3, #5e5ce6);
+  border-radius: 1.5px;
+  transform: scaleY(0);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.apple-row-sweep-border:hover::after {
+  transform: scaleY(1);
+}
+
+/* Breathing Fuchsia-Indigo Aura highlight for APM/BA Resume Overrides */
+@keyframes breathingFuchsiaIndigoGlow {
+  0% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.05); }
+  50% { box-shadow: 0 0 14px 3px rgba(168, 85, 247, 0.22); }
+  100% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.05); }
+}
+.apple-glow-fuchsia-indigo {
+  animation: breathingFuchsiaIndigoGlow 3.5s infinite ease-in-out;
+  border-color: rgba(168, 85, 247, 0.45) !important;
+}
+
+
 
