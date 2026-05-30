@@ -655,7 +655,7 @@ export default function MorningDashboard() {
                     <tr
                       key={company.notionId}
                       onClick={() => openReviewDrawer(company.notionId)}
-                      className={`apple-row-divider hover:bg-[#fafafa]/80 dark:hover:bg-neutral-900/20 transition-all cursor-pointer group ${isFocused ? 'bg-blue-50/30 dark:bg-blue-950/5 border-l-2 border-blue-600' : ''}`}
+                      className={`apple-row-hover apple-row-divider hover:bg-[#fafafa]/80 dark:hover:bg-neutral-900/20 transition-all cursor-pointer group ${isFocused ? 'bg-blue-50/30 dark:bg-blue-950/5 border-l-2 border-blue-600' : ''}`}
                     >
                       {/* Company Name & status */}
                       <td className="py-4 px-6">
@@ -861,7 +861,7 @@ export default function MorningDashboard() {
                       📎 Global Resume Attached
                     </span>
                   ) : (
-                    <span className="apple-border-glow-warning text-[9px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-600/10 text-rose-600 dark:text-rose-400 border transition-colors">
+                    <span className="apple-glow-rose text-[9px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-600/10 text-rose-600 dark:text-rose-400 border transition-all">
                       ⚠️ No Resume Attached
                     </span>
                   )}
