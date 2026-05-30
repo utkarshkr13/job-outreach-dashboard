@@ -621,6 +621,41 @@ div:hover > .apple-hover-actions {
   border-color: rgba(52, 199, 89, 0.3) !important;
 }
 
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 15 ─────────────────────── */
+
+/* macOS frosted table row separator divider using linear gradient masks */
+.apple-row-divider {
+  border-bottom: 1px solid rgba(228, 228, 237, 0.5) !important;
+}
+.dark .apple-row-divider {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Elite organic button spring transitions with hover scale rebounds */
+.apple-button-elastic {
+  transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1.4);
+}
+.apple-button-elastic:hover {
+  transform: translateY(-1.5px) scale(1.025);
+  box-shadow: 0 4px 12px rgba(0, 113, 227, 0.15);
+}
+.apple-button-elastic:active {
+  transform: translateY(0.5px) scale(0.97);
+  box-shadow: 0 2px 4px rgba(0, 113, 227, 0.08);
+}
+
+/* Infinite glowing gradient indigo-blue border loop for priority status markers */
+@keyframes borderGlowIndigo {
+  0% { border-color: rgba(94, 92, 230, 0.25); box-shadow: 0 0 0 0 rgba(94, 92, 230, 0.05); }
+  50% { border-color: rgba(94, 92, 230, 0.55); box-shadow: 0 0 10px 1.5px rgba(94, 92, 230, 0.15); }
+  100% { border-color: rgba(94, 92, 230, 0.25); box-shadow: 0 0 0 0 rgba(94, 92, 230, 0.05); }
+}
+.apple-border-glow-indigo {
+  animation: borderGlowIndigo 3.5s infinite ease-in-out;
+  border-width: 1.2px !important;
+}
+
+
 
 
 

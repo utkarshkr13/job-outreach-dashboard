@@ -455,7 +455,7 @@ export default function MorningDashboard() {
               <h1 className="text-xl font-bold tracking-tight text-[#1d1d1f] dark:text-neutral-100">
                 Morning Briefing
               </h1>
-              <span className="bg-neutral-100 dark:bg-neutral-900 text-orange-600 dark:text-orange-400 border border-neutral-200 dark:border-neutral-850 text-[10px] font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm transition-colors">
+              <span className="apple-border-glow-indigo bg-neutral-100 dark:bg-neutral-900 text-orange-600 dark:text-orange-400 border text-[10px] font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm transition-colors">
                 🔥 {streakCount} Days Streak
               </span>
             </div>
@@ -655,7 +655,7 @@ export default function MorningDashboard() {
                     <tr
                       key={company.notionId}
                       onClick={() => openReviewDrawer(company.notionId)}
-                      className={`hover:bg-[#fafafa]/80 dark:hover:bg-neutral-900/20 transition-all cursor-pointer group ${isFocused ? 'bg-blue-50/30 dark:bg-blue-950/5 border-l-2 border-blue-600' : ''}`}
+                      className={`apple-row-divider hover:bg-[#fafafa]/80 dark:hover:bg-neutral-900/20 transition-all cursor-pointer group ${isFocused ? 'bg-blue-50/30 dark:bg-blue-950/5 border-l-2 border-blue-600' : ''}`}
                     >
                       {/* Company Name & status */}
                       <td className="py-4 px-6">
