@@ -722,7 +722,7 @@ export default function SettingsPage() {
               className={`px-5 py-2.5 rounded-2xl text-xs font-semibold select-none cursor-pointer transition-all duration-200 border ${
                 reseedLoading 
                   ? 'bg-neutral-200 dark:bg-neutral-850 text-neutral-400 border-transparent' 
-                  : 'bg-red-50 hover:bg-red-100 dark:bg-red-950/10 dark:hover:bg-red-950/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-950/40 shadow-sm'
+                  : 'bg-red-50 hover:bg-red-100 dark:bg-red-950/10 dark:hover:bg-red-950/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-950/40 shadow-sm apple-glow-rose-destructive'
               }`}
             >
               {reseedLoading ? (

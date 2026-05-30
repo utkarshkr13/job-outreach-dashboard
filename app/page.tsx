@@ -519,7 +519,7 @@ export default function MorningDashboard() {
               placeholder="Company name (e.g. Stripe)"
               value={ingestCompany}
               onChange={e => setIngestCompany(e.target.value)}
-              className="apple-input-hover apple-input-active w-full bg-[#f5f5f7]/60 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-3 py-2 text-xs text-neutral-800 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-600 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-700 transition-all"
+              className="apple-input-hover apple-input-bounds w-full bg-[#f5f5f7]/60 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-3 py-2 text-xs text-neutral-800 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-600 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-700 transition-all"
             />
             <select
               value={ingestRole}
