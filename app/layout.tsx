@@ -55,6 +55,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 Dashboard
               </a>
               <a
+                href="/company"
+                className={`apple-indicator-glow-sweep apple-dock-indicator apple-nav-border apple-zoom-indicator apple-tab-slide apple-indicator-sweep ${pathname === '/company' ? 'active text-[#1d1d1f] dark:text-[#f5f5f7]' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-400 dark:hover:text-neutral-200'} text-xs font-medium transition-colors`}
+              >
+                Companies
+              </a>
+              <a
                 href="/sent"
                 className={`apple-indicator-glow-sweep apple-dock-indicator apple-nav-border apple-zoom-indicator apple-tab-slide apple-indicator-sweep ${pathname === '/sent' ? 'active text-[#1d1d1f] dark:text-[#f5f5f7]' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-400 dark:hover:text-neutral-200'} text-xs font-medium transition-colors`}
               >
