@@ -959,6 +959,38 @@ div:hover > .apple-hover-actions {
   border-color: rgba(235, 94, 218, 0.35) !important;
 }
 
+/* ─── ELITE VISUAL DESIGN UPGRADES: ITERATION 24 ─────────────────────── */
+
+/* Interactive Glassmorphic Hover Highlight for spreadsheet rows active border */
+.apple-row-focus {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.apple-row-focus.active {
+  border-left: 3px solid #0071e3 !important;
+  background: rgba(0, 113, 227, 0.03) !important;
+}
+
+/* Mac-Dock Active Navigation Dock partition divider sliding indicator */
+.apple-dock-divider-slide {
+  transition: all 0.3s ease;
+}
+.apple-dock-divider-slide:hover {
+  background: #0071e3 !important;
+  opacity: 0.8;
+}
+
+/* Breathing Cyan Aura highlight for newly ingested elements */
+@keyframes breathingCyanGlow {
+  0% { box-shadow: 0 0 0 0 rgba(90, 200, 250, 0.05); }
+  50% { box-shadow: 0 0 12px 2px rgba(90, 200, 250, 0.15); }
+  100% { box-shadow: 0 0 0 0 rgba(90, 200, 250, 0.05); }
+}
+.apple-glow-cyan {
+  animation: breathingCyanGlow 3.5s infinite ease-in-out;
+  border-color: rgba(90, 200, 250, 0.35) !important;
+}
+
+
 
 
 

@@ -655,7 +655,7 @@ export default function MorningDashboard() {
                     <tr
                       key={company.notionId}
                       onClick={() => openReviewDrawer(company.notionId)}
-                      className={`apple-row-hover apple-row-divider hover:bg-[#fafafa]/80 dark:hover:bg-neutral-900/20 transition-all cursor-pointer group ${isFocused ? 'bg-blue-50/30 dark:bg-blue-950/5 border-l-2 border-blue-600' : ''}`}
+                      className={`apple-row-focus apple-row-hover apple-row-divider hover:bg-[#fafafa]/80 dark:hover:bg-neutral-900/20 transition-all cursor-pointer group ${isFocused ? 'active bg-blue-50/30 dark:bg-blue-950/5 border-l-2 border-blue-600' : ''}`}
                     >
                       {/* Company Name & status */}
                       <td className="py-4 px-6">
@@ -663,7 +663,7 @@ export default function MorningDashboard() {
                           <span className="font-semibold text-neutral-800 dark:text-neutral-100 text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                             {company.company}
                           </span>
-                          <span className={`text-[8.5px] font-semibold px-2 py-0.5 rounded-full ${crmStage ? crmStage.colorClass : 'bg-neutral-100 text-neutral-500'} ${company.emailStatus === 'Redo' ? 'apple-glow-amber border' : ''}`}>
+                          <span className={`text-[8.5px] font-semibold px-2 py-0.5 rounded-full ${crmStage ? crmStage.colorClass : 'bg-neutral-100 text-neutral-500'} ${company.emailStatus === 'Redo' ? 'apple-glow-amber border' : ''} ${company.emailStatus === 'New' ? 'apple-glow-cyan border' : ''}`}>
                             {company.emailStatus}
                           </span>
                         </div>
