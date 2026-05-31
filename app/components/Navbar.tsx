@@ -90,7 +90,7 @@ export default function Navbar() {
 
         <div className="apple-dock-divider-line apple-dock-divider-sweep apple-separator-subpixel h-5"></div>
 
-        {process.env.NEXT_PUBLIC_APP_MODE === 'demo' ? (
+        {(process.env.NEXT_PUBLIC_APP_MODE === 'demo' || !process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY === 'placeholder-api-key') ? (
           <span className="px-3 py-1 rounded-full text-[10px] font-medium bg-blue-50 dark:bg-purple-950/15 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-purple-900/30 flex items-center gap-1.5 shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
             Demo mode

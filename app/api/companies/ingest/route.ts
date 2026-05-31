@@ -18,7 +18,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing company or role' }, { status: 400 });
     }
 
-    if (process.env.NEXT_PUBLIC_APP_MODE === 'demo') {
+    // Fall back to mock if no real Notion credentials are available
+    if (!creds.notionApiKey || creds.notionApiKey === 'demo-notion-api-key') {
       const newCompany = mockIngestCompany(company, role);
       return NextResponse.json({ success: true, company: newCompany });
     }

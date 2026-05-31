@@ -72,7 +72,7 @@ export default function AnalyticsPage() {
   // Track opens
   const sentList = companies.filter(c => c.emailStatus === 'Sent' || c.emailed);
   const totalOpens = sentList.reduce((acc, curr) => acc + (curr.openCount ?? 0), 0);
-  const distinctOpenedCount = sentList.filter(c => (curr => (curr.openCount ?? 0) > 0)(c)).length;
+  const distinctOpenedCount = sentList.filter(c => (c.openCount ?? 0) > 0).length;
 
   // Percentages
   const openRate = sentList.length > 0 ? Math.round((distinctOpenedCount / sentList.length) * 100) : 0;

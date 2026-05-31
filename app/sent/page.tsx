@@ -21,9 +21,10 @@ export default function SentPage() {
 
   const handleSentimentAnalysis = () => {
     if (!recruiterReplyText) return;
+    const firstName = selectedCompany?.contactName?.split(' ')[0] || 'there';
     setSentimentAnalysis({
       score: 'Positive Response (Score: 9.2/10)',
-      reply: `Hi ${selectedCompany?.contactName?.split(' ')[0] || 'there'},\n\nThank you for getting back! I am absolutely thrilled to connect. Next week works perfectly for a brief 15-minute call.\n\nHere is my Calendly link to easily book a time: calendly.com/utkarsh-kumar/15min\n\nLooking forward to speaking with you soon!\n\nBest,\nUtkarsh Kumar`
+      reply: `Hi ${firstName},\n\nThank you for getting back! I am absolutely thrilled to connect. Next week works perfectly for a brief 15-minute call.\n\nPlease feel free to share a time that works for you, or I can send over a calendar link.\n\nLooking forward to speaking with you soon!\n\nBest regards`
     });
   };
 

@@ -129,7 +129,7 @@ export default function LoginPage() {
 
         {/* Small Print Footer */}
         <p className="mt-8 text-center text-[10px] text-neutral-400 dark:text-neutral-500 leading-relaxed">
-          By continuing you agree to our Terms of Service and Privacy Policy. All user credentials and API keys are encrypted client-side using AES-255-CBC before database storage.
+          By continuing you agree to our Terms of Service and Privacy Policy. All user credentials and API keys are encrypted client-side using AES-256-CBC before database storage.
         </p>
       </div>
     </div>
