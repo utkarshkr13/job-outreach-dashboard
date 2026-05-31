@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { 
@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return data.user.onboardingComplete;
       }
     } catch (error) {
-      console.error('❌ Failed to verify session token:', error);
+      console.error('âŒ Failed to verify session token:', error);
     }
     return false;
   };
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (savedUser) {
         try {
           const parsed = JSON.parse(savedUser);
-          setUser(parsed);
+          setUser({ ...parsed, getIdToken: () => Promise.resolve('demo-token-123') });
           setOnboardingComplete(localStorage.getItem('demo-onboarding-complete') === 'true');
         } catch (e) {
           localStorage.removeItem('demo-user');
@@ -135,7 +135,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
     } catch (error: any) {
-      console.error('❌ Google sign-in failed:', error.message);
+      console.error('âŒ Google sign-in failed:', error.message);
       setLoading(false);
       throw error;
     }
@@ -151,7 +151,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const provider = new OAuthProvider('apple.com');
       await signInWithPopup(auth, provider);
     } catch (error: any) {
-      console.error('❌ Apple sign-in failed:', error.message);
+      console.error('âŒ Apple sign-in failed:', error.message);
       setLoading(false);
       throw error;
     }
@@ -195,7 +195,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await firebaseSignOut(auth);
       router.push('/login');
     } catch (error: any) {
-      console.error('❌ Sign out failed:', error.message);
+      console.error('âŒ Sign out failed:', error.message);
       setLoading(false);
     }
   };
@@ -225,3 +225,4 @@ export function useAuth() {
   }
   return context;
 }
+
