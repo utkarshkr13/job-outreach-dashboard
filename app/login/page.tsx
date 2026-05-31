@@ -34,8 +34,8 @@ export default function LoginPage() {
   return (
     <div className="relative min-h-[80vh] flex items-center justify-center p-4 overflow-hidden">
       {/* Dynamic breathing background glow circles */}
-      <div className="absolute top-1/4 left-1/4 w-[300px] h-[300px] bg-purple-500/10 dark:bg-purple-600/15 rounded-full blur-[80px] animate-pulse duration-[6000ms]"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] bg-indigo-500/10 dark:bg-indigo-600/15 rounded-full blur-[100px] animate-pulse duration-[8000ms]"></div>
+      <div className="absolute top-1/4 left-1/4 w-[300px] h-[300px] bg-cyan-500/10 dark:bg-cyan-600/15 rounded-full blur-[80px] animate-pulse duration-[6000ms]"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] bg-blue-500/10 dark:bg-blue-600/15 rounded-full blur-[100px] animate-pulse duration-[8000ms]"></div>
 
       {/* Premium Apple-Style Glass Card */}
       <div className="relative z-10 w-full max-w-md p-8 md:p-10 rounded-3xl backdrop-blur-xl bg-white/60 dark:bg-neutral-900/60 border border-white/40 dark:border-neutral-800/40 shadow-2xl transition-all duration-300">

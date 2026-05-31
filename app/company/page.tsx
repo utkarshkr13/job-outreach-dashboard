@@ -206,7 +206,7 @@ export default function CompaniesPage() {
                       c.emailStatus === 'Offer' ? 'bg-green-50 dark:bg-green-950/10 text-green-600 dark:text-green-400 border border-green-150' :
                       c.emailStatus === 'Interview' ? 'bg-amber-50 dark:bg-amber-950/10 text-amber-600 dark:text-amber-500 border border-amber-150' :
                       c.emailStatus === 'Replied' ? 'bg-pink-50 dark:bg-pink-950/10 text-pink-600 dark:text-pink-400 border border-pink-150' :
-                      c.emailStatus === 'Sent' ? 'bg-purple-50 dark:bg-purple-950/10 text-purple-600 dark:text-purple-400 border border-purple-150' :
+                      c.emailStatus === 'Sent' ? 'bg-blue-50 dark:bg-purple-950/10 text-blue-600 dark:text-blue-400 border border-blue-150' :
                       c.emailStatus === 'Approved' ? 'bg-emerald-50 dark:bg-emerald-950/10 text-emerald-600 dark:text-emerald-400 border border-emerald-150' :
                       c.emailStatus === 'Draft Ready' ? 'bg-blue-50 dark:bg-blue-950/10 text-blue-600 dark:text-blue-400 border border-blue-150' :
                       c.emailStatus === 'Redo' ? 'bg-orange-50 dark:bg-orange-950/10 text-orange-600 dark:text-orange-400 border border-orange-150' :
@@ -249,7 +249,7 @@ export default function CompaniesPage() {
                   <div className="flex items-center gap-3.5" onClick={e => e.stopPropagation()}>
                     <span 
                       onClick={() => router.push(`/?drawer=${c.notionId}`)}
-                      className="text-[9px] text-purple-600 dark:text-purple-400 font-bold hover:underline select-none cursor-pointer flex items-center gap-0.5"
+                      className="text-[9px] text-blue-600 dark:text-blue-400 font-bold hover:underline select-none cursor-pointer flex items-center gap-0.5"
                     >
                       Open Draft →
                     </span>

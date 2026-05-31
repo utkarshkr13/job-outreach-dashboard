@@ -231,8 +231,8 @@ function OnboardingContent() {
   return (
     <div className="relative min-h-[85vh] flex items-center justify-center p-4">
       {/* Decorative Blur Spheres */}
-      <div className="absolute top-10 left-10 w-72 h-72 rounded-full bg-violet-600/10 dark:bg-violet-600/15 blur-3xl animate-pulse duration-[7000ms]"></div>
-      <div className="absolute bottom-10 right-10 w-80 h-80 rounded-full bg-fuchsia-600/10 dark:bg-fuchsia-600/15 blur-3xl animate-pulse duration-[9000ms]"></div>
+      <div className="absolute top-10 left-10 w-72 h-72 rounded-full bg-cyan-600/10 dark:bg-cyan-600/15 blur-3xl animate-pulse duration-[7000ms]"></div>
+      <div className="absolute bottom-10 right-10 w-80 h-80 rounded-full bg-sky-600/10 dark:bg-sky-600/15 blur-3xl animate-pulse duration-[9000ms]"></div>
 
       {/* Main Glassmorphic Container Card */}
       <div className="relative z-10 w-full max-w-xl p-8 md:p-10 rounded-3xl backdrop-blur-xl bg-white/60 dark:bg-neutral-900/60 border border-white/40 dark:border-neutral-800/40 shadow-2xl transition-all duration-300">
@@ -244,7 +244,7 @@ function OnboardingContent() {
               <div 
                 className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-350 border ${
                   s === currentStep 
-                    ? 'bg-black text-white dark:bg-white dark:text-black border-black dark:border-white scale-110 shadow-md shadow-violet-500/20' 
+                    ? 'bg-black text-white dark:bg-white dark:text-black border-black dark:border-white scale-110 shadow-md shadow-cyan-500/20' 
                     : s < currentStep
                       ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm'
                       : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400 border-neutral-200 dark:border-neutral-750'
@@ -289,7 +289,7 @@ function OnboardingContent() {
         {currentStep === 1 && (
           <div className="text-center md:py-4">
             <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 rounded-2xl bg-violet-650 dark:bg-violet-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
+              <div className="w-16 h-16 rounded-2xl bg-cyan-600 dark:bg-cyan-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
                 <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
@@ -400,7 +400,7 @@ function OnboardingContent() {
                   href="https://utkarshkr13.notion.site/Job-Outreach-Tracker-154df656a87747e98d9ee812a1f9e812?v=154df656a8774db9b897000c01fa1a1d" 
                   target="_blank" 
                   rel="noreferrer"
-                  className="font-medium text-violet-600 hover:text-violet-750 dark:text-violet-400 dark:hover:text-violet-300 flex items-center gap-1.5"
+                  className="font-medium text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 dark:hover:text-cyan-300 flex items-center gap-1.5"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>
                   1. Duplicate Notion Database Template (One-Click)
@@ -409,7 +409,7 @@ function OnboardingContent() {
                   href="https://www.notion.so/my-integrations" 
                   target="_blank" 
                   rel="noreferrer"
-                  className="font-medium text-violet-600 hover:text-violet-750 dark:text-violet-400 dark:hover:text-violet-300 flex items-center gap-1.5"
+                  className="font-medium text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 dark:hover:text-cyan-300 flex items-center gap-1.5"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                   2. Create Notion API Integration and grant access to the DB
@@ -563,7 +563,7 @@ function OnboardingContent() {
                     href="https://console.anthropic.com/" 
                     target="_blank" 
                     rel="noreferrer"
-                    className="text-[10px] text-violet-650 hover:underline dark:text-violet-400"
+                    className="text-[10px] text-cyan-600 hover:underline dark:text-cyan-400"
                   >
                     Get API Key
                   </a>
@@ -660,7 +660,7 @@ function OnboardingContent() {
                   <div className="h-44 border-2 border-dashed border-neutral-200 dark:border-neutral-800 group-hover:border-black dark:group-hover:border-white rounded-2xl flex flex-col items-center justify-center p-6 text-center transition-colors">
                     {loading ? (
                       <div className="flex flex-col items-center gap-2.5">
-                        <svg className="animate-spin h-6 w-6 text-violet-650" fill="none" viewBox="0 0 24 24">
+                        <svg className="animate-spin h-6 w-6 text-cyan-600" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                         </svg>

@@ -12,8 +12,8 @@ const CRM_STAGES: { status: EmailStatus; label: string; colorClass: string; desc
   { status: 'Redo', label: 'Redo AI', colorClass: 'bg-orange-50 dark:bg-orange-950/10 text-orange-600 dark:text-orange-400 border border-orange-100 dark:border-orange-950/30', desc: 'Needs revision' },
   { status: 'Scheduled', label: 'Scheduled', colorClass: 'bg-sky-50 dark:bg-sky-950/10 text-sky-600 dark:text-sky-400 border border-sky-100 dark:border-sky-950/30', desc: 'Timed delivery queued' },
   { status: 'Approved', label: 'Approved Outbox', colorClass: 'bg-emerald-50 dark:bg-emerald-950/10 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-950/30', desc: 'Ready for delivery' },
-  { status: 'Sent', label: 'Outreach Emailed', colorClass: 'bg-purple-50 dark:bg-purple-950/10 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-purple-950/30', desc: 'Sent successfully' },
-  { status: 'Follow-up Ready', label: 'Follow-up Ready', colorClass: 'bg-fuchsia-50 dark:bg-fuchsia-950/10 text-fuchsia-600 dark:text-fuchsia-400 border border-fuchsia-100 dark:border-fuchsia-950/30', desc: 'Touchpoint bump ready' },
+  { status: 'Sent', label: 'Outreach Emailed', colorClass: 'bg-blue-50 dark:bg-purple-950/10 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-purple-950/30', desc: 'Sent successfully' },
+  { status: 'Follow-up Ready', label: 'Follow-up Ready', colorClass: 'bg-sky-50 dark:bg-fuchsia-950/10 text-sky-600 dark:text-sky-400 border border-sky-100 dark:border-fuchsia-950/30', desc: 'Touchpoint bump ready' },
   { status: 'Replied', label: 'Recruiter Replied', colorClass: 'bg-pink-50 dark:bg-pink-950/10 text-pink-600 dark:text-pink-400 border border-pink-100 dark:border-pink-950/30', desc: 'Active lead response!' },
   { status: 'Interview', label: 'Interview Stage', colorClass: 'bg-amber-50 dark:bg-amber-950/10 text-amber-600 dark:text-amber-500 border border-amber-100 dark:border-amber-950/30', desc: 'Rounds in progress' },
   { status: 'Offer', label: 'Job Offers', colorClass: 'bg-green-50 dark:bg-green-950/10 text-green-600 dark:text-green-400 border border-green-100 dark:border-green-950/30', desc: 'Offers unlocked!' },
@@ -801,41 +801,50 @@ function DashboardContent() {
         </div>
       </div>
 
-      {currentView === 'list' && (
-        <div className="bg-[#e8e8ed]/60 dark:bg-neutral-900/40 border border-[#d2d2d7]/30 dark:border-neutral-900 p-0.5 rounded-2xl flex gap-1 overflow-x-auto scrollbar-thin transition-colors duration-300">
-          {(['Draft Ready', 'Approved', 'Scheduled', 'New', 'Redo', 'Sent', 'Follow-up Ready', 'Replied', 'Interview', 'Offer', 'Rejected', 'No Response', 'All'] as const).map(tab => {
-            const count = tab === 'All' ? companies.length : companies.filter(c => c.emailStatus === tab).length;
-            return (
-              <button
-                key={tab}
-                onClick={() => {
-                  setActiveTab(tab);
-                  setFocusedIndex(-1);
-                }}
-                className={`apple-tab-elastic apple-badge-focus-shift px-5 py-2.5 rounded-xl text-xs font-semibold transition-all shrink-0 flex items-center gap-2 cursor-pointer border ${activeTab === tab ? 'bg-blue-50/80 dark:bg-[#333336] text-blue-600 dark:text-white border-blue-200/60 dark:border-neutral-700 shadow-[0_2px_8px_rgba(0,0,0,0.04)] font-bold' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-500 dark:hover:text-neutral-300 border-transparent'}`}
-              >
-                <span>{tab}</span>
-                <span className={`text-[9px] px-1.5 py-0.5 rounded-full transition-colors border ${activeTab === tab ? 'bg-blue-100/60 dark:bg-neutral-900 text-blue-600 dark:text-blue-400 border-blue-200/30 dark:border-transparent' : 'bg-[#e8e8ed]/40 dark:bg-neutral-900/20 text-neutral-400 dark:text-neutral-600 border-transparent'}`}>
-                  {count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-
       {loading ? (
-        <div className="bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl overflow-hidden animate-pulse">
+        <div className="bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl overflow-hidden animate-pulse mt-4">
           <div className="h-64 flex items-center justify-center text-neutral-400">Loading your CRM data...</div>
         </div>
-      ) : filteredCompanies.length === 0 ? (
-        <div className="bg-white dark:bg-[#161617] border border-neutral-200 dark:border-neutral-900 rounded-3xl py-16 text-center text-neutral-500 transition-colors duration-300">
-          <div className="text-4xl mb-4">🔍</div>
-          <h3 className="font-semibold text-sm">No leads match your filter</h3>
-          <p className="text-xs text-neutral-400 mt-1">Try clearing your search or switching to "All" tabs.</p>
-        </div>
       ) : currentView === 'list' ? (
-        <div className="bg-white dark:bg-[#161617] border border-neutral-200 dark:border-neutral-850 rounded-3xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.015)] transition-colors">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start mt-4">
+          
+          {/* Vertical Menu Sidebar - 3 Columns */}
+          <div className="lg:col-span-3 bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-4 space-y-1 shadow-[0_4px_24px_rgba(0,0,0,0.015)] transition-colors duration-300">
+            <div className="text-[10px] font-bold text-neutral-450 dark:text-neutral-500 uppercase tracking-wider px-3 pb-2 border-b border-neutral-100 dark:border-neutral-850 font-mono">
+              CRM Status Categories
+            </div>
+            <div className="pt-2 flex flex-col gap-1">
+              {(['Draft Ready', 'Approved', 'Scheduled', 'New', 'Redo', 'Sent', 'Follow-up Ready', 'Replied', 'Interview', 'Offer', 'Rejected', 'No Response', 'All'] as const).map(tab => {
+                const count = tab === 'All' ? companies.length : companies.filter(c => c.emailStatus === tab).length;
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => {
+                      setActiveTab(tab);
+                      setFocusedIndex(-1);
+                    }}
+                    className={`w-full text-left apple-tab-elastic px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer border ${activeTab === tab ? 'bg-blue-50/80 dark:bg-[#333336] text-blue-600 dark:text-white border-blue-200/60 dark:border-neutral-700 shadow-[0_2px_8px_rgba(0,0,0,0.04)] font-bold' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-500 dark:hover:text-neutral-300 border-transparent hover:bg-neutral-50 dark:hover:bg-neutral-900/50'}`}
+                  >
+                    <span>{tab}</span>
+                    <span className={`text-[9.5px] px-2 py-0.5 rounded-full transition-colors border ${activeTab === tab ? 'bg-blue-100/60 dark:bg-neutral-900 text-blue-600 dark:text-blue-400 border-blue-200/30 dark:border-transparent' : 'bg-[#e8e8ed]/45 dark:bg-neutral-900/40 text-neutral-400 dark:text-neutral-550 border-transparent font-bold'}`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* CRM Leads Table Content - 9 Columns */}
+          <div className="lg:col-span-9">
+            {filteredCompanies.length === 0 ? (
+              <div className="bg-white dark:bg-[#161617] border border-neutral-200 dark:border-neutral-900 rounded-3xl py-16 text-center text-neutral-500 transition-colors duration-300">
+                <div className="text-4xl mb-4">🔍</div>
+                <h3 className="font-semibold text-sm">No leads match your filter</h3>
+                <p className="text-xs text-neutral-400 mt-1">Try clearing your search or switching to another category.</p>
+              </div>
+            ) : (
+              <div className="bg-white dark:bg-[#161617] border border-neutral-200 dark:border-neutral-850 rounded-3xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.015)] transition-colors">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-left">
               <thead>
@@ -1034,7 +1043,10 @@ function DashboardContent() {
             </table>
           </div>
         </div>
-      ) : (
+      )}
+          </div>
+        </div>
+  ) : (
         
         /* ──── DRAG AND DROP KANBAN CRM BOARD ──── */
         <div className="grid grid-cols-1 lg:grid-cols-9 gap-4 overflow-x-auto pb-4 scrollbar-thin">
@@ -1140,7 +1152,7 @@ function DashboardContent() {
                   </span>
                   
                   {selectedCompany.resumeStatus === 'custom' ? (
-                    <span className="apple-glow-fuchsia-indigo text-[9px] font-semibold px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-600/10 text-purple-600 dark:text-purple-400 border transition-all">
+                    <span className="apple-glow-seablue-indigo text-[9px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400 border transition-all">
                       📎 APM/BA Resume Mapped
                     </span>
                   ) : selectedCompany.resumeStatus === 'global' ? (
@@ -1792,18 +1804,18 @@ function MarketingHomepage() {
     <div className="relative min-h-[90vh] overflow-hidden bg-[#f5f5f7] dark:bg-[#000000] transition-colors duration-300">
       
       {/* Aurora Breathing Ambient Glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-violet-500/10 dark:bg-violet-600/15 rounded-full blur-[120px] animate-pulse duration-[8000ms]"></div>
-      <div className="absolute bottom-10 left-10 w-[300px] h-[300px] bg-purple-500/5 dark:bg-purple-600/10 rounded-full blur-[100px] animate-pulse duration-[6000ms]"></div>
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-cyan-500/10 dark:bg-blue-600/15 rounded-full blur-[120px] animate-pulse duration-[8000ms]"></div>
+      <div className="absolute bottom-10 left-10 w-[300px] h-[300px] bg-sky-500/5 dark:bg-cyan-600/10 rounded-full blur-[100px] animate-pulse duration-[6000ms]"></div>
 
       {/* Hero Section */}
       <section className="relative z-10 max-w-5xl mx-auto px-6 pt-20 pb-16 text-center space-y-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/60 dark:bg-neutral-900/60 border border-white/40 dark:border-neutral-800/40 backdrop-blur-md shadow-sm">
-          <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse"></span>
+          <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse"></span>
           <span className="text-[10px] font-bold tracking-wider uppercase text-neutral-500 dark:text-neutral-400">Version 2.0 Dynamic Engine</span>
         </div>
 
         <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-neutral-900 dark:text-white leading-tight max-w-3xl mx-auto">
-          Your cold email pipeline. <span className="bg-gradient-to-r from-violet-600 to-indigo-600 dark:from-violet-400 dark:to-indigo-400 bg-clip-text text-transparent">On autopilot.</span>
+          Your cold email pipeline. <span className="bg-gradient-to-r from-cyan-600 to-blue-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent">On autopilot.</span>
         </h1>
 
         <p className="text-base sm:text-lg text-neutral-550 dark:text-neutral-400 max-w-2xl mx-auto leading-relaxed">
@@ -1813,7 +1825,7 @@ function MarketingHomepage() {
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
           <button
             onClick={() => router.push('/login')}
-            className="w-full sm:w-auto px-8 h-13 rounded-2xl bg-black text-white dark:bg-white dark:text-black font-semibold text-sm hover:scale-102 transition-all duration-200 shadow-md shadow-violet-500/10 cursor-pointer"
+            className="w-full sm:w-auto px-8 h-13 rounded-2xl bg-black text-white dark:bg-white dark:text-black font-semibold text-sm hover:scale-102 transition-all duration-200 shadow-md shadow-cyan-500/10 cursor-pointer"
           >
             Get Started Free
           </button>
@@ -1834,7 +1846,7 @@ function MarketingHomepage() {
         
         <div className="grid md:grid-cols-3 gap-8">
           <div className="p-6 rounded-2xl backdrop-blur-md bg-white/40 dark:bg-neutral-900/40 border border-white/50 dark:border-neutral-850/50 shadow-sm space-y-4">
-            <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-950/20 text-violet-600 dark:text-violet-400 flex items-center justify-center text-lg font-bold">1</div>
+            <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-950/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center text-lg font-bold">1</div>
             <h3 className="font-semibold text-sm text-neutral-900 dark:text-white">Add leads in Notion</h3>
             <p className="text-xs text-neutral-500 dark:text-neutral-450 leading-relaxed">
               Paste target company data and contact emails into your job tracker Notion CRM database using our template.
@@ -1842,7 +1854,7 @@ function MarketingHomepage() {
           </div>
           
           <div className="p-6 rounded-2xl backdrop-blur-md bg-white/40 dark:bg-neutral-900/40 border border-white/50 dark:border-neutral-850/50 shadow-sm space-y-4">
-            <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-950/20 text-violet-600 dark:text-violet-400 flex items-center justify-center text-lg font-bold">2</div>
+            <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-950/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center text-lg font-bold">2</div>
             <h3 className="font-semibold text-sm text-neutral-900 dark:text-white">Claude creates drafts</h3>
             <p className="text-xs text-neutral-500 dark:text-neutral-450 leading-relaxed">
               Every morning, our AI engine digests your resume, profile bio, and target company to write highly personalized cold drafts.
@@ -1850,7 +1862,7 @@ function MarketingHomepage() {
           </div>
           
           <div className="p-6 rounded-2xl backdrop-blur-md bg-white/40 dark:bg-neutral-900/40 border border-white/50 dark:border-neutral-850/50 shadow-sm space-y-4">
-            <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-950/20 text-violet-600 dark:text-violet-400 flex items-center justify-center text-lg font-bold">3</div>
+            <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-950/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center text-lg font-bold">3</div>
             <h3 className="font-semibold text-sm text-neutral-900 dark:text-white">Approve and send</h3>
             <p className="text-xs text-neutral-500 dark:text-neutral-450 leading-relaxed">
               Open your dashboard, read the generated drafts, and dispatch them directly from your Gmail with a single click.

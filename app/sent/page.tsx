@@ -81,7 +81,7 @@ export default function SentPage() {
               <div className="space-y-2">
                 <div className="flex items-center gap-3">
                   <h2 className="font-bold text-sm text-neutral-800 dark:text-neutral-100">{c.company}</h2>
-                  <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-600/10 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-purple-600/20">
+                  <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-purple-600/20">
                     Sent
                   </span>
                   
@@ -142,7 +142,7 @@ export default function SentPage() {
               <div>
                 <div className="flex items-center gap-3">
                   <h2 className="text-base font-bold text-neutral-800 dark:text-neutral-100">{selectedCompany.company}</h2>
-                  <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/15 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-purple-900/30">
+                  <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-purple-950/15 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-purple-900/30">
                     Sent
                   </span>
                 </div>
