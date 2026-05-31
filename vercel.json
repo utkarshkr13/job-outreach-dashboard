@@ -3,6 +3,18 @@
     {
       "path": "/api/cron/generate",
       "schedule": "30 22 * * *"
+    },
+    {
+      "path": "/api/followup/bulk",
+      "schedule": "45 22 * * *"
+    },
+    {
+      "path": "/api/followup/archive",
+      "schedule": "50 22 * * *"
+    },
+    {
+      "path": "/api/replies/scan",
+      "schedule": "0 10 * * *"
     }
   ]
 }
