@@ -379,7 +379,7 @@ function DashboardContent() {
         
         await fetchCompanies();
         
-        setMessage('âœ… JD Analysis completed. Pitch hook updated.');
+        setMessage('✅ JD Analysis completed. Pitch hook updated.');
         setTimeout(() => setMessage(''), 4000);
       }
     } catch (err) {
@@ -402,7 +402,7 @@ function DashboardContent() {
         setCompanies(prev =>
           prev.map(c => (c.notionId === id ? { ...c, emailStatus: 'Scheduled', scheduledSendTime: data.scheduledFor } : c))
         );
-        setMessage('â° Pitch scheduled successfully.');
+        setMessage('⏱️ Pitch scheduled successfully.');
         setTimeout(() => setMessage(''), 4000);
         setSelectedCompanyId(null);
       }
@@ -452,7 +452,7 @@ function DashboardContent() {
       if (data.success) {
         setCompanies(prev => [data.company, ...prev]);
         setIngestCompany('');
-        setMessage(`ðŸ” Discovered recruiter details for ${data.company.company}.`);
+        setMessage(`🚀 Discovered recruiter details for ${data.company.company}.`);
         setTimeout(() => setMessage(''), 5000);
       }
     } catch (err) {
@@ -477,7 +477,7 @@ function DashboardContent() {
       );
       
       if (newStatus === 'Approved') {
-        setMessage('âœ… Outreach approved.');
+        setMessage('✅ Outreach approved.');
         setTimeout(() => setMessage(''), 4000);
       }
     } catch (e) {
@@ -502,7 +502,7 @@ function DashboardContent() {
       if (data.success) {
         await fetchCompanies();
         openReviewDrawer(id);
-        setMessage(`ðŸ“¨ Threaded follow-up ${nextFollowup} drafted.`);
+        setMessage(`📬 Threaded follow-up ${nextFollowup} drafted.`);
         setTimeout(() => setMessage(''), 5000);
       }
     } catch (e) {
@@ -548,7 +548,7 @@ function DashboardContent() {
     }
     setBulkLoading(false);
     fetchCompanies();
-    setMessage(`âœ… Approved ${targets.length} drafts.`);
+    setMessage(`✅ Approved ${targets.length} drafts.`);
     setTimeout(() => setMessage(''), 4000);
   };
 
@@ -638,13 +638,13 @@ function DashboardContent() {
   const getBriefingInsight = () => {
     const replied = companies.find(c => c.emailStatus === 'Replied');
     if (replied) {
-      return `ðŸ”¥ Recruiter at ${replied.company} replied! Recommended action: paste their response in the Sent tab to draft an instant auto-reply.`;
+      return `🔥 Recruiter at ${replied.company} replied! Recommended action: paste their response in the Sent tab to draft an instant auto-reply.`;
     }
     const opened = [...companies]
       .filter(c => (c.openCount ?? 0) > 0)
       .sort((a, b) => (b.openCount ?? 0) - (a.openCount ?? 0))[0];
     if (opened) {
-      return `👍ï¸ Recruiter at ${opened.company} opened your pitch ${opened.openCount} ${opened.openCount === 1 ? 'time' : 'times'}! Recommended action: prepare follow-up.`;
+      return `👍 Recruiter at ${opened.company} opened your pitch ${opened.openCount} ${opened.openCount === 1 ? 'time' : 'times'}! Recommended action: prepare follow-up.`;
     }
     const drafts = companies.filter(c => c.emailStatus === 'Draft Ready').length;
     if (drafts > 0) {
@@ -682,7 +682,7 @@ function DashboardContent() {
       {/* SYSTEM TOASTS */}
       {message && (
         <div className="fixed top-6 right-6 z-50 bg-white dark:bg-[#161617] border border-neutral-200 dark:border-neutral-800 shadow-xl rounded-2xl p-4 text-xs font-semibold text-neutral-800 dark:text-neutral-200 animate-slide-in-right flex gap-3 items-start">
-          <span>ðŸ””</span>
+          <span>🔔</span>
           <p>{message}</p>
         </div>
       )}
@@ -723,7 +723,7 @@ function DashboardContent() {
                 Morning Briefing
               </h1>
               <span className="apple-pill-glow apple-glow-indigo-milestone bg-neutral-100 dark:bg-neutral-900 text-orange-600 dark:text-orange-400 border text-[10px] font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm transition-all">
-                ðŸ”¥ {streakCount} Days Streak
+                🔥 {streakCount} Days Streak
               </span>
             </div>
             <p className="text-neutral-500 dark:text-neutral-400 text-xs max-w-lg leading-relaxed transition-colors">
@@ -845,7 +845,7 @@ function DashboardContent() {
                 <option value="date">Date Extracted</option>
                 <option value="company">Company Name</option>
                 <option value="salary">Salary LPA Range</option>
-                <option value="signal">ðŸ”¥ Signal Priority</option>
+                <option value="signal">🔥 Signal Priority</option>
               </select>
 
               <div className="bg-[#e8e8ed]/60 dark:bg-neutral-900 border border-[#d2d2d7]/30 dark:border-neutral-850 rounded-xl p-0.5 flex transition-colors duration-300">
@@ -905,7 +905,7 @@ function DashboardContent() {
           <div className="lg:col-span-9">
             {filteredCompanies.length === 0 ? (
               <div className="bg-white dark:bg-[#161617] border border-neutral-200 dark:border-neutral-900 rounded-3xl py-16 text-center text-neutral-500 transition-colors duration-300">
-                <div className="text-4xl mb-4">ðŸ”</div>
+                <div className="text-4xl mb-4">🔍</div>
                 <h3 className="font-semibold text-sm">No leads match your filter</h3>
                 <p className="text-xs text-neutral-400 mt-1">Try clearing your search or switching to another category.</p>
               </div>
@@ -992,7 +992,7 @@ function DashboardContent() {
                       <td className="py-4 px-6 text-xs text-neutral-600 dark:text-neutral-400 font-mono transition-colors">
                         {isSent ? (
                           <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/20 inline-flex items-center gap-1 animate-pulse">
-                            👍 {company.openCount ?? 0} {company.openCount === 1 ? 'Open' : 'Opens'}
+                            👍  {company.openCount ?? 0} {company.openCount === 1 ? 'Open' : 'Opens'}
                           </span>
                         ) : (
                           <span className="text-neutral-450">—</span>
@@ -1006,7 +1006,7 @@ function DashboardContent() {
                           </span>
                           {company.emailStatus === 'Scheduled' && company.scheduledSendTime && (
                             <span className="text-[8px] text-sky-600 dark:text-sky-400 font-mono font-semibold mt-0.5">
-                              â³ {getScheduledCountdown(company.scheduledSendTime)}
+                              ⏳ {getScheduledCountdown(company.scheduledSendTime)}
                             </span>
                           )}
                         </div>
@@ -1055,7 +1055,7 @@ function DashboardContent() {
                                     }}
                                     className="w-full px-4 py-2 text-[10px] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-left flex items-center gap-2"
                                   >
-                                    â±ï¸ Schedule for 1 Hour Later
+                                    ⏱️  Schedule for 1 Hour Later
                                   </button>
                                   <button
                                     onClick={(e) => {
@@ -1153,7 +1153,7 @@ function DashboardContent() {
                           </h4>
                           {c.draftNotes && c.draftNotes.includes('Score:') && (
                             <span className="text-[8px] font-bold text-amber-500">
-                              ⭐ {c.draftNotes.match(/Score:\s*([0-9]+(?:\.[0-9]+)?)/)?.[1] || '9.0'}
+                              ⭐  {c.draftNotes.match(/Score:\s*([0-9]+(?:\.[0-9]+)?)/)?.[1] || '9.0'}
                             </span>
                           )}
                         </div>
@@ -1219,15 +1219,15 @@ function DashboardContent() {
                   
                   {selectedCompany.resumeStatus === 'custom' ? (
                     <span className="apple-glow-seablue-indigo text-[9px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400 border transition-all">
-                      ðŸ“Ž APM/BA Resume Mapped
+                      📎 APM/BA Resume Mapped
                     </span>
                   ) : selectedCompany.resumeStatus === 'global' ? (
                     <span className="apple-glow-emerald-cyan-custom text-[9px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 border transition-all">
-                      ðŸ“Ž Global Resume Attached
+                      📎 Global Resume Attached
                     </span>
                   ) : (
                     <span className="apple-glow-rose text-[9px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-600/10 text-rose-600 dark:text-rose-400 border transition-all">
-                      ⚠️ No Resume Attached
+                      ⚠️  No Resume Attached
                     </span>
                   )}
                 </div>
@@ -1329,7 +1329,7 @@ function DashboardContent() {
                         disabled={actionLoading === selectedCompany.notionId + 'send'}
                         className="w-full bg-pink-600 hover:bg-pink-500 text-white py-2.5 rounded-xl font-bold text-xs shadow-sm active:scale-95 transition-all cursor-pointer text-center block"
                       >
-                        {actionLoading === selectedCompany.notionId + 'send' ? 'Sending Reply...' : '✉️ Send Response'}
+                        {actionLoading === selectedCompany.notionId + 'send' ? 'Sending Reply...' : '✉️  Send Response'}
                       </button>
                     </div>
                   )}
@@ -1379,7 +1379,7 @@ function DashboardContent() {
                           
                           {jdGaps.length > 0 && (
                             <div className="bg-orange-50/30 dark:bg-orange-950/5 border border-orange-100/50 dark:border-orange-900/10 p-2.5 rounded-xl">
-                              <strong className="text-[10px] uppercase font-bold text-orange-600 dark:text-orange-400 block mb-1">⚠️ Candidate Skills Gap</strong>
+                              <strong className="text-[10px] uppercase font-bold text-orange-600 dark:text-orange-400 block mb-1">⚠️  Candidate Skills Gap</strong>
                               <p className="text-[11px] leading-relaxed text-neutral-500 dark:text-neutral-400">
                                 Missing from your profile: <span className="font-semibold text-orange-700 dark:text-orange-300">{jdGaps.join(', ')}</span>
                               </p>
@@ -1494,7 +1494,7 @@ function DashboardContent() {
 
                   {/* Company intel brief */}
                   <div className="bg-[#fafafa] dark:bg-neutral-900/20 border border-[#e8e8ed] dark:border-neutral-900 rounded-2xl p-4 space-y-3">
-                    <h4 className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">🕵️ Company Intelligence Brief</h4>
+                    <h4 className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">🕵️  Company Intelligence Brief</h4>
                     {intelLoading ? (
                       <p className="text-xs text-neutral-400 dark:text-neutral-500 animate-pulse">Consulting Claude brief...</p>
                     ) : (
@@ -1566,7 +1566,7 @@ function DashboardContent() {
 
                   {/* Pixel opens */}
                   <div className="bg-[#fafafa] dark:bg-neutral-900/20 border border-[#e8e8ed] dark:border-neutral-900 rounded-2xl p-4 space-y-3 transition-colors">
-                    <h4 className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">👍 Tracking Pixel Receipt Logs</h4>
+                    <h4 className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">👍  Tracking Pixel Receipt Logs</h4>
                     <div className="flex justify-between items-center bg-white dark:bg-neutral-950 p-3 rounded-xl border border-[#e8e8ed] dark:border-neutral-900 transition-colors">
                       <span className="text-xs text-neutral-400">Total Recruiter Opens:</span>
                       <span className="text-sm font-bold text-emerald-500">{selectedCompany.openCount ?? 0}</span>
@@ -1718,7 +1718,7 @@ function DashboardContent() {
 
                   {/* Self healing Suggestion alternate contact */}
                   <div className="bg-[#fafafa] dark:bg-neutral-900/20 border border-[#e8e8ed] dark:border-neutral-900 rounded-2xl p-4 space-y-2 transition-colors">
-                    <h4 className="text-xs font-semibold text-orange-600 dark:text-orange-400">🛡️ Alternate Recruiter Suggestion</h4>
+                    <h4 className="text-xs font-semibold text-orange-600 dark:text-orange-400">🛡️  Alternate Recruiter Suggestion</h4>
                     <p className="text-[10.5px] text-neutral-500 dark:text-neutral-400 leading-normal">
                       Bouncing recruiter emails? Alternate contact at <strong className="text-neutral-800 dark:text-neutral-200 font-semibold">{selectedCompany.company}</strong> matches:
                     </p>
@@ -1799,7 +1799,7 @@ function DashboardContent() {
                           }}
                           className="w-full px-4 py-2.5 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-left flex items-center gap-2"
                         >
-                          â±ï¸ Schedule for 1 Hour Later
+                          ⏱️  Schedule for 1 Hour Later
                         </button>
                         <button
                           onClick={() => {
@@ -1847,7 +1847,7 @@ function DashboardContent() {
 
                 {selectedCompany.emailStatus === 'Rejected' && (
                   <span className="bg-red-50 dark:bg-red-950/15 text-red-600 dark:text-red-400 border border-red-250/40 dark:border-red-900/30 text-[10.5px] font-bold py-2.5 px-5 rounded-full inline-flex items-center gap-1.5 shadow-sm transition-all">
-                    âŒ Lead Archived
+                    ❌ Lead Archived
                   </span>
                 )}
               </div>
