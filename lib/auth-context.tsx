@@ -1,8 +1,15 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import type { User } from 'firebase/auth';
-import { getFirebase } from './firebase-client';
+import { 
+  User, 
+  onAuthStateChanged, 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  OAuthProvider, 
+  signOut as firebaseSignOut 
+} from 'firebase/auth';
+import { auth } from './firebase-client';
 import { useRouter, usePathname } from 'next/navigation';
 
 interface AuthContextType {
@@ -27,6 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const isDemoMode = process.env.NEXT_PUBLIC_APP_MODE === 'demo';
 
+  // Helper to fetch onboarding status from session API
   const fetchSessionStatus = async (firebaseUser: User) => {
     try {
       const token = await firebaseUser.getIdToken();
@@ -41,17 +49,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return data.user.onboardingComplete;
       }
     } catch (error) {
-      console.error('❌ Failed to verify session token:', error);
+      console.error('âŒ Failed to verify session token:', error);
     }
     return false;
   };
 
   const refreshSessionStatus = async () => {
-    if (user) await fetchSessionStatus(user);
+    if (user) {
+      await fetchSessionStatus(user);
+    }
   };
 
   useEffect(() => {
-    // Demo mode — bypass Firebase entirely
+    // 1. If in local demo mode, bypass Firebase hooks
     if (isDemoMode) {
       const savedUser = localStorage.getItem('demo-user');
       if (savedUser) {
@@ -59,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const parsed = JSON.parse(savedUser);
           setUser({ ...parsed, getIdToken: () => Promise.resolve('demo-token-123') });
           setOnboardingComplete(localStorage.getItem('demo-onboarding-complete') === 'true');
-        } catch {
+        } catch (e) {
           localStorage.removeItem('demo-user');
         }
       }
@@ -67,86 +77,89 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Lazy-load Firebase Auth and set up the auth state listener.
-    // Firebase's ~222KB bundle loads AFTER the initial render, keeping it
-    // off the critical path and improving Largest Contentful Paint (LCP).
-    let unsubscribe: (() => void) | undefined;
-
-    getFirebase().then(({ auth, onAuthStateChanged }) => {
-      unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-        if (firebaseUser) {
-          setUser(firebaseUser);
-          await fetchSessionStatus(firebaseUser);
-          localStorage.setItem('auth-user-connected', 'true');
-        } else {
-          setUser(null);
-          setOnboardingComplete(false);
-          localStorage.removeItem('auth-user-connected');
-        }
-        setLoading(false);
-      });
+    // 2. Standard Firebase Auth state listener
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        setUser(firebaseUser);
+        const complete = await fetchSessionStatus(firebaseUser);
+        
+        // Sync to local storage for quick initial checks if needed
+        localStorage.setItem('auth-user-connected', 'true');
+      } else {
+        setUser(null);
+        setOnboardingComplete(false);
+        localStorage.removeItem('auth-user-connected');
+      }
+      setLoading(false);
     });
 
-    return () => unsubscribe?.();
+    return () => unsubscribe();
   }, [isDemoMode]);
 
-  // Redirect rules
+  // Redirection Rules Middleware
   useEffect(() => {
     if (loading) return;
-    const publicPaths = ['/login', '/marketing'];
+
+    const publicPaths = ['/login', '/marketing']; // list of public routes, we treat "/" as dashboard/marketing based on login status
     const isOnboarding = pathname === '/onboarding';
     const isLogin = pathname === '/login';
 
     if (!user) {
+      // Unauthenticated users trying to access protected dashboard routes get sent to login
       if (!isLogin && pathname !== '/' && !publicPaths.includes(pathname)) {
         router.push('/login');
       }
     } else {
+      // Authenticated users
       if (!onboardingComplete) {
-        if (!isOnboarding && pathname !== '/login') router.push('/onboarding');
+        // Must complete onboarding before accessing dashboard pages
+        if (!isOnboarding && pathname !== '/login') {
+          router.push('/onboarding');
+        }
       } else {
-        if (isLogin || isOnboarding) router.push('/');
+        // Onboarding complete: cannot access login or onboarding screens
+        if (isLogin || isOnboarding) {
+          router.push('/');
+        }
       }
     }
   }, [user, onboardingComplete, loading, pathname, router]);
 
   const loginWithGoogle = async () => {
     setLoading(true);
-    const firebaseConfigIsPlaceholder = !process.env.NEXT_PUBLIC_FIREBASE_API_KEY ||
-      process.env.NEXT_PUBLIC_FIREBASE_API_KEY === 'placeholder-api-key';
-
+    const firebaseConfigIsPlaceholder = !process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY === 'placeholder-api-key';
+    
     if (isDemoMode || firebaseConfigIsPlaceholder) {
-      await loginAsDemo('Google User', 'google-user@gmail.com');
+      await loginAsDemo("Google User", "google-user@gmail.com");
       return;
     }
     try {
-      const { auth, signInWithPopup, GoogleAuthProvider } = await getFirebase();
-      await signInWithPopup(auth, new GoogleAuthProvider());
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
     } catch (error: any) {
-      console.warn('⚠️ Google popup auth failed. Falling back to sandbox session.', error.message);
-      await loginAsDemo('Google User (Sandbox)', 'google-user@gmail.com');
+      console.warn('⚠️ Google popup auth failed or unconfigured. Falling back to secure sandbox session.', error.message);
+      await loginAsDemo("Google User (Sandbox)", "google-user@gmail.com");
     }
   };
 
   const loginWithApple = async () => {
     setLoading(true);
-    const firebaseConfigIsPlaceholder = !process.env.NEXT_PUBLIC_FIREBASE_API_KEY ||
-      process.env.NEXT_PUBLIC_FIREBASE_API_KEY === 'placeholder-api-key';
-
+    const firebaseConfigIsPlaceholder = !process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY === 'placeholder-api-key';
+    
     if (isDemoMode || firebaseConfigIsPlaceholder) {
-      await loginAsDemo('Apple User', 'apple-user@icloud.com');
+      await loginAsDemo("Apple User", "apple-user@icloud.com");
       return;
     }
     try {
-      const { auth, signInWithPopup, OAuthProvider } = await getFirebase();
-      await signInWithPopup(auth, new OAuthProvider('apple.com'));
+      const provider = new OAuthProvider('apple.com');
+      await signInWithPopup(auth, provider);
     } catch (error: any) {
-      console.warn('⚠️ Apple ID popup auth failed. Falling back to sandbox session.', error.message);
-      await loginAsDemo('Apple User (Sandbox)', 'apple-user@icloud.com');
+      console.warn('⚠️ Apple ID popup auth failed or unconfigured. Falling back to secure sandbox session.', error.message);
+      await loginAsDemo("Apple User (Sandbox)", "apple-user@icloud.com");
     }
   };
 
-  const loginAsDemo = async (customName = 'Demo User', customEmail = 'demo@gmail.com') => {
+  const loginAsDemo = async (customName = "Demo User", customEmail = "demo@gmail.com") => {
     setLoading(true);
     const mockUser = {
       uid: 'demo-user-id',
@@ -162,7 +175,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('demo-user', JSON.stringify({
       uid: mockUser.uid,
       email: mockUser.email,
-      displayName: mockUser.displayName,
+      displayName: mockUser.displayName
     }));
     localStorage.setItem('demo-onboarding-complete', 'true');
     setLoading(false);
@@ -181,17 +194,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     try {
-      const { auth, signOut } = await getFirebase();
-      await signOut(auth);
+      await firebaseSignOut(auth);
       router.push('/login');
     } catch (error: any) {
-      console.error('❌ Sign out failed:', error.message);
+      console.error('âŒ Sign out failed:', error.message);
       setLoading(false);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, onboardingComplete, loginWithGoogle, loginWithApple, loginAsDemo, logout, refreshSessionStatus }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        onboardingComplete,
+        loginWithGoogle,
+        loginWithApple,
+        loginAsDemo,
+        logout,
+        refreshSessionStatus,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -199,6 +222,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) throw new Error('useAuth must be used within an AuthProvider');
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
   return context;
 }
+
