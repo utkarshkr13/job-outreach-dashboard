@@ -361,10 +361,10 @@ export default function SettingsPage() {
               <button
                 key={tab.id}
                 onClick={() => { setActiveSection(tab.id); setErrorMsg(null); setSuccessMsg(null); }}
-                className={`w-full px-4 py-3 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
+                className={`w-full px-4 py-3 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition-all cursor-pointer border ${
                   activeSection === tab.id
-                    ? 'bg-black text-white dark:bg-white dark:text-black shadow-sm'
-                    : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800/60'
+                    ? 'bg-neutral-100 text-[#1d1d1f] border-neutral-300/40 dark:bg-neutral-850 dark:text-white dark:border-neutral-800 shadow-sm'
+                    : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-850 border-transparent'
                 }`}
               >
                 <span className="flex items-center gap-2.5">
@@ -415,7 +415,7 @@ export default function SettingsPage() {
                       required
                       value={profileName}
                       onChange={(e) => setProfileName(e.target.value)}
-                      className="w-full h-11 px-4 rounded-xl border border-neutral-250 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                      className="w-full h-11 px-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 dark:focus:ring-blue-500 transition-colors"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -424,7 +424,7 @@ export default function SettingsPage() {
                       type="text"
                       value={profilePhone}
                       onChange={(e) => setProfilePhone(e.target.value)}
-                      className="w-full h-11 px-4 rounded-xl border border-neutral-250 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                      className="w-full h-11 px-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 dark:focus:ring-blue-500 transition-colors"
                     />
                   </div>
                 </div>
@@ -436,7 +436,7 @@ export default function SettingsPage() {
                       type="text"
                       value={profileLinkedin}
                       onChange={(e) => setProfileLinkedin(e.target.value)}
-                      className="w-full h-11 px-4 rounded-xl border border-neutral-250 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                      className="w-full h-11 px-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 dark:focus:ring-blue-500 transition-colors"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -446,7 +446,7 @@ export default function SettingsPage() {
                       required
                       value={profileRoles}
                       onChange={(e) => setProfileRoles(e.target.value)}
-                      className="w-full h-11 px-4 rounded-xl border border-neutral-250 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                      className="w-full h-11 px-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 dark:focus:ring-blue-500 transition-colors"
                     />
                   </div>
                 </div>
@@ -458,7 +458,7 @@ export default function SettingsPage() {
                     rows={4}
                     value={profileBio}
                     onChange={(e) => setProfileBio(e.target.value)}
-                    className="w-full p-4 rounded-xl border border-neutral-250 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white transition-colors resize-none leading-relaxed"
+                    className="w-full p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 dark:focus:ring-blue-500 transition-colors resize-none leading-relaxed"
                   />
                 </div>
 
@@ -528,7 +528,7 @@ export default function SettingsPage() {
                       placeholder="secret_..."
                       value={notionApiKey}
                       onChange={(e) => setNotionApiKey(e.target.value)}
-                      className="w-full h-11 px-4 rounded-xl border border-neutral-250 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white"
+                      className="w-full h-11 px-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 dark:focus:ring-blue-500"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -539,7 +539,7 @@ export default function SettingsPage() {
                       placeholder="Hexadecimal Database ID"
                       value={notionDbId}
                       onChange={(e) => setNotionDbId(e.target.value)}
-                      className="w-full h-11 px-4 rounded-xl border border-neutral-250 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white"
+                      className="w-full h-11 px-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 dark:focus:ring-blue-500"
                     />
                   </div>
                 </div>
@@ -572,7 +572,7 @@ export default function SettingsPage() {
                     placeholder="sk-ant-..."
                     value={anthropicApiKey}
                     onChange={(e) => setAnthropicApiKey(e.target.value)}
-                    className="w-full h-11 px-4 rounded-xl border border-neutral-250 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white"
+                    className="w-full h-11 px-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 dark:focus:ring-blue-500"
                   />
                   <span className="text-[10px] text-neutral-450 dark:text-neutral-500 mt-1 block">
                     All key characters are stored AES-256 encrypted using platform-level env key maps.
@@ -710,7 +710,7 @@ export default function SettingsPage() {
                       <select
                         value={cronHour}
                         onChange={(e) => setCronHour(Number(e.target.value))}
-                        className="bg-transparent text-xs font-semibold focus:outline-none border border-neutral-250 dark:border-neutral-800 rounded-lg px-2.5 py-1"
+                        className="bg-transparent text-xs font-semibold focus:outline-none border border-neutral-200 dark:border-neutral-800 rounded-lg px-2.5 py-1"
                       >
                         {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23].map((h) => (
                           <option key={h} value={h}>{h}:00</option>
@@ -740,6 +740,15 @@ export default function SettingsPage() {
               </div>
             )}
 
+          </div>
+        </div>
+      )}
+      {successMsg && (
+        <div className="apple-toast-overlay apple-toast-frosted fixed top-6 right-6 z-50 text-neutral-850 dark:text-neutral-200 text-xs font-semibold px-5 py-3.5 border border-neutral-200 dark:border-neutral-800 transition-all duration-300 max-w-sm animate-slide-in">
+          <span className="text-sm">✓</span>
+          <div className="flex-1">
+            <p className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider">System Confirmed</p>
+            <p className="mt-0.5">{successMsg}</p>
           </div>
         </div>
       )}

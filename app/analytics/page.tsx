@@ -309,8 +309,8 @@ export default function AnalyticsPage() {
                       {t.count} sent
                     </span>
                     <div
-                      style={{ height: `${heightPercent || 5}%` }}
-                      className={`w-full max-w-[24px] rounded-full transition-all duration-300 ${t.count > 0 ? 'bg-blue-600 hover:bg-blue-500' : 'bg-neutral-100 dark:bg-neutral-800'}`}
+                      style={{ height: `${t.count > 0 ? Math.max(heightPercent, 16) : 16}%` }}
+                      className={`w-full max-w-[24px] rounded-full transition-all duration-300 ${t.count > 0 ? 'bg-blue-600 hover:bg-blue-500 shadow-sm' : 'bg-neutral-100 dark:bg-neutral-800/80 border border-neutral-300 dark:border-neutral-700'}`}
                     ></div>
                   </div>
                   <span className="text-[9px] text-neutral-400 dark:text-neutral-500 uppercase font-semibold">{t.label}</span>

@@ -42,10 +42,10 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   const isAuthScreen = pathname === '/login' || pathname === '/onboarding';
 
   return (
-    <body className={`${inter.className} transition-colors duration-300 min-h-screen bg-[#f5f5f7] dark:bg-[#000000] text-[#1d1d1f] dark:text-[#f5f5f7]`}>
+    <>
       
-      {/* FROSTED STICKY APPLE NAVBAR */}
-      <nav className="sticky top-0 z-40 backdrop-blur-md bg-white/70 dark:bg-[#161617]/70 border-b border-[#e8e8ed] dark:border-neutral-900 px-8 py-3 flex items-center justify-between transition-colors duration-300">
+      {/* FROSTED FIXED APPLE NAVBAR */}
+      <nav className="fixed top-0 left-0 right-0 z-40 backdrop-blur-md bg-white/70 dark:bg-[#161617]/70 border-b border-[#e8e8ed] dark:border-neutral-900 px-8 py-3 flex items-center justify-between transition-colors duration-300 w-full">
         <div className="flex items-center gap-8">
           <span className="font-semibold text-sm tracking-tight text-[#1d1d1f] dark:text-neutral-100 flex items-center gap-2">
             <span className="w-2.5 h-2.5 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-md shadow-sm transition-all duration-300"></span>
@@ -136,17 +136,19 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
         </div>
       </nav>
       
-      <main className="p-6 md:p-8">{children}</main>
-    </body>
+      <main className="pt-20 pb-6 px-6 md:px-8 max-w-7xl mx-auto">{children}</main>
+    </>
   );
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <AuthProvider>
-        <LayoutContent>{children}</LayoutContent>
-      </AuthProvider>
+      <body className="transition-colors duration-300 min-h-screen bg-[#f5f5f7] dark:bg-[#000000] text-[#1d1d1f] dark:text-[#f5f5f7] antialiased">
+        <AuthProvider>
+          <LayoutContent>{children}</LayoutContent>
+        </AuthProvider>
+      </body>
     </html>
   );
 }

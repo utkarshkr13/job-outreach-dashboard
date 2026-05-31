@@ -352,7 +352,7 @@ function OnboardingContent() {
               <button
                 onClick={handleGmailConnect}
                 disabled={loading}
-                className="w-full h-16 p-4 rounded-2xl border-2 border-dashed border-neutral-250 dark:border-neutral-800 hover:border-black dark:hover:border-white text-neutral-700 dark:text-neutral-300 hover:text-black dark:hover:text-white transition-all duration-200 flex items-center justify-center gap-3.5 cursor-pointer mb-8"
+                className="w-full h-16 p-4 rounded-2xl border-2 border-dashed border-neutral-200 dark:border-neutral-800 hover:border-black dark:hover:border-white text-neutral-700 dark:text-neutral-300 hover:text-black dark:hover:text-white transition-all duration-200 flex items-center justify-center gap-3.5 cursor-pointer mb-8"
               >
                 {loading ? (
                   <svg className="animate-spin h-5 w-5 text-neutral-550" fill="none" viewBox="0 0 24 24">
@@ -425,7 +425,7 @@ function OnboardingContent() {
                   placeholder="secret_..."
                   value={notionApiKey}
                   onChange={(e) => { setNotionApiKey(e.target.value); setNotionConnected(false); }}
-                  className="w-full h-11 px-4 rounded-xl border border-neutral-250 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                  className="w-full h-11 px-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white transition-colors"
                 />
               </div>
 
@@ -438,7 +438,7 @@ function OnboardingContent() {
                   placeholder="32-character hexadecimal database ID"
                   value={notionDbId}
                   onChange={(e) => { setNotionDbId(e.target.value); setNotionConnected(false); }}
-                  className="w-full h-11 px-4 rounded-xl border border-neutral-250 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                  className="w-full h-11 px-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white transition-colors"
                 />
               </div>
             </div>
@@ -470,7 +470,7 @@ function OnboardingContent() {
             <div className="flex justify-between gap-3 border-t border-neutral-100 dark:border-neutral-850 pt-6">
               <button
                 onClick={() => setCurrentStep(2)}
-                className="px-6 h-11 rounded-xl border border-neutral-250 dark:border-neutral-800 text-neutral-700 dark:text-neutral-300 font-medium text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer"
+                className="px-6 h-11 rounded-xl border border-neutral-200 dark:border-neutral-800 text-neutral-700 dark:text-neutral-300 font-medium text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer"
               >
                 Back
               </button>
@@ -510,7 +510,7 @@ function OnboardingContent() {
                     placeholder="Jane Smith"
                     value={profileName}
                     onChange={(e) => setProfileName(e.target.value)}
-                    className="w-full h-11 px-4 rounded-xl border border-neutral-250 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white"
+                    className="w-full h-11 px-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white"
                   />
                 </div>
                 <div>
@@ -522,7 +522,7 @@ function OnboardingContent() {
                     placeholder="+91 9999999999"
                     value={profilePhone}
                     onChange={(e) => setProfilePhone(e.target.value)}
-                    className="w-full h-11 px-4 rounded-xl border border-neutral-250 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white"
+                    className="w-full h-11 px-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white"
                   />
                 </div>
               </div>
@@ -536,7 +536,7 @@ function OnboardingContent() {
                   placeholder="linkedin.com/in/jane-smith"
                   value={profileLinkedin}
                   onChange={(e) => setProfileLinkedin(e.target.value)}
-                  className="w-full h-11 px-4 rounded-xl border border-neutral-250 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white"
+                  className="w-full h-11 px-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white"
                 />
               </div>
 
@@ -550,7 +550,7 @@ function OnboardingContent() {
                   placeholder="Associate PM or Business Analyst"
                   value={profileRoles}
                   onChange={(e) => setProfileRoles(e.target.value)}
-                  className="w-full h-11 px-4 rounded-xl border border-neutral-250 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white"
+                  className="w-full h-11 px-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white"
                 />
               </div>
 
@@ -573,7 +573,7 @@ function OnboardingContent() {
                   placeholder="sk-ant-..."
                   value={anthropicApiKey}
                   onChange={(e) => setAnthropicApiKey(e.target.value)}
-                  className="w-full h-11 px-4 rounded-xl border border-neutral-250 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white"
+                  className="w-full h-11 px-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white"
                 />
                 <span className="text-[10px] text-neutral-450 dark:text-neutral-500 mt-1 block">
                   Keys are stored AES-256 encrypted. Optional: leave blank to request demo sandbox usage.
@@ -590,7 +590,7 @@ function OnboardingContent() {
                   placeholder="A brief 1-2 sentence background that highlights your core experience (e.g. 'I am a PM who has shipped mobile apps with 10M+ downloads...')"
                   value={profileBio}
                   onChange={(e) => setProfileBio(e.target.value)}
-                  className="w-full p-4 rounded-xl border border-neutral-250 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white resize-none"
+                  className="w-full p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-black dark:focus:border-white resize-none"
                 />
               </div>
             </div>
@@ -599,7 +599,7 @@ function OnboardingContent() {
               <button
                 type="button"
                 onClick={() => setCurrentStep(3)}
-                className="px-6 h-11 rounded-xl border border-neutral-250 dark:border-neutral-800 text-neutral-700 dark:text-neutral-300 font-medium text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer"
+                className="px-6 h-11 rounded-xl border border-neutral-200 dark:border-neutral-800 text-neutral-700 dark:text-neutral-300 font-medium text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer"
               >
                 Back
               </button>
@@ -657,7 +657,7 @@ function OnboardingContent() {
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
                     disabled={loading}
                   />
-                  <div className="h-44 border-2 border-dashed border-neutral-250 dark:border-neutral-800 group-hover:border-black dark:group-hover:border-white rounded-2xl flex flex-col items-center justify-center p-6 text-center transition-colors">
+                  <div className="h-44 border-2 border-dashed border-neutral-200 dark:border-neutral-800 group-hover:border-black dark:group-hover:border-white rounded-2xl flex flex-col items-center justify-center p-6 text-center transition-colors">
                     {loading ? (
                       <div className="flex flex-col items-center gap-2.5">
                         <svg className="animate-spin h-6 w-6 text-violet-650" fill="none" viewBox="0 0 24 24">
@@ -683,7 +683,7 @@ function OnboardingContent() {
             <div className="flex items-center justify-between border-t border-neutral-100 dark:border-neutral-850 pt-6">
               <button
                 onClick={() => setCurrentStep(4)}
-                className="px-6 h-11 rounded-xl border border-neutral-250 dark:border-neutral-800 text-neutral-700 dark:text-neutral-300 font-medium text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer"
+                className="px-6 h-11 rounded-xl border border-neutral-200 dark:border-neutral-800 text-neutral-700 dark:text-neutral-300 font-medium text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer"
               >
                 Back
               </button>

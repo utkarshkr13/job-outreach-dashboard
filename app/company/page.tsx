@@ -4,9 +4,11 @@ import { useEffect, useState } from 'react';
 import { Company, EmailStatus } from '@/types';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
+import { useRouter } from 'next/navigation';
 
 export default function CompaniesPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -132,7 +134,7 @@ export default function CompaniesPage() {
             placeholder="Search by company, role or recruiter..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full bg-[#f5f5f7]/60 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-4 py-2 text-xs text-neutral-800 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-600 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-700 transition-colors"
+            className="w-full bg-[#f5f5f7]/60 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-4 py-2 text-xs text-neutral-800 dark:text-neutral-100 placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-700 transition-colors"
           />
         </div>
 
@@ -188,10 +190,10 @@ export default function CompaniesPage() {
             const hasGlobalCv = c.resumeStatus === 'global';
 
             return (
-              <Link 
+              <div 
                 key={c.notionId}
-                href={`/company/${c.notionId}`}
-                className="apple-glow-card apple-grid-spring bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-6 shadow-[0_4px_12px_rgba(0,0,0,0.01)] dark:shadow-none apple-spring hover:border-[#0071e3]/45 flex flex-col justify-between h-[230px] relative overflow-hidden transition-all duration-300"
+                onClick={() => router.push(`/company/${c.notionId}`)}
+                className="apple-glow-card apple-grid-spring bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-6 shadow-[0_4px_12px_rgba(0,0,0,0.01)] dark:shadow-none apple-spring hover:border-[#0071e3]/45 flex flex-col justify-between h-[230px] relative overflow-hidden transition-all duration-300 cursor-pointer"
               >
                 <div>
                   <div className="flex justify-between items-start">
@@ -244,11 +246,22 @@ export default function CompaniesPage() {
                     </span>
                   )}
 
-                  <span className="text-[9px] text-[#0071e3] font-bold group-hover:underline flex items-center gap-0.5 select-none">
-                    Configure →
-                  </span>
+                  <div className="flex items-center gap-3.5" onClick={e => e.stopPropagation()}>
+                    <span 
+                      onClick={() => router.push(`/?drawer=${c.notionId}`)}
+                      className="text-[9px] text-purple-600 dark:text-purple-400 font-bold hover:underline select-none cursor-pointer flex items-center gap-0.5"
+                    >
+                      Open Draft →
+                    </span>
+                    <span 
+                      onClick={() => router.push(`/company/${c.notionId}`)}
+                      className="text-[9px] text-[#0071e3] font-bold hover:underline select-none cursor-pointer flex items-center gap-0.5"
+                    >
+                      Configure →
+                    </span>
+                  </div>
                 </div>
-              </Link>
+              </div>
             );
           })}
         </div>

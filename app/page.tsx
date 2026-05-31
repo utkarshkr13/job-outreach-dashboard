@@ -1,8 +1,7 @@
 'use client';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { useRouter } from 'next/navigation';
-
-import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Company, EmailStatus } from '@/types';
 
 // CRM Stages / Kanban columns styled with high-end Apple system aesthetics
@@ -21,6 +20,7 @@ const CRM_STAGES: { status: EmailStatus; label: string; colorClass: string; desc
 function DashboardContent() {
   const { user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const authFetch = async (url: string, options: RequestInit = {}) => {
     if (!user) return fetch(url, options);
@@ -131,6 +131,14 @@ function DashboardContent() {
     fetchCompanies();
   }, []);
 
+  useEffect(() => {
+    const drawerId = searchParams.get('drawer');
+    if (drawerId && companies.length > 0) {
+      openReviewDrawer(drawerId);
+      window.history.replaceState({}, '', '/');
+    }
+  }, [searchParams, companies]);
+
   // Mouse movement effect for Apple Glow Cards
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -151,6 +159,16 @@ function DashboardContent() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      if (e.key === '/') {
+        e.preventDefault();
+        const searchInput = document.getElementById('dashboard-search-input');
+        if (searchInput) {
+          (searchInput as HTMLInputElement).focus();
+          (searchInput as HTMLInputElement).select();
+        }
         return;
       }
 
@@ -372,6 +390,24 @@ function DashboardContent() {
     setTimeout(() => setMessage(''), 5000);
   };
 
+  const handleBulkRedo = async () => {
+    setBulkLoading(true);
+    const targets = companies.filter(c => c.emailStatus === 'Redo');
+    for (const c of targets) {
+      await authFetch('/api/companies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notionId: c.notionId, status: 'Draft Ready' }),
+      });
+    }
+    setCompanies(prev =>
+      prev.map(c => (c.emailStatus === 'Redo' ? { ...c, emailStatus: 'Draft Ready' } : c))
+    );
+    setBulkLoading(false);
+    setMessage(`🔄 Bulk redo triggered for ${targets.length} drafts.`);
+    setTimeout(() => setMessage(''), 5000);
+  };
+
   // Save edits inside drawer
   const handleSaveDrawerEdits = async () => {
     if (!selectedCompany) return;
@@ -419,12 +455,32 @@ function DashboardContent() {
   const dashArray = 2 * Math.PI * 18; 
   const dashOffset = dashArray - (dashArray * (dailyGoalCount / 5));
 
+  const getBriefingInsight = () => {
+    const replied = companies.find(c => c.emailStatus === 'Replied');
+    if (replied) {
+      return `🔥 Recruiter at ${replied.company} replied! Recommended action: paste their response in the Sent tab to draft an instant auto-reply.`;
+    }
+    const opened = [...companies]
+      .filter(c => (c.openCount ?? 0) > 0)
+      .sort((a, b) => (b.openCount ?? 0) - (a.openCount ?? 0))[0];
+    if (opened) {
+      return `👁️ Recruiter at ${opened.company} opened your pitch ${opened.openCount} ${opened.openCount === 1 ? 'time' : 'times'}! Recommended action: prepare follow-up.`;
+    }
+    const drafts = companies.filter(c => c.emailStatus === 'Draft Ready').length;
+    if (drafts > 0) {
+      return `💡 You have ${drafts} drafts ready for review. Recommended action: scroll down, press E to edit, and approve them for dispatch.`;
+    }
+    return '✨ Your pipeline is up to date. Enter a company below to discover recruiter contacts and generate new drafts!';
+  };
+  const briefingInsight = getBriefingInsight();
+
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-fade-in relative text-[#1d1d1f] dark:text-[#f5f5f7] tracking-tight">
+    <>
+      <div className="max-w-6xl mx-auto space-y-8 animate-fade-in relative text-[#1d1d1f] dark:text-[#f5f5f7] tracking-tight">
       
       {/* CONFETTI FLOATING PARTICLES */}
       {showConfetti && (
-        <div className="absolute inset-0 pointer-events-none z-50 overflow-hidden min-h-screen">
+        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden min-h-screen">
           {confettiParticles.map(p => (
             <div
               key={p.id}
@@ -443,6 +499,14 @@ function DashboardContent() {
         </div>
       )}
 
+      {/* SYSTEM TOASTS */}
+      {message && (
+        <div className="fixed top-6 right-6 z-50 bg-white dark:bg-[#161617] border border-neutral-200 dark:border-neutral-800 shadow-xl rounded-2xl p-4 text-xs font-semibold text-neutral-800 dark:text-neutral-200 animate-slide-in-right flex gap-3 items-start">
+          <span>🔔</span>
+          <p>{message}</p>
+        </div>
+      )}
+
       {/* APPLE-INSPIRED HEADER BLOCK WITH STREAK & MORNING BRIEF */}
       <div className="apple-saturation-sweep apple-glass-card-saturated apple-dock-glow bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 backdrop-blur-xl rounded-3xl p-6 shadow-[0_4px_12px_rgba(0,0,0,0.015)] dark:shadow-none flex flex-col md:flex-row justify-between items-start md:items-center gap-6 transition-colors duration-300">
         
@@ -456,7 +520,7 @@ function DashboardContent() {
                 cy="20"
                 r="18"
                 fill="none"
-                stroke="#0071e3"
+                stroke={dailyGoalCount >= 5 ? '#34c759' : '#0071e3'}
                 strokeWidth="2"
                 strokeDasharray={dashArray}
                 strokeDashoffset={dashOffset}
@@ -465,7 +529,11 @@ function DashboardContent() {
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center text-[10px] text-neutral-500 font-semibold leading-none">
-              <span className="text-sm font-extrabold text-neutral-800 dark:text-neutral-200">{dailyGoalCount}/5</span>
+              {dailyGoalCount >= 5 ? (
+                <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">✓</span>
+              ) : (
+                <span className="text-sm font-extrabold text-neutral-800 dark:text-neutral-200">{dailyGoalCount}/5</span>
+              )}
             </div>
           </div>
 
@@ -479,48 +547,11 @@ function DashboardContent() {
               </span>
             </div>
             <p className="text-neutral-500 dark:text-neutral-400 text-xs max-w-lg leading-relaxed transition-colors">
-              <strong className="text-[#1d1d1f] dark:text-neutral-200 font-semibold">Goal: Send 5 outreaches.</strong> Stripe opened your pitch twice. You have {companies.filter(c => c.emailStatus === 'Draft Ready').length} drafts ready for review.
+              <strong className="text-[#1d1d1f] dark:text-neutral-200 font-semibold">Goal: Send 5 outreaches.</strong> {briefingInsight}
             </p>
           </div>
         </div>
-
-        {/* Action Controls */}
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <button
-            onClick={handleExportCSV}
-            className="apple-action-hover flex-1 md:flex-initial bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 border border-[#e8e8ed] dark:border-neutral-850 px-4 py-2 rounded-full text-xs font-semibold text-neutral-700 dark:text-neutral-300 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-          >
-            📥 Export Sent
-          </button>
-          
-          <button
-            onClick={handleBulkApprove}
-            disabled={bulkLoading || companies.filter(c => c.emailStatus === 'Draft Ready').length === 0}
-            className="apple-action-hover flex-1 md:flex-initial bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 border border-[#e8e8ed] dark:border-neutral-850 px-4 py-2 rounded-full text-xs font-semibold text-emerald-600 dark:text-emerald-400 disabled:opacity-40 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-          >
-            ✅ Approve All ({companies.filter(c => c.emailStatus === 'Draft Ready').length})
-          </button>
-
-          <button
-            onClick={handleBulkSend}
-            disabled={bulkLoading || companies.filter(c => c.emailStatus === 'Approved').length === 0}
-            className="apple-action-hover flex-1 md:flex-initial bg-blue-600 hover:bg-blue-500 px-5 py-2 rounded-full text-xs font-semibold text-white disabled:opacity-40 transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
-          >
-            🚀 Send Approved ({companies.filter(c => c.emailStatus === 'Approved').length})
-          </button>
-        </div>
-
       </div>
-
-      {message && (
-        <div className="apple-toast-overlay apple-toast-frosted fixed top-6 right-6 z-50 text-neutral-850 dark:text-neutral-200 text-xs font-semibold px-5 py-3.5 border transition-all duration-300 max-w-sm">
-          <span className="text-sm">🔔</span>
-          <div className="flex-1">
-            <p className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider">System Notification</p>
-            <p className="mt-0.5">{message}</p>
-          </div>
-        </div>
-      )}
 
       {/* CONSOLE CONTROL ROOM PANEL */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -532,14 +563,19 @@ function DashboardContent() {
             <p className="text-[10px] text-neutral-500 mt-0.5">Finds target recruiters using Claude intelligence</p>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Target Recruiter Contact</label>
             <input
               type="text"
-              placeholder="Company name (e.g. Stripe)"
+              placeholder="Company (e.g. Stripe)"
               value={ingestCompany}
               onChange={e => setIngestCompany(e.target.value)}
-              className="apple-input-hover apple-input-bounds w-full bg-[#f5f5f7]/60 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-3 py-2 text-xs text-neutral-800 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-600 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-700 transition-all"
+              className="apple-input-hover apple-input-bounds w-full bg-[#f5f5f7]/60 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-3 py-2 text-xs text-neutral-800 dark:text-neutral-100 placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-700 transition-all"
             />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Target Role</label>
             <select
               value={ingestRole}
               onChange={e => setIngestRole(e.target.value)}
@@ -555,28 +591,69 @@ function DashboardContent() {
           <button
             type="submit"
             disabled={ingestLoading || !ingestCompany}
-            className="apple-glow-blue apple-button-sweep w-full bg-blue-600 hover:bg-blue-500 text-white rounded-full py-2 text-xs font-semibold transition-all disabled:opacity-40 flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+            className="apple-glow-blue apple-button-sweep w-full bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-800 dark:text-neutral-200 border border-[#e8e8ed] dark:border-neutral-800 rounded-full py-2 text-xs font-semibold transition-all disabled:opacity-40 flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
           >
             {ingestLoading ? (
-              <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              <span className="w-3.5 h-3.5 border-2 border-neutral-750 dark:border-white border-t-transparent rounded-full animate-spin"></span>
             ) : 'Discover Recruiter Lead'}
           </button>
         </form>
 
         {/* Filter and sorting */}
         <div className="apple-glow-card lg:col-span-2 bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-5 shadow-[0_4px_12px_rgba(0,0,0,0.015)] dark:shadow-none flex flex-col justify-between gap-4 transition-colors duration-300">
-          <div>
-            <h2 className="text-xs font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">Search & Control Console</h2>
-            <p className="text-[10px] text-neutral-500 mt-0.5">Fuzzy search and list parameters sorting</p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h2 className="text-xs font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">Search & Control Console</h2>
+              <p className="text-[10px] text-neutral-500 mt-0.5">Fuzzy search and list parameters sorting</p>
+            </div>
+            
+            <div className="relative group">
+              <button
+                type="button"
+                className="w-5 h-5 rounded-full bg-neutral-100 dark:bg-neutral-800/80 text-neutral-500 dark:text-neutral-400 text-[10px] font-bold flex items-center justify-center cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors border border-neutral-200 dark:border-neutral-800"
+                title="Keyboard Shortcuts Cheatsheet"
+              >
+                ?
+              </button>
+              
+              <div className="opacity-0 group-hover:opacity-100 pointer-events-none absolute right-0 mt-2 w-48 p-3 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-lg text-[10px] text-neutral-600 dark:text-neutral-450 space-y-1.5 transition-opacity duration-200 z-50">
+                <p className="font-bold text-neutral-800 dark:text-neutral-200 border-b border-neutral-100 dark:border-neutral-800 pb-1">Keyboard Shortcuts</p>
+                <div className="flex justify-between">
+                  <span>Fuzzy Search:</span>
+                  <kbd className="bg-[#f5f5f7] dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 px-1 rounded text-[8px] font-mono">/</kbd>
+                </div>
+                <div className="flex justify-between">
+                  <span>Focus Down:</span>
+                  <kbd className="bg-[#f5f5f7] dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 px-1 rounded text-[8px] font-mono">J</kbd>
+                </div>
+                <div className="flex justify-between">
+                  <span>Focus Up:</span>
+                  <kbd className="bg-[#f5f5f7] dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 px-1 rounded text-[8px] font-mono">K</kbd>
+                </div>
+                <div className="flex justify-between">
+                  <span>Open & Edit:</span>
+                  <kbd className="bg-[#f5f5f7] dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 px-1 rounded text-[8px] font-mono">E</kbd>
+                </div>
+                <div className="flex justify-between">
+                  <span>Approve:</span>
+                  <kbd className="bg-[#f5f5f7] dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 px-1 rounded text-[8px] font-mono">A</kbd>
+                </div>
+                <div className="flex justify-between">
+                  <span>Send E-mail:</span>
+                  <kbd className="bg-[#f5f5f7] dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 px-1 rounded text-[8px] font-mono">S</kbd>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <input
+              id="dashboard-search-input"
               type="text"
               placeholder="Search by company, role or recruiter..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="bg-[#f5f5f7]/60 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-4 py-2 text-xs text-neutral-800 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-600 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-700 transition-colors w-full"
+              className="bg-[#f5f5f7]/60 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-4 py-2 text-xs text-neutral-800 dark:text-neutral-100 placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-700 transition-colors w-full"
             />
 
             <div className="flex gap-2">
@@ -590,7 +667,6 @@ function DashboardContent() {
                 <option value="salary">Salary LPA Range</option>
               </select>
 
-              {/* Segmented layout view switch */}
               <div className="bg-[#e8e8ed]/60 dark:bg-neutral-900 border border-[#d2d2d7]/30 dark:border-neutral-850 rounded-xl p-0.5 flex transition-colors duration-300">
                 <button
                   onClick={() => setCurrentView('list')}
@@ -607,19 +683,9 @@ function DashboardContent() {
               </div>
             </div>
           </div>
-
-          <div className="text-[10px] text-neutral-400 dark:text-neutral-500 font-medium flex items-center gap-1.5 flex-wrap">
-            <span>💡 Hotkeys:</span>
-            <kbd className="bg-[#f5f5f7] dark:bg-neutral-900 border border-[#e8e8ed] dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 px-1.5 py-0.5 rounded text-[8px] transition-colors">J/K</kbd> to focus, 
-            <kbd className="bg-[#f5f5f7] dark:bg-neutral-900 border border-[#e8e8ed] dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 px-1.5 py-0.5 rounded text-[8px] transition-colors">E</kbd> to edit, 
-            <kbd className="bg-[#f5f5f7] dark:bg-neutral-900 border border-[#e8e8ed] dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 px-1.5 py-0.5 rounded text-[8px] transition-colors">A</kbd> to approve, 
-            <kbd className="bg-[#f5f5f7] dark:bg-neutral-900 border border-[#e8e8ed] dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 px-1.5 py-0.5 rounded text-[8px] transition-colors">S</kbd> to send.
-          </div>
         </div>
-
       </div>
 
-      {/* SEGMENTED TAB LANE CONTROLLERS (List View Only) */}
       {currentView === 'list' && (
         <div className="bg-[#e8e8ed]/60 dark:bg-neutral-900/40 border border-[#d2d2d7]/30 dark:border-neutral-900 p-0.5 rounded-2xl flex gap-1 overflow-x-auto scrollbar-thin transition-colors duration-300">
           {(['Draft Ready', 'Approved', 'New', 'Redo', 'Sent', 'Replied', 'Interview', 'Offer', 'Rejected', 'All'] as const).map(tab => {
@@ -631,10 +697,10 @@ function DashboardContent() {
                   setActiveTab(tab);
                   setFocusedIndex(-1);
                 }}
-                className={`apple-tab-elastic apple-badge-focus-shift px-5 py-2.5 rounded-xl text-xs font-semibold transition-all shrink-0 flex items-center gap-2 cursor-pointer ${activeTab === tab ? 'bg-white dark:bg-[#333336] text-[#1d1d1f] dark:text-white shadow-sm' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-500 dark:hover:text-neutral-300'}`}
+                className={`apple-tab-elastic apple-badge-focus-shift px-5 py-2.5 rounded-xl text-xs font-semibold transition-all shrink-0 flex items-center gap-2 cursor-pointer border ${activeTab === tab ? 'bg-white dark:bg-[#333336] text-blue-600 dark:text-white border-neutral-300 dark:border-neutral-700 shadow-[0_2px_8px_rgba(0,0,0,0.06)] font-bold' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-500 dark:hover:text-neutral-300 border-transparent'}`}
               >
                 <span>{tab}</span>
-                <span className={`text-[9px] px-1.5 py-0.5 rounded-full transition-colors ${activeTab === tab ? 'bg-[#f5f5f7] dark:bg-neutral-900 text-neutral-500 dark:text-neutral-400' : 'bg-[#e8e8ed]/40 dark:bg-neutral-900/20 text-neutral-400 dark:text-neutral-600'}`}>
+                <span className={`text-[9px] px-1.5 py-0.5 rounded-full transition-colors border ${activeTab === tab ? 'bg-blue-50 dark:bg-neutral-900 text-blue-600 dark:text-blue-400 border-blue-100/50 dark:border-transparent' : 'bg-[#e8e8ed]/40 dark:bg-neutral-900/20 text-neutral-400 dark:text-neutral-600 border-transparent'}`}>
                   {count}
                 </span>
               </button>
@@ -643,72 +709,22 @@ function DashboardContent() {
         </div>
       )}
 
-      {/* LEADS LIST / KANBAN COMPONENT */}
       {loading ? (
-        <div className="bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl overflow-hidden transition-colors duration-300">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-left">
-              <thead>
-                <tr className="border-b border-[#e8e8ed] dark:border-neutral-900 text-[10px] uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-bold bg-[#fafafa]/50 dark:bg-neutral-900/10">
-                  <th className="py-4 px-6">Company</th>
-                  <th className="py-4 px-6">Target Role</th>
-                  <th className="py-4 px-6">Recruiter Contact</th>
-                  <th className="py-4 px-6">Source</th>
-                  <th className="py-4 px-6">Telemetry</th>
-                  <th className="py-4 px-6">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Array.from({ length: 5 }).map((_, idx) => (
-                  <tr key={idx} className="border-b border-[#e8e8ed] dark:border-neutral-900 animate-pulse">
-                    <td className="py-5 px-6">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-neutral-200 dark:bg-neutral-850"></div>
-                        <div className="space-y-2">
-                          <div className="w-24 h-4 bg-neutral-200 dark:bg-neutral-800 rounded-md"></div>
-                          <div className="w-16 h-3 bg-neutral-100 dark:bg-neutral-850 rounded-md"></div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-5 px-6">
-                      <div className="space-y-2">
-                        <div className="w-32 h-4 bg-neutral-200 dark:bg-neutral-800 rounded-md"></div>
-                        <div className="w-20 h-3 bg-neutral-100 dark:bg-neutral-850 rounded-md"></div>
-                      </div>
-                    </td>
-                    <td className="py-5 px-6">
-                      <div className="space-y-2">
-                        <div className="w-28 h-4 bg-neutral-200 dark:bg-neutral-800 rounded-md"></div>
-                        <div className="w-20 h-3 bg-neutral-100 dark:bg-neutral-850 rounded-md"></div>
-                      </div>
-                    </td>
-                    <td className="py-5 px-6">
-                      <div className="w-16 h-4 bg-neutral-200 dark:bg-neutral-800 rounded-md"></div>
-                    </td>
-                    <td className="py-5 px-6">
-                      <div className="w-20 h-5 bg-neutral-200 dark:bg-neutral-800/60 rounded-full"></div>
-                    </td>
-                    <td className="py-5 px-6">
-                      <div className="w-24 h-8 bg-neutral-200 dark:bg-neutral-800 rounded-full"></div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl overflow-hidden animate-pulse">
+          <div className="h-64 flex items-center justify-center text-neutral-400">Loading your CRM data...</div>
         </div>
       ) : filteredCompanies.length === 0 ? (
-        <div className="bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl py-24 text-center text-neutral-500 transition-colors duration-300">
-          No matching leads in active CRM filter constraints.
+        <div className="bg-white dark:bg-[#161617] border border-neutral-200 dark:border-neutral-900 rounded-3xl py-16 text-center text-neutral-500 transition-colors duration-300">
+          <div className="text-4xl mb-4">🔍</div>
+          <h3 className="font-semibold text-sm">No leads match your filter</h3>
+          <p className="text-xs text-neutral-400 mt-1">Try clearing your search or switching to "All" tabs.</p>
         </div>
       ) : currentView === 'list' ? (
-        
-        /* ──── PREMIUM DYNAMIC LIST SPREADSHEET ROW VIEW ──── */
-        <div className="apple-slide-mount bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.015)] dark:shadow-none transition-colors duration-300">
+        <div className="bg-white dark:bg-[#161617] border border-neutral-200 dark:border-neutral-850 rounded-3xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.015)] transition-colors">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-left">
               <thead>
-                <tr className="border-b border-[#e8e8ed] dark:border-neutral-900 text-[10px] uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-bold bg-[#fafafa]/50 dark:bg-neutral-900/10 transition-colors">
+                <tr className="border-b border-neutral-200 dark:border-neutral-850 text-[10px] uppercase tracking-wider text-neutral-450 font-bold bg-[#fafafa]/50 dark:bg-neutral-900/10">
                   <th className="py-4 px-6">Company</th>
                   <th className="py-4 px-6">Target Role</th>
                   <th className="py-4 px-6">Recruiter Contact</th>
@@ -717,69 +733,85 @@ function DashboardContent() {
                   <th className="py-4 px-6 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#e8e8ed] dark:divide-neutral-900 transition-colors">
-                {filteredCompanies.map((company, index) => {
-                  const isFocused = index === focusedIndex;
+              <tbody className="divide-y divide-neutral-300 dark:divide-neutral-800 transition-colors">
+                {filteredCompanies.map((company, idx) => {
+                  const isFocused = idx === focusedIndex;
                   const crmStage = CRM_STAGES.find(s => s.status === company.emailStatus);
+                  const isSent = company.emailStatus === 'Sent' || company.emailStatus === 'Replied' || company.emailStatus === 'Interview' || company.emailStatus === 'Offer';
+                  
                   return (
                     <tr
                       key={company.notionId}
                       onClick={() => openReviewDrawer(company.notionId)}
-                      className={`apple-row-saturate apple-row-sweep-border apple-row-focus apple-row-focus-sweep apple-row-hover apple-row-divider hover:bg-[#fafafa]/80 dark:hover:bg-neutral-900/20 transition-all cursor-pointer group ${isFocused ? 'active bg-blue-50/30 dark:bg-blue-950/5' : ''}`}
+                      className={`group hover:bg-[#fafafa]/80 dark:hover:bg-neutral-900/30 transition-colors cursor-pointer apple-row-hover ${isFocused ? 'bg-blue-50/40 dark:bg-neutral-900/40 apple-row-focus-sweep animate-fade-in' : 'border-b border-neutral-300 dark:border-neutral-800'}`}
                     >
-                      {/* Company Name & status */}
                       <td className={`py-4 px-6 ${isFocused ? 'border-l-2 border-blue-600' : ''}`}>
                         <div className="flex items-center gap-3">
-                          <span className="font-semibold text-neutral-800 dark:text-neutral-100 text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                            {company.company}
+                          <div className="w-8 h-8 rounded-xl bg-[#f5f5f7] dark:bg-neutral-900 flex items-center justify-center font-bold text-xs text-neutral-800 dark:text-neutral-200 uppercase transition-colors shrink-0 border border-neutral-200 dark:border-neutral-800">
+                            {company.company.charAt(0)}
+                          </div>
+                          <div>
+                            <span className="font-semibold text-neutral-800 dark:text-neutral-100 text-xs block truncate w-32 leading-normal">
+                              {company.company}
+                            </span>
+                            <span className="text-[10px] text-neutral-450 mt-0.5 block leading-none font-medium">
+                              Added {company.dateAdded}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="py-4 px-6">
+                        <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-200 block truncate w-36 leading-normal">
+                          {company.role}
+                        </span>
+                        {company.salaryRange && (
+                          <span className="inline-block mt-0.5 text-[8.5px] font-bold text-neutral-500 dark:text-neutral-455 bg-neutral-100 dark:bg-neutral-900 px-2 py-0.5 rounded-full transition-colors border border-neutral-200 dark:border-neutral-800">
+                            💰 {company.salaryRange} LPA
                           </span>
+                        )}
+                      </td>
+
+                      <td className="py-4 px-6 text-neutral-600 dark:text-neutral-400 text-xs transition-colors">
+                        <span className="font-semibold text-neutral-800 dark:text-neutral-200 block truncate w-36 leading-normal">
+                          {company.contactName || 'Direct / Form'}
+                        </span>
+                        <span className="text-[10px] text-neutral-455 block leading-none font-medium mt-0.5">
+                          {company.contactTitle || 'Hiring Coordinator'}
+                        </span>
+                      </td>
+
+                      <td className="py-4 px-6 text-xs text-neutral-455 dark:text-neutral-500 font-semibold transition-colors">
+                        <span className="px-2 py-0.5 rounded-full bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+                          {company.source || 'LinkedIn'}
+                        </span>
+                      </td>
+
+                      <td className="py-4 px-6 text-xs text-neutral-600 dark:text-neutral-400 font-mono transition-colors">
+                        {isSent ? (
+                          <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/20 inline-flex items-center gap-1 animate-pulse">
+                            👁 {company.openCount ?? 0} {company.openCount === 1 ? 'Open' : 'Opens'}
+                          </span>
+                        ) : (
+                          <span className="text-neutral-450">—</span>
+                        )}
+                      </td>
+
+                      <td className="py-4 px-6 text-xs font-medium relative text-right">
+                        <div className="group-hover:opacity-0 transition-opacity flex justify-end">
                           <span className={`text-[8.5px] font-semibold px-2 py-0.5 rounded-full ${crmStage ? crmStage.colorClass : 'bg-neutral-100 text-neutral-500'} ${company.emailStatus === 'Redo' ? 'apple-glow-amber border' : ''} ${company.emailStatus === 'New' ? 'apple-glow-cyan-new border' : ''} ${company.emailStatus === 'Approved' ? 'apple-glow-approved-teal border' : ''} ${company.emailStatus === 'Replied' ? 'apple-glow-teal-cyan border' : ''} ${company.emailStatus === 'Interview' ? 'apple-glow-indigo-violet border' : ''} ${company.emailStatus === 'Offer' ? 'apple-glow-lime-emerald border' : ''}`}>
                             {company.emailStatus}
                           </span>
                         </div>
-                        <div className="text-[10px] text-neutral-400 mt-0.5">Added: {company.dateAdded}</div>
-                      </td>
 
-                      {/* Targeted Role */}
-                      <td className="py-4 px-6">
-                        <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">{company.role}</span>
-                        {company.salaryRange && (
-                          <div className="text-[9.5px] text-neutral-400 mt-0.5">💰 {company.salaryRange} LPA</div>
-                        )}
-                      </td>
-
-                      {/* Recruiter Details */}
-                      <td className="py-4 px-6">
-                        <div className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">{company.contactName}</div>
-                        <div className="text-[10px] text-neutral-400 mt-0.5 leading-none">{company.contactTitle || 'Hiring Lead'}</div>
-                      </td>
-
-                      {/* Source segment */}
-                      <td className="py-4 px-6">
-                        <span className="text-xs text-neutral-500 dark:text-neutral-400">{company.source || 'Direct'}</span>
-                      </td>
-
-                      {/* Telemetry open counts */}
-                      <td className="py-4 px-6">
-                        {(company.emailStatus === 'Sent' || company.emailed) ? (
-                          <span className={`text-[9.5px] font-semibold px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${(company.openCount ?? 0) > 0 ? 'apple-glow-success bg-emerald-50 dark:bg-emerald-950/10 text-emerald-600 dark:text-emerald-400 border' : 'bg-neutral-100 dark:bg-neutral-900 text-neutral-400'}`}>
-                            👁 {(company.openCount ?? 0) > 0 ? `${company.openCount} Opens` : 'Delivered'}
-                          </span>
-                        ) : (
-                          <span className="text-[9.5px] text-neutral-400">—</span>
-                        )}
-                      </td>
-
-                      {/* Card Operations */}
-                      <td className="py-3 px-6 text-right" onClick={e => e.stopPropagation()}>
-                        <div className="apple-hover-actions flex items-center justify-end gap-2">
+                        <div className="opacity-0 group-hover:opacity-100 absolute inset-0 py-4 px-6 flex items-center justify-end gap-1.5 bg-[#fafafa]/95 dark:bg-[#161617]/95 backdrop-blur-sm transition-all duration-200">
                           {company.emailStatus === 'Approved' && (
                             <button
                               onClick={() => handleSendEmail(company.notionId)}
                               disabled={actionLoading === company.notionId + 'send'}
-                              className="bg-blue-600 hover:bg-blue-500 text-white rounded-full px-4 py-1.5 text-[10px] font-semibold transition-all shadow-sm cursor-pointer"
+                              className="bg-blue-600 hover:bg-blue-500 text-white rounded-full px-4 py-1.5 text-[10px] font-bold shadow-sm transition-all cursor-pointer"
                             >
-                              Send
+                              Send Draft
                             </button>
                           )}
 
@@ -787,7 +819,7 @@ function DashboardContent() {
                             <button
                               onClick={() => handleStatusUpdate(company.notionId, 'Approved')}
                               disabled={actionLoading === company.notionId + 'Approved'}
-                              className="bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-700 dark:text-neutral-300 rounded-full px-4 py-1.5 text-[10px] font-semibold border border-neutral-200 dark:border-neutral-800 transition-all cursor-pointer"
+                              className="bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/30 dark:hover:bg-blue-950/50 border border-blue-200 dark:border-blue-900/40 text-blue-600 dark:text-blue-400 rounded-full px-4 py-1.5 text-[10px] font-bold shadow-sm active:scale-95 transition-all cursor-pointer"
                             >
                               Approve
                             </button>
@@ -797,7 +829,7 @@ function DashboardContent() {
                             <button
                               onClick={() => handleGenerateFollowUp(company.notionId)}
                               disabled={actionLoading === company.notionId + 'followup'}
-                              className="bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-700 dark:text-neutral-300 rounded-full px-4 py-1.5 text-[10px] font-semibold border border-neutral-200 dark:border-neutral-800 transition-all cursor-pointer"
+                              className="bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-750 border border-neutral-300 dark:border-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-full px-4 py-1.5 text-[10px] font-bold shadow-sm active:scale-95 transition-all cursor-pointer"
                             >
                               Follow-Up
                             </button>
@@ -805,7 +837,7 @@ function DashboardContent() {
 
                           <button
                             onClick={() => openReviewDrawer(company.notionId)}
-                            className="bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 border border-[#e8e8ed] dark:border-neutral-850 text-neutral-600 dark:text-neutral-300 rounded-full px-3 py-1.5 text-[10px] font-semibold transition-all cursor-pointer"
+                            className="bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-750 border border-neutral-300 dark:border-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-full px-3.5 py-1.5 text-[10px] font-bold shadow-sm active:scale-95 transition-all cursor-pointer"
                           >
                             Edit
                           </button>
@@ -903,6 +935,7 @@ function DashboardContent() {
           })}
         </div>
       )}
+      </div>
 
       {/* ──── APPLE SLIDE-OVER CRM REVIEW DRAWER ──── */}
       {selectedCompany && (
@@ -977,7 +1010,7 @@ function DashboardContent() {
             </div>
 
             {/* Drawer Body Container */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin bg-white dark:bg-[#161617] transition-colors">
+            <div className="flex-1 overflow-y-auto min-h-0 p-6 space-y-6 scrollbar-thin bg-white dark:bg-[#161617] transition-colors">
               
               {/* TAB 1: PITCH EDITOR */}
               {drawerTab === 'editor' && (
@@ -1304,7 +1337,7 @@ function DashboardContent() {
         </div>
       )}
 
-    </div>
+    </>
   );
 }
 
@@ -1440,7 +1473,18 @@ export default function MorningDashboard() {
   }
 
   if (user) {
-    return <DashboardContent />;
+    return (
+      <Suspense fallback={
+        <div className="min-h-[80vh] flex items-center justify-center bg-[#f5f5f7] dark:bg-black transition-colors duration-300">
+          <svg className="animate-spin h-8 w-8 text-neutral-500" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          </svg>
+        </div>
+      }>
+        <DashboardContent />
+      </Suspense>
+    );
   }
 
   return <MarketingHomepage />;
