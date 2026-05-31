@@ -322,8 +322,8 @@ export default function AnalyticsPage() {
                       {t.count} sent
                     </span>
                     <div
-                      style={{ height: t.count > 0 ? `${Math.max(heightPercent, 16)}%` : '8px' }}
-                      className={`w-full max-w-[24px] rounded-full transition-all duration-300 ${t.count > 0 ? 'bg-blue-600 hover:bg-blue-500 shadow-sm' : 'bg-[#fafafa] dark:bg-neutral-950 border border-dashed border-[#e8e8ed] dark:border-neutral-850'}`}
+                      style={{ height: t.count > 0 ? `${Math.max(heightPercent, 16)}%` : '12px' }}
+                      className={`w-full max-w-[24px] rounded-full transition-all duration-300 ${t.count > 0 ? 'bg-blue-600 hover:bg-blue-500 shadow-sm' : 'bg-neutral-100 dark:bg-neutral-900/40 border border-dashed border-neutral-200 dark:border-neutral-800'}`}
                     ></div>
                   </div>
                   <span className="text-[9px] text-neutral-400 dark:text-neutral-500 uppercase font-semibold">{t.label}</span>

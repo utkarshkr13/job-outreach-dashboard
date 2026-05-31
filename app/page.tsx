@@ -622,7 +622,7 @@ function DashboardContent() {
       )}
 
       {/* APPLE-INSPIRED HEADER BLOCK WITH STREAK & MORNING BRIEF */}
-      <div className="apple-glass-card-saturated apple-dock-glow bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 backdrop-blur-xl rounded-3xl p-6 shadow-[0_4px_12px_rgba(0,0,0,0.015)] dark:shadow-none flex flex-col md:flex-row justify-between items-start md:items-center gap-6 transition-colors duration-300">
+      <div className="apple-dock-glow bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-6 shadow-[0_8px_30px_rgba(0,0,0,0.02)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.25)] flex flex-col md:flex-row justify-between items-start md:items-center gap-6 transition-colors duration-300">
         
         <div className="flex items-center gap-6">
           {/* Minimal progress ring */}
@@ -684,7 +684,7 @@ function DashboardContent() {
               placeholder="Company (e.g. Stripe)"
               value={ingestCompany}
               onChange={e => setIngestCompany(e.target.value)}
-              className="apple-input-hover apple-input-bounds w-full bg-[#f5f5f7]/60 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-3 py-2 text-xs text-neutral-800 dark:text-neutral-100 placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-700 transition-all"
+              className="apple-input-hover apple-input-bounds w-full bg-[#f5f5f7]/60 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-3 py-2 text-xs text-neutral-800 dark:text-neutral-100 placeholder:text-neutral-600 dark:placeholder:text-neutral-450 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-700 transition-all"
             />
           </div>
 
@@ -767,7 +767,7 @@ function DashboardContent() {
               placeholder="Search by company, role or recruiter..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="bg-[#f5f5f7]/60 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-4 py-2 text-xs text-neutral-800 dark:text-neutral-100 placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-700 transition-colors w-full"
+              className="bg-[#f5f5f7]/60 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-4 py-2 text-xs text-neutral-800 dark:text-neutral-100 placeholder:text-neutral-600 dark:placeholder:text-neutral-450 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-700 transition-colors w-full"
             />
 
             <div className="flex gap-2">
@@ -812,10 +812,10 @@ function DashboardContent() {
                   setActiveTab(tab);
                   setFocusedIndex(-1);
                 }}
-                className={`apple-tab-elastic apple-badge-focus-shift px-5 py-2.5 rounded-xl text-xs font-semibold transition-all shrink-0 flex items-center gap-2 cursor-pointer border ${activeTab === tab ? 'bg-white dark:bg-[#333336] text-blue-600 dark:text-white border-neutral-300 dark:border-neutral-700 shadow-[0_2px_8px_rgba(0,0,0,0.06)] font-bold' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-500 dark:hover:text-neutral-300 border-transparent'}`}
+                className={`apple-tab-elastic apple-badge-focus-shift px-5 py-2.5 rounded-xl text-xs font-semibold transition-all shrink-0 flex items-center gap-2 cursor-pointer border ${activeTab === tab ? 'bg-blue-50/80 dark:bg-[#333336] text-blue-600 dark:text-white border-blue-200/60 dark:border-neutral-700 shadow-[0_2px_8px_rgba(0,0,0,0.04)] font-bold' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-500 dark:hover:text-neutral-300 border-transparent'}`}
               >
                 <span>{tab}</span>
-                <span className={`text-[9px] px-1.5 py-0.5 rounded-full transition-colors border ${activeTab === tab ? 'bg-blue-50 dark:bg-neutral-900 text-blue-600 dark:text-blue-400 border-blue-100/50 dark:border-transparent' : 'bg-[#e8e8ed]/40 dark:bg-neutral-900/20 text-neutral-400 dark:text-neutral-600 border-transparent'}`}>
+                <span className={`text-[9px] px-1.5 py-0.5 rounded-full transition-colors border ${activeTab === tab ? 'bg-blue-100/60 dark:bg-neutral-900 text-blue-600 dark:text-blue-400 border-blue-200/30 dark:border-transparent' : 'bg-[#e8e8ed]/40 dark:bg-neutral-900/20 text-neutral-400 dark:text-neutral-600 border-transparent'}`}>
                   {count}
                 </span>
               </button>
@@ -848,7 +848,7 @@ function DashboardContent() {
                   <th className="py-4 px-6 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-300 dark:divide-neutral-800 transition-colors">
+              <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800 transition-colors">
                 {filteredCompanies.map((company, idx) => {
                   const isFocused = idx === focusedIndex;
                   const crmStage = CRM_STAGES.find(s => s.status === company.emailStatus);
@@ -858,7 +858,7 @@ function DashboardContent() {
                     <tr
                       key={company.notionId}
                       onClick={() => openReviewDrawer(company.notionId)}
-                      className={`group hover:bg-[#fafafa]/80 dark:hover:bg-neutral-900/30 transition-colors cursor-pointer apple-row-hover ${isFocused ? 'bg-blue-50/40 dark:bg-neutral-900/40 apple-row-focus-sweep animate-fade-in' : 'border-b border-neutral-300 dark:border-neutral-800'}`}
+                      className={`group hover:bg-[#fafafa]/80 dark:hover:bg-neutral-900/30 transition-colors cursor-pointer apple-row-hover ${isFocused ? 'bg-blue-50/40 dark:bg-neutral-900/40 apple-row-focus-sweep animate-fade-in' : 'border-b border-neutral-200 dark:border-neutral-800'}`}
                     >
                       <td className={`py-4 px-6 ${isFocused ? 'border-l-2 border-blue-600' : ''}`}>
                         <div className="flex items-center gap-3">
@@ -1013,7 +1013,7 @@ function DashboardContent() {
                             <button
                               onClick={() => handleGenerateFollowUp(company.notionId)}
                               disabled={actionLoading === company.notionId + 'followup'}
-                              className="bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-750 border border-neutral-300 dark:border-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-full px-4 py-1.5 text-[10px] font-bold shadow-sm active:scale-95 transition-all cursor-pointer"
+                              className="bg-white hover:bg-neutral-50 dark:bg-neutral-800 dark:hover:bg-neutral-750 border border-neutral-200 dark:border-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-full px-4 py-1.5 text-[10px] font-bold shadow-sm active:scale-95 transition-all cursor-pointer"
                             >
                               Follow-Up
                             </button>
@@ -1021,7 +1021,7 @@ function DashboardContent() {
 
                           <button
                             onClick={() => openReviewDrawer(company.notionId)}
-                            className="bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-750 border border-neutral-300 dark:border-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-full px-3.5 py-1.5 text-[10px] font-bold shadow-sm active:scale-95 transition-all cursor-pointer"
+                            className="bg-white hover:bg-neutral-50 dark:bg-neutral-800 dark:hover:bg-neutral-750 border border-neutral-200 dark:border-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-full px-3.5 py-1.5 text-[10px] font-bold shadow-sm active:scale-95 transition-all cursor-pointer"
                           >
                             Edit
                           </button>
@@ -1131,7 +1131,7 @@ function DashboardContent() {
           <div className="apple-backdrop-spring w-full max-w-3xl bg-white dark:bg-[#161617]/90 apple-drawer-glass-border h-[100dvh] max-h-[100dvh] flex flex-col justify-between overflow-hidden shadow-2xl animate-slide-in transition-colors duration-300">
             
             {/* Header */}
-            <div className="border-b border-[#e8e8ed] dark:border-neutral-900 p-6 bg-[#fafafa]/60 dark:bg-neutral-900/10 flex justify-between items-center transition-colors">
+            <div className="border-b border-[#e8e8ed] dark:border-neutral-900 p-6 bg-[#fafafa]/60 dark:bg-neutral-900/10 flex justify-between items-center transition-colors shrink-0">
               <div>
                 <div className="flex items-center gap-3">
                   <h2 className="text-base font-bold text-neutral-800 dark:text-neutral-100">{selectedCompany.company}</h2>
@@ -1167,7 +1167,7 @@ function DashboardContent() {
             </div>
 
             {/* TAB SELECTOR Segmented style */}
-            <div className="border-b border-[#e8e8ed] dark:border-neutral-900 px-6 py-2 flex bg-[#fafafa]/50 dark:bg-neutral-900/5 text-xs gap-1 transition-colors">
+            <div className="border-b border-[#e8e8ed] dark:border-neutral-900 px-6 py-2 flex bg-[#fafafa]/50 dark:bg-neutral-900/5 text-xs gap-1 transition-colors shrink-0">
               <button
                 onClick={() => setDrawerTab('editor')}
                 className={`py-2 px-4 rounded-lg font-semibold transition-all cursor-pointer ${drawerTab === 'editor' ? 'bg-[#fafafa] dark:bg-neutral-900 text-neutral-800 dark:text-white border border-[#e8e8ed] dark:border-neutral-850' : 'text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300 border border-transparent'}`}
@@ -1656,7 +1656,7 @@ function DashboardContent() {
             </div>
 
             {/* Actions footer */}
-            <div className="border-t border-[#e8e8ed] dark:border-neutral-900 p-6 bg-[#fafafa]/60 dark:bg-neutral-900/10 flex justify-between items-center gap-3 transition-colors">
+            <div className="border-t border-[#e8e8ed] dark:border-neutral-900 p-6 bg-[#fafafa]/60 dark:bg-neutral-900/10 flex justify-between items-center gap-3 transition-colors shrink-0">
               <div className="flex gap-2">
                 <button
                   onClick={() => handleStatusUpdate(selectedCompany.notionId, 'Rejected')}
