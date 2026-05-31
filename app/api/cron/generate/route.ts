@@ -78,6 +78,20 @@ export async function GET(req: Request) {
       }
     }
 
+    // Trigger background intelligence sweeps after draft generation
+    try {
+      const host = req.headers.get('host') || 'localhost:3000';
+      const protocol = host.includes('localhost') ? 'http' : 'https';
+      const secret = process.env.CRON_SECRET || 'b6e3f2d1e4c5a6b7f8c9d0e1f2a3b4c5';
+      
+      // Fire sweeps in background asynchronously to prevent blocking cron timeout
+      fetch(`${protocol}://${host}/api/followup/bulk?secret=${secret}`, { method: 'POST' }).catch(() => {});
+      fetch(`${protocol}://${host}/api/followup/archive?secret=${secret}`, { method: 'POST' }).catch(() => {});
+      fetch(`${protocol}://${host}/api/replies/scan?secret=${secret}`, { method: 'POST' }).catch(() => {});
+    } catch (cronSweepErr) {
+      console.warn('❌ Cron background sweeps launch failed:', cronSweepErr);
+    }
+
     return NextResponse.json({ success: true, usersProcessed: userResults.length, details: userResults });
 
   } catch (error: any) {

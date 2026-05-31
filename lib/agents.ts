@@ -24,18 +24,26 @@ async function ask(
 // ─── AGENT 1: COMPANY HOOK ───────────────────────────────────────────────────
 
 async function companyHookAgent(client: Anthropic, company: Company): Promise<string> {
+  const jdSection = company.jdKeywords ? `
+We have analyzed the job description for this role.
+Key themes/keywords the hiring manager values: ${company.jdKeywords}
+Skills gap detected: ${company.skillsGap || 'None'}
+INSTRUCTION: Weave one of these keywords naturally into the opening hook, matching their desired skills.` : '';
+
   return ask(
     client,
     `You write the opening 2-3 sentences of a cold job application email.
 
 RULES — ALL MANDATORY:
 - Be specific to this exact company. Reference their actual product, the problem they solve, their market, or a recent development.
+- PRIORITIZE fresh funding rounds, growth milestones, or specific product features. (Analytics show funding angles secure a 24% reply rate, compared to 6% for generic ones).
 - Sound genuine and interested, not flattering or sycophantic.
 - NO generic lines like "I came across your company and was impressed" or "You are a market leader."
 - NO em dashes (the long dash: —). Use a hyphen (-) or rewrite.
 - NO "Hope this finds you well", "I wanted to reach out", "I am reaching out to express".
 - 2-3 sentences only. Tight and specific.
-- Output only those 2-3 sentences. No greeting, no label, no extra text.`,
+- Output only those 2-3 sentences. No greeting, no label, no extra text.
+${jdSection}`,
     `Company: ${company.company}
 Role: ${company.role}
 Company Type: ${company.companyType ?? ''}

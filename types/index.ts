@@ -1,4 +1,16 @@
-export type EmailStatus = 'New' | 'Draft Ready' | 'Approved' | 'Sent' | 'Rejected' | 'Redo' | 'Replied' | 'Interview' | 'Offer';
+export type EmailStatus = 
+  | 'New' 
+  | 'Draft Ready' 
+  | 'Approved' 
+  | 'Sent' 
+  | 'Rejected' 
+  | 'Redo' 
+  | 'Replied' 
+  | 'Interview' 
+  | 'Offer'
+  | 'Follow-up Ready'
+  | 'Scheduled'
+  | 'No Response';
 
 export interface Company {
   notionId: string;
@@ -22,6 +34,22 @@ export interface Company {
   resumeStatus?: 'custom' | 'global' | 'none';
   openCount?: number;
   resumeType?: 'pm' | 'ba' | 'custom' | null;
+  // Feature 1: Intelligent Follow-up Sequencing
+  followUpCount?: number;
+  lastContacted?: string;
+  // Feature 2: Reply Intelligence
+  gmailThreadId?: string;
+  replySnippet?: string;
+  // Feature 3: Smart Send Timing
+  scheduledSendTime?: string;
+  // Feature 4: JD Keyword Injection
+  jobDescriptionUrl?: string;
+  jdKeywords?: string;
+  skillsGap?: string;
+  // Feature 5: Company Signal Monitoring
+  companySignal?: 'Hot' | 'Normal' | 'Caution' | 'Archive' | null;
+  signalReason?: string;
+  signalUpdated?: string;
 }
 
 export interface AgentResult {

@@ -22,7 +22,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
 
     // 3. Send email using the user's decrypted dynamic Gmail credentials and resume blobs
-    await sendEmail({
+    const sendResult = await sendEmail({
       notionId: company.notionId,
       toEmail: company.email,
       subject: company.emailSubject,
@@ -40,7 +40,32 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       userId: userId
     });
 
-    await updateStatus(connection, id, 'Sent');
+    let threadId = `mock-thread-${company.notionId}`;
+    
+    if (process.env.NEXT_PUBLIC_APP_MODE !== 'demo' && sendResult.messageId) {
+      try {
+        const { getGmailAccessToken, searchGmailMessageByRfcId } = require('@/lib/gmail');
+        const token = await getGmailAccessToken({
+          clientId: creds.gmailClientId,
+          clientSecret: creds.gmailClientSecret,
+          refreshToken: creds.gmailRefreshToken
+        });
+        const rfcId = sendResult.messageId.replace(/[<>]/g, '').trim();
+        const resolvedThreadId = await searchGmailMessageByRfcId(rfcId, token);
+        if (resolvedThreadId) {
+          threadId = resolvedThreadId;
+        }
+      } catch (err: any) {
+        console.warn('[API/SEND] Failed to resolve Thread ID for message:', err.message);
+      }
+    }
+
+    const { updateCompanyProperties } = require('@/lib/notion');
+    await updateCompanyProperties(connection, id, {
+      emailStatus: 'Sent',
+      gmailThreadId: threadId,
+      lastContacted: new Date().toISOString().split('T')[0]
+    });
     return NextResponse.json({ success: true });
   } catch (e: any) {
     console.error('❌ POST /api/send/[id] error:', e.message);

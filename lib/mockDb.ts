@@ -465,3 +465,21 @@ ${signature}`;
     notes: 'Score: 9.6. Approved (Follow-Up Cadence). Polished second-touchpoint email.'
   };
 }
+
+export function mockUpdateProperties(notionId: string, properties: Partial<Company>): void {
+  const db = readDb();
+  db.mockCompanies = db.mockCompanies.map(c => {
+    if (c.notionId === notionId) {
+      const updated = {
+        ...c,
+        ...properties,
+      };
+      if (properties.emailStatus === 'Sent') {
+        updated.emailed = true;
+      }
+      return updated;
+    }
+    return c;
+  });
+  writeDb(db);
+}

@@ -3,18 +3,22 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Company, EmailStatus } from '@/types';
+import { getOptimalSendTime } from '@/lib/timing';
 
 // CRM Stages / Kanban columns styled with high-end Apple system aesthetics
 const CRM_STAGES: { status: EmailStatus; label: string; colorClass: string; desc: string }[] = [
   { status: 'New', label: 'Extracted Leads', colorClass: 'bg-neutral-100 dark:bg-neutral-900/40 text-neutral-500 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-850', desc: 'Raw contact details' },
   { status: 'Draft Ready', label: 'AI Drafts Ready', colorClass: 'bg-blue-50 dark:bg-blue-950/10 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-950/30', desc: 'Personalized pitches ready' },
   { status: 'Redo', label: 'Redo AI', colorClass: 'bg-orange-50 dark:bg-orange-950/10 text-orange-600 dark:text-orange-400 border border-orange-100 dark:border-orange-950/30', desc: 'Needs revision' },
+  { status: 'Scheduled', label: 'Scheduled', colorClass: 'bg-sky-50 dark:bg-sky-950/10 text-sky-600 dark:text-sky-400 border border-sky-100 dark:border-sky-950/30', desc: 'Timed delivery queued' },
   { status: 'Approved', label: 'Approved Outbox', colorClass: 'bg-emerald-50 dark:bg-emerald-950/10 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-950/30', desc: 'Ready for delivery' },
   { status: 'Sent', label: 'Outreach Emailed', colorClass: 'bg-purple-50 dark:bg-purple-950/10 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-purple-950/30', desc: 'Sent successfully' },
+  { status: 'Follow-up Ready', label: 'Follow-up Ready', colorClass: 'bg-fuchsia-50 dark:bg-fuchsia-950/10 text-fuchsia-600 dark:text-fuchsia-400 border border-fuchsia-100 dark:border-fuchsia-950/30', desc: 'Touchpoint bump ready' },
   { status: 'Replied', label: 'Recruiter Replied', colorClass: 'bg-pink-50 dark:bg-pink-950/10 text-pink-600 dark:text-pink-400 border border-pink-100 dark:border-pink-950/30', desc: 'Active lead response!' },
   { status: 'Interview', label: 'Interview Stage', colorClass: 'bg-amber-50 dark:bg-amber-950/10 text-amber-600 dark:text-amber-500 border border-amber-100 dark:border-amber-950/30', desc: 'Rounds in progress' },
   { status: 'Offer', label: 'Job Offers', colorClass: 'bg-green-50 dark:bg-green-950/10 text-green-600 dark:text-green-400 border border-green-100 dark:border-green-950/30', desc: 'Offers unlocked!' },
   { status: 'Rejected', label: 'Rejected', colorClass: 'bg-red-50 dark:bg-red-950/10 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-950/30', desc: 'Archived leads' },
+  { status: 'No Response', label: 'No Response', colorClass: 'bg-slate-50 dark:bg-slate-950/10 text-slate-500 dark:text-slate-400 border border-slate-100 dark:border-slate-950/30', desc: 'No touchpoint response' },
 ];
 
 function DashboardContent() {
@@ -39,7 +43,7 @@ function DashboardContent() {
   const [currentView, setCurrentView] = useState<'list' | 'kanban'>('list');
   const [activeTab, setActiveTab] = useState<EmailStatus | 'All'>('All');
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'date' | 'company' | 'salary'>('date');
+  const [sortBy, setSortBy] = useState<'date' | 'company' | 'salary' | 'signal'>('date');
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
   const [focusedIndex, setFocusedIndex] = useState<number>(-1);
 
@@ -74,6 +78,18 @@ function DashboardContent() {
   const [recruiterReplyText, setRecruiterReplyText] = useState('');
   const [sentimentAnalysis, setSentimentAnalysis] = useState<{ score: string; reply: string } | null>(null);
 
+  // New features state variables
+  const [jdUrl, setJdUrl] = useState('');
+  const [jdText, setJdText] = useState('');
+  const [jdKeywords, setJdKeywords] = useState<string[]>([]);
+  const [jdGaps, setJdGaps] = useState<string[]>([]);
+  const [jdHookSuggestion, setJdHookSuggestion] = useState('');
+  const [jdLoading, setJdLoading] = useState(false);
+  const [jdCollapsed, setJdCollapsed] = useState(true);
+  const [scheduledTime, setScheduledTime] = useState('');
+  const [activeSendMenuId, setActiveSendMenuId] = useState<string | null>(null);
+  const [drawerSendMenuOpen, setDrawerSendMenuOpen] = useState(false);
+
   // Audio Context chime for quick sends
   const playSendSound = () => {
     try {
@@ -90,6 +106,18 @@ function DashboardContent() {
       osc.start();
       osc.stop(ctx.currentTime + 0.15);
     } catch (e) {}
+  };
+
+  const getScheduledCountdown = (scheduledTimeStr?: string): string => {
+    if (!scheduledTimeStr) return '';
+    const diff = new Date(scheduledTimeStr).getTime() - Date.now();
+    if (diff <= 0) return 'Sending soon...';
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    if (days > 0) return `${days}d ${hours}h`;
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    if (hours > 0) return `${hours}h ${mins}m`;
+    return `${mins}m`;
   };
 
   // Confetti particles generator
@@ -213,6 +241,15 @@ function DashboardContent() {
         const valB = parseInt(b.salaryRange?.split('-')[0]) || 0;
         return valB - valA;
       }
+      if (sortBy === 'signal') {
+        const getScore = (sig?: string | null) => {
+          if (sig === 'Hot') return 3;
+          if (sig === 'Caution') return 1;
+          if (sig === 'Archive') return 0;
+          return 2; // Normal / blank
+        };
+        return getScore(b.companySignal) - getScore(a.companySignal);
+      }
       return b.dateAdded.localeCompare(a.dateAdded); 
     });
 
@@ -239,12 +276,75 @@ function DashboardContent() {
   };
 
   // Recruiter Sentiment Analyzer auto-reply suggest
-  const handleSentimentAnalysis = () => {
-    if (!recruiterReplyText) return;
-    setSentimentAnalysis({
-      score: 'Positive Response (Score: 9.2/10)',
-      reply: `Hi ${selectedCompany?.contactName?.split(' ')[0] || 'there'},\n\nThank you for getting back! I am absolutely thrilled to connect. Next week works perfectly for a brief 15-minute call.\n\nHere is my Calendly link to easily book a time: calendly.com/utkarsh-kumar/15min\n\nLooking forward to speaking with you soon!\n\nBest,\nUtkarsh Kumar`
-    });
+  const handleSentimentAnalysis = async () => {
+    if (!recruiterReplyText || !selectedCompany) return;
+    try {
+      const res = await authFetch('/api/replies/classify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ replyBody: recruiterReplyText, notionId: selectedCompany.notionId }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSentimentAnalysis({
+          score: `${data.sentiment.toUpperCase()} (Sentiment Classified)`,
+          reply: data.suggestedResponse
+        });
+      }
+    } catch (err) {
+      console.error('Sentiment analysis failed:', err);
+    }
+  };
+
+  const handleJdAnalyze = async () => {
+    if (!selectedCompany) return;
+    setJdLoading(true);
+    try {
+      const res = await authFetch('/api/jd/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notionId: selectedCompany.notionId, jdUrl, jdText }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setJdKeywords(data.keywords);
+        setJdGaps(data.gapSkills);
+        setJdHookSuggestion(data.hookSuggestion);
+        
+        await fetchCompanies();
+        
+        setMessage('✅ JD Analysis completed. Pitch hook updated.');
+        setTimeout(() => setMessage(''), 4000);
+      }
+    } catch (err) {
+      console.error('JD analysis failed:', err);
+    } finally {
+      setJdLoading(false);
+    }
+  };
+
+  const handleScheduleSend = async (id: string, customTime?: string) => {
+    setActionLoading(id + 'schedule');
+    try {
+      const res = await authFetch(`/api/send/${id}/schedule`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scheduledFor: customTime }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCompanies(prev =>
+          prev.map(c => (c.notionId === id ? { ...c, emailStatus: 'Scheduled', scheduledSendTime: data.scheduledFor } : c))
+        );
+        setMessage('⏰ Pitch scheduled successfully.');
+        setTimeout(() => setMessage(''), 4000);
+        setSelectedCompanyId(null);
+      }
+    } catch (err) {
+      console.error('Scheduling failed:', err);
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   // Open the review drawer glides from the right
@@ -259,6 +359,12 @@ function DashboardContent() {
       setSentimentAnalysis(null);
       setRecruiterReplyText('');
       setCoverLetterGenerated(false);
+      setJdUrl(company.jobDescriptionUrl || '');
+      setJdKeywords(company.jdKeywords ? company.jdKeywords.split(', ') : []);
+      setJdGaps(company.skillsGap ? company.skillsGap.split(', ') : []);
+      setJdHookSuggestion('');
+      setJdText('');
+      setJdCollapsed(true);
       setDrawerTab('editor');
     }
   };
@@ -319,16 +425,18 @@ function DashboardContent() {
   const handleGenerateFollowUp = async (id: string) => {
     setActionLoading(id + 'followup');
     try {
-      const res = await authFetch('/api/generate/followup', {
+      const company = companies.find(c => c.notionId === id);
+      const nextFollowup = Math.min((company?.followUpCount || 0) + 1, 3);
+      const res = await authFetch(`/api/followup/${id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notionId: id }),
+        body: JSON.stringify({ action: 'draft', followupNumber: nextFollowup }),
       });
       const data = await res.json();
       if (data.success) {
-        fetchCompanies();
+        await fetchCompanies();
         openReviewDrawer(id);
-        setMessage('📨 Threaded follow-up drafted.');
+        setMessage(`📨 Threaded follow-up ${nextFollowup} drafted.`);
         setTimeout(() => setMessage(''), 5000);
       }
     } catch (e) {
@@ -416,7 +524,13 @@ function DashboardContent() {
       await authFetch('/api/companies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notionId: selectedCompanyId, status: selectedCompany.emailStatus }),
+        body: JSON.stringify({
+          notionId: selectedCompanyId,
+          status: selectedCompany.emailStatus,
+          emailSubject: draftSubject,
+          emailDraft: draftBody,
+          draftNotes,
+        }),
       });
       setCompanies(prev =>
         prev.map(c =>
@@ -508,7 +622,7 @@ function DashboardContent() {
       )}
 
       {/* APPLE-INSPIRED HEADER BLOCK WITH STREAK & MORNING BRIEF */}
-      <div className="apple-saturation-sweep apple-glass-card-saturated apple-dock-glow bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 backdrop-blur-xl rounded-3xl p-6 shadow-[0_4px_12px_rgba(0,0,0,0.015)] dark:shadow-none flex flex-col md:flex-row justify-between items-start md:items-center gap-6 transition-colors duration-300">
+      <div className="apple-glass-card-saturated apple-dock-glow bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 backdrop-blur-xl rounded-3xl p-6 shadow-[0_4px_12px_rgba(0,0,0,0.015)] dark:shadow-none flex flex-col md:flex-row justify-between items-start md:items-center gap-6 transition-colors duration-300">
         
         <div className="flex items-center gap-6">
           {/* Minimal progress ring */}
@@ -665,6 +779,7 @@ function DashboardContent() {
                 <option value="date">Date Extracted</option>
                 <option value="company">Company Name</option>
                 <option value="salary">Salary LPA Range</option>
+                <option value="signal">🔥 Signal Priority</option>
               </select>
 
               <div className="bg-[#e8e8ed]/60 dark:bg-neutral-900 border border-[#d2d2d7]/30 dark:border-neutral-850 rounded-xl p-0.5 flex transition-colors duration-300">
@@ -688,7 +803,7 @@ function DashboardContent() {
 
       {currentView === 'list' && (
         <div className="bg-[#e8e8ed]/60 dark:bg-neutral-900/40 border border-[#d2d2d7]/30 dark:border-neutral-900 p-0.5 rounded-2xl flex gap-1 overflow-x-auto scrollbar-thin transition-colors duration-300">
-          {(['Draft Ready', 'Approved', 'New', 'Redo', 'Sent', 'Replied', 'Interview', 'Offer', 'Rejected', 'All'] as const).map(tab => {
+          {(['Draft Ready', 'Approved', 'Scheduled', 'New', 'Redo', 'Sent', 'Follow-up Ready', 'Replied', 'Interview', 'Offer', 'Rejected', 'No Response', 'All'] as const).map(tab => {
             const count = tab === 'All' ? companies.length : companies.filter(c => c.emailStatus === tab).length;
             return (
               <button
@@ -751,9 +866,21 @@ function DashboardContent() {
                             {company.company.charAt(0)}
                           </div>
                           <div>
-                            <span className="font-semibold text-neutral-800 dark:text-neutral-100 text-xs block truncate w-32 leading-normal">
-                              {company.company}
-                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-semibold text-neutral-800 dark:text-neutral-100 text-xs truncate max-w-[120px] leading-normal block">
+                                {company.company}
+                              </span>
+                              {company.companySignal === 'Hot' && (
+                                <span className="text-[8.5px] font-bold px-1.5 py-0.2 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-250 dark:border-emerald-900/50 animate-pulse shrink-0 shadow-[0_0_8px_rgba(16,185,129,0.2)]" title="Hiring aggressively/Growth signal">
+                                  🔥 Hot
+                                </span>
+                              )}
+                              {company.companySignal === 'Caution' && (
+                                <span className="text-[8.5px] font-bold px-1.5 py-0.2 rounded-md bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-250 dark:border-amber-900/50 shrink-0" title="Layoffs / Hiring freeze caution">
+                                  ⚠️ Caution
+                                </span>
+                              )}
+                            </div>
                             <span className="text-[10px] text-neutral-450 mt-0.5 block leading-none font-medium">
                               Added {company.dateAdded}
                             </span>
@@ -798,21 +925,78 @@ function DashboardContent() {
                       </td>
 
                       <td className="py-4 px-6 text-xs font-medium relative text-right">
-                        <div className="group-hover:opacity-0 transition-opacity flex justify-end">
-                          <span className={`text-[8.5px] font-semibold px-2 py-0.5 rounded-full ${crmStage ? crmStage.colorClass : 'bg-neutral-100 text-neutral-500'} ${company.emailStatus === 'Redo' ? 'apple-glow-amber border' : ''} ${company.emailStatus === 'New' ? 'apple-glow-cyan-new border' : ''} ${company.emailStatus === 'Approved' ? 'apple-glow-approved-teal border' : ''} ${company.emailStatus === 'Replied' ? 'apple-glow-teal-cyan border' : ''} ${company.emailStatus === 'Interview' ? 'apple-glow-indigo-violet border' : ''} ${company.emailStatus === 'Offer' ? 'apple-glow-lime-emerald border' : ''}`}>
+                        <div className="group-hover:opacity-0 transition-opacity flex flex-col items-end">
+                          <span className={`text-[8.5px] font-semibold px-2 py-0.5 rounded-full ${crmStage ? crmStage.colorClass : 'bg-neutral-100 text-neutral-500'} ${company.emailStatus === 'Redo' ? 'apple-glow-amber border' : ''} ${company.emailStatus === 'New' ? 'apple-glow-cyan-new border' : ''} ${company.emailStatus === 'Approved' ? 'apple-glow-approved-teal border' : ''} ${company.emailStatus === 'Replied' ? 'apple-glow-teal-cyan border' : ''} ${company.emailStatus === 'Interview' ? 'apple-glow-indigo-violet border' : ''} ${company.emailStatus === 'Offer' ? 'apple-glow-lime-emerald border' : ''} ${company.emailStatus === 'Scheduled' ? 'apple-glow-cyan border' : ''}`}>
                             {company.emailStatus}
                           </span>
+                          {company.emailStatus === 'Scheduled' && company.scheduledSendTime && (
+                            <span className="text-[8px] text-sky-600 dark:text-sky-400 font-mono font-semibold mt-0.5">
+                              ⏳ {getScheduledCountdown(company.scheduledSendTime)}
+                            </span>
+                          )}
                         </div>
 
                         <div className="opacity-0 group-hover:opacity-100 absolute inset-0 py-4 px-6 flex items-center justify-end gap-1.5 bg-[#fafafa]/95 dark:bg-[#161617]/95 backdrop-blur-sm transition-all duration-200">
                           {company.emailStatus === 'Approved' && (
-                            <button
-                              onClick={() => handleSendEmail(company.notionId)}
-                              disabled={actionLoading === company.notionId + 'send'}
-                              className="bg-blue-600 hover:bg-blue-500 text-white rounded-full px-4 py-1.5 text-[10px] font-bold shadow-sm transition-all cursor-pointer"
-                            >
-                              Send Draft
-                            </button>
+                            <div className="relative inline-flex items-center">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleSendEmail(company.notionId);
+                                }}
+                                disabled={actionLoading === company.notionId + 'send'}
+                                className="bg-blue-600 hover:bg-blue-500 text-white rounded-l-full px-3 py-1.5 text-[10px] font-bold shadow-sm transition-all cursor-pointer select-none"
+                              >
+                                Send Now
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveSendMenuId(activeSendMenuId === company.notionId ? null : company.notionId);
+                                }}
+                                className="bg-blue-700 hover:bg-blue-650 text-white rounded-r-full px-2 py-1.5 border-l border-white/20 transition-all text-[10px] font-bold cursor-pointer select-none"
+                              >
+                                ▼
+                              </button>
+                              {activeSendMenuId === company.notionId && (
+                                <div className="absolute right-0 top-full mt-1 w-52 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl py-1.5 z-50 animate-scale-up font-semibold text-left">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveSendMenuId(null);
+                                      const optimal = getOptimalSendTime(company.location || 'Bangalore').toISOString();
+                                      handleScheduleSend(company.notionId, optimal);
+                                    }}
+                                    className="w-full px-4 py-2 text-[10px] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-left flex items-center gap-2"
+                                  >
+                                    ✨ Send at Optimal Time
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveSendMenuId(null);
+                                      const oneHourLater = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+                                      handleScheduleSend(company.notionId, oneHourLater);
+                                    }}
+                                    className="w-full px-4 py-2 text-[10px] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-left flex items-center gap-2"
+                                  >
+                                    ⏱️ Schedule for 1 Hour Later
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveSendMenuId(null);
+                                      const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+                                      tomorrow.setHours(9, 30, 0, 0);
+                                      handleScheduleSend(company.notionId, tomorrow.toISOString());
+                                    }}
+                                    className="w-full px-4 py-2 text-[10px] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-left flex items-center gap-2"
+                                  >
+                                    🌅 Schedule for Tomorrow 9:30 AM
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           )}
 
                           {company.emailStatus === 'Draft Ready' && (
@@ -944,7 +1128,7 @@ function DashboardContent() {
           <div className="flex-1" onClick={() => setSelectedCompanyId(null)}></div>
 
           {/* Drawer container styled as iPad multitasking sheet */}
-          <div className="apple-backdrop-spring w-full max-w-3xl bg-white dark:bg-[#161617]/90 apple-drawer-glass-border h-screen max-h-screen flex flex-col justify-between overflow-hidden shadow-2xl animate-slide-in transition-colors duration-300">
+          <div className="apple-backdrop-spring w-full max-w-3xl bg-white dark:bg-[#161617]/90 apple-drawer-glass-border h-[100dvh] max-h-[100dvh] flex flex-col justify-between overflow-hidden shadow-2xl animate-slide-in transition-colors duration-300">
             
             {/* Header */}
             <div className="border-b border-[#e8e8ed] dark:border-neutral-900 p-6 bg-[#fafafa]/60 dark:bg-neutral-900/10 flex justify-between items-center transition-colors">
@@ -1015,6 +1199,144 @@ function DashboardContent() {
               {/* TAB 1: PITCH EDITOR */}
               {drawerTab === 'editor' && (
                 <div className="space-y-4">
+                  {selectedCompany.emailStatus === 'Replied' && (
+                    <div className="bg-pink-50/50 dark:bg-pink-950/15 border border-pink-100 dark:border-pink-900/30 rounded-2xl p-4 space-y-3">
+                      <div className="flex justify-between items-center border-b border-pink-100/50 dark:border-pink-900/20 pb-2">
+                        <span className="text-[10px] uppercase font-bold text-pink-600 dark:text-pink-400 tracking-wider">💬 Recruiter Reply</span>
+                        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-pink-100 dark:bg-pink-900/40 text-pink-600 dark:text-pink-300">
+                          {selectedCompany.draftNotes?.includes('Sentiment') ? selectedCompany.draftNotes.split(' — ')[0] : 'Replied'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-neutral-600 dark:text-neutral-300 bg-white dark:bg-neutral-950/40 p-3 rounded-xl border border-pink-100/30 dark:border-pink-950/20 italic font-mono leading-relaxed">
+                        "{selectedCompany.replySnippet || 'Thanks for reaching out! Would love to chat — are you free Thursday?'}"
+                      </p>
+                      
+                      <div className="space-y-1">
+                        <label className="text-[9px] uppercase font-bold text-neutral-450 dark:text-neutral-505">Suggested Response</label>
+                        <textarea
+                          rows={4}
+                          value={draftBody}
+                          onChange={e => setDraftBody(e.target.value)}
+                          className="w-full bg-white dark:bg-neutral-950 border border-pink-150 dark:border-pink-900/20 rounded-xl p-3 text-xs text-neutral-700 dark:text-neutral-200 leading-relaxed font-mono focus:outline-none focus:border-pink-300 dark:focus:border-pink-850"
+                          placeholder="Drafting recruiter reply..."
+                        />
+                      </div>
+                      
+                      <button
+                        onClick={async () => {
+                          setActionLoading(selectedCompany.notionId + 'send');
+                          try {
+                            await authFetch('/api/companies', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                notionId: selectedCompany.notionId,
+                                emailDraft: draftBody,
+                                emailSubject: draftSubject,
+                                status: 'Replied'
+                              })
+                            });
+                            const res = await authFetch(`/api/send/${selectedCompany.notionId}`, {
+                              method: 'POST',
+                            });
+                            if (res.ok) {
+                              setMessage('🚀 Reply sent to recruiter!');
+                              setTimeout(() => setMessage(''), 4000);
+                              setSelectedCompanyId(null);
+                              await fetchCompanies();
+                            }
+                          } catch (e) {}
+                          setActionLoading(null);
+                        }}
+                        disabled={actionLoading === selectedCompany.notionId + 'send'}
+                        className="w-full bg-pink-600 hover:bg-pink-500 text-white py-2.5 rounded-xl font-bold text-xs shadow-sm active:scale-95 transition-all cursor-pointer text-center block"
+                      >
+                        {actionLoading === selectedCompany.notionId + 'send' ? 'Sending Reply...' : '✉️ Send Response'}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* JD INTELLIGENCE PANEL */}
+                  <div className="bg-[#fafafa] dark:bg-neutral-900/10 border border-[#e8e8ed] dark:border-neutral-900 rounded-2xl p-4 space-y-3">
+                    <div
+                      onClick={() => setJdCollapsed(!jdCollapsed)}
+                      className="w-full flex justify-between items-center font-bold text-xs text-neutral-700 dark:text-neutral-250 cursor-pointer select-none"
+                    >
+                      <span className="flex items-center gap-1.5">🎯 JD Intelligence {selectedCompany.jobDescriptionUrl && <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>}</span>
+                      <span>{jdCollapsed ? 'Expand ▼' : 'Collapse ▲'}</span>
+                    </div>
+                    
+                    {!jdCollapsed && (
+                      <div className="space-y-3 pt-1.5 border-t border-[#e8e8ed] dark:border-neutral-900 transition-all duration-300">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="Paste Job Description URL..."
+                            value={jdUrl}
+                            onChange={e => setJdUrl(e.target.value)}
+                            className="flex-1 bg-white dark:bg-neutral-950 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-3 py-2 text-xs text-neutral-800 dark:text-neutral-100 focus:outline-none"
+                          />
+                          <button
+                            onClick={handleJdAnalyze}
+                            disabled={jdLoading}
+                            className="bg-blue-600 hover:bg-blue-500 text-white rounded-xl px-4 py-2 text-xs font-bold transition-all disabled:opacity-50"
+                          >
+                            {jdLoading ? 'Analyzing...' : 'Analyze'}
+                          </button>
+                        </div>
+                        
+                        <div className="space-y-2 text-xs">
+                          {jdKeywords.length > 0 && (
+                            <div>
+                              <strong className="text-[10px] uppercase font-bold text-neutral-400 dark:text-neutral-500 block mb-1">Keywords Detected</strong>
+                              <div className="flex flex-wrap gap-1">
+                                {jdKeywords.map((kw, i) => (
+                                  <span key={i} className="bg-neutral-100 dark:bg-neutral-900 px-2 py-0.5 rounded border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-350">
+                                    {kw}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {jdGaps.length > 0 && (
+                            <div className="bg-orange-50/30 dark:bg-orange-950/5 border border-orange-100/50 dark:border-orange-900/10 p-2.5 rounded-xl">
+                              <strong className="text-[10px] uppercase font-bold text-orange-600 dark:text-orange-400 block mb-1">⚠️ Candidate Skills Gap</strong>
+                              <p className="text-[11px] leading-relaxed text-neutral-500 dark:text-neutral-400">
+                                Missing from your profile: <span className="font-semibold text-orange-700 dark:text-orange-300">{jdGaps.join(', ')}</span>
+                              </p>
+                            </div>
+                          )}
+                          
+                          {jdHookSuggestion && (
+                            <div className="bg-blue-50/20 dark:bg-blue-950/5 border border-blue-100/30 dark:border-blue-900/10 p-2.5 rounded-xl space-y-1">
+                              <strong className="text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400 block">💡 hook suggestion</strong>
+                              <p className="text-[11px] italic font-mono text-neutral-650 dark:text-neutral-350 leading-relaxed">
+                                "{jdHookSuggestion}"
+                              </p>
+                              <button
+                                onClick={() => {
+                                  if (draftBody.includes('Hi ') || draftBody.includes('Dear ')) {
+                                    const lines = draftBody.split('\n');
+                                    if (lines.length > 2) {
+                                      lines[2] = jdHookSuggestion;
+                                      setDraftBody(lines.join('\n'));
+                                      setMessage('✨ Hook woven into email draft!');
+                                      setTimeout(() => setMessage(''), 4000);
+                                    }
+                                  }
+                                }}
+                                className="text-[10px] text-blue-600 dark:text-blue-400 font-bold hover:underline"
+                              >
+                                Weave Hook into Email Draft
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="space-y-1">
                     <label className="text-[10px] uppercase font-bold text-neutral-400 dark:text-neutral-500">Email Subject Line</label>
                     <input
@@ -1220,21 +1542,98 @@ function DashboardContent() {
                   {/* Cadence Timeline */}
                   <div className="bg-[#fafafa] dark:bg-neutral-900/20 border border-[#e8e8ed] dark:border-neutral-900 rounded-2xl p-4 space-y-3 transition-colors">
                     <h4 className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">📅 Threaded Cadence Timelines</h4>
-                    <div className="apple-timeline-hairline flex flex-col gap-3.5 pl-5 py-1 ml-1 transition-colors">
+                    <div className="apple-timeline-hairline flex flex-col gap-4 pl-5 py-2 ml-1 relative border-l border-neutral-200 dark:border-neutral-800 transition-colors">
+                      {/* Touch 0: Original Sent */}
                       <div className="relative">
-                        <span className="absolute -left-[20px] top-1 bg-emerald-500 w-2 h-2 rounded-full ring-4 ring-white dark:ring-neutral-950"></span>
+                        <span className="absolute -left-[25px] top-1 bg-emerald-500 w-2.5 h-2.5 rounded-full ring-4 ring-white dark:ring-neutral-950 flex items-center justify-center text-[7px] text-white">✓</span>
                         <div className="text-xs">
-                          <p className="font-semibold text-neutral-700 dark:text-neutral-200">Touch 1: Cold Pitches (Completed)</p>
-                          <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Sent on Date Added via SMTP client</p>
+                          <p className="font-semibold text-neutral-700 dark:text-neutral-200">Day 0: Original Sent</p>
+                          <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Sent on Date Added via Gmail SMTP {selectedCompany.openCount ? `(Opened ${selectedCompany.openCount}x)` : ''}</p>
                         </div>
                       </div>
 
+                      {/* Touch 1: Follow-up 1 (Day 3) */}
                       <div className="relative">
-                        <span className="absolute -left-[20px] top-1 bg-blue-500 w-2 h-2 rounded-full ring-4 ring-white dark:ring-neutral-950"></span>
-                        <div className="text-xs">
-                          <p className="font-semibold text-neutral-700 dark:text-neutral-200">Touch 2: Polite Bubble Up (Draft Ready)</p>
-                          <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Interval check: Scheduled 5 days after Touch 1</p>
-                        </div>
+                        {selectedCompany.followUpCount && selectedCompany.followUpCount >= 1 ? (
+                          <>
+                            <span className="absolute -left-[25px] top-1 bg-emerald-500 w-2.5 h-2.5 rounded-full ring-4 ring-white dark:ring-neutral-950 flex items-center justify-center text-[7px] text-white">✓</span>
+                            <div className="text-xs">
+                              <p className="font-semibold text-neutral-700 dark:text-neutral-200">Day 3: Follow-up 1 Sent</p>
+                              <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Soft check-in completed</p>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <span className={`absolute -left-[25px] top-1 w-2.5 h-2.5 rounded-full ring-4 ring-white dark:ring-neutral-950 ${selectedCompany.emailStatus === 'Sent' && (!selectedCompany.followUpCount || selectedCompany.followUpCount === 0) ? 'bg-blue-500 animate-pulse' : 'bg-neutral-300 dark:bg-neutral-700'}`}></span>
+                            <div className="text-xs">
+                              <p className="font-semibold text-neutral-500 dark:text-neutral-400">Day 3: Follow-up 1 Due</p>
+                              <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Soft check-in, reference original email</p>
+                            </div>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Touch 2: Follow-up 2 (Day 7) */}
+                      <div className="relative">
+                        {selectedCompany.followUpCount && selectedCompany.followUpCount >= 2 ? (
+                          <>
+                            <span className="absolute -left-[25px] top-1 bg-emerald-500 w-2.5 h-2.5 rounded-full ring-4 ring-white dark:ring-neutral-950 flex items-center justify-center text-[7px] text-white">✓</span>
+                            <div className="text-xs">
+                              <p className="font-semibold text-neutral-700 dark:text-neutral-200">Day 7: Follow-up 2 Sent</p>
+                              <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Lighter ask with portfolio / schedule offer</p>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <span className={`absolute -left-[25px] top-1 w-2.5 h-2.5 rounded-full ring-4 ring-white dark:ring-neutral-950 ${selectedCompany.followUpCount === 1 ? 'bg-blue-500 animate-pulse' : 'bg-neutral-300 dark:bg-neutral-700'}`}></span>
+                            <div className="text-xs">
+                              <p className="font-semibold text-neutral-500 dark:text-neutral-400">Day 7: Follow-up 2 Scheduled</p>
+                              <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Offer specific availability or portfolio link</p>
+                            </div>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Touch 3: Follow-up 3 (Day 10) */}
+                      <div className="relative">
+                        {selectedCompany.followUpCount && selectedCompany.followUpCount >= 3 ? (
+                          <>
+                            <span className="absolute -left-[25px] top-1 bg-emerald-500 w-2.5 h-2.5 rounded-full ring-4 ring-white dark:ring-neutral-950 flex items-center justify-center text-[7px] text-white">✓</span>
+                            <div className="text-xs">
+                              <p className="font-semibold text-neutral-700 dark:text-neutral-200">Day 10: Follow-up 3 Sent</p>
+                              <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Graceful exit touchpoint delivered</p>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <span className={`absolute -left-[25px] top-1 w-2.5 h-2.5 rounded-full ring-4 ring-white dark:ring-neutral-950 ${selectedCompany.followUpCount === 2 ? 'bg-blue-500 animate-pulse' : 'bg-neutral-300 dark:bg-neutral-700'}`}></span>
+                            <div className="text-xs">
+                              <p className="font-semibold text-neutral-500 dark:text-neutral-400">Day 10: Follow-up 3 Scheduled</p>
+                              <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Graceful exit — zero pressure close</p>
+                            </div>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Day 14: Archive */}
+                      <div className="relative">
+                        {selectedCompany.emailStatus === 'No Response' ? (
+                          <>
+                            <span className="absolute -left-[25px] top-1 bg-neutral-600 w-2.5 h-2.5 rounded-full ring-4 ring-white dark:ring-neutral-950 flex items-center justify-center text-[7px] text-white">✓</span>
+                            <div className="text-xs">
+                              <p className="font-semibold text-neutral-700 dark:text-neutral-200">Day 14: Archived</p>
+                              <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Closed lead — No response after 14 days</p>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <span className="absolute -left-[25px] top-1 bg-neutral-300 dark:bg-neutral-700 w-2.5 h-2.5 rounded-full ring-4 ring-white dark:ring-neutral-950"></span>
+                            <div className="text-xs">
+                              <p className="font-semibold text-neutral-500 dark:text-neutral-450">Day 14: Archive If No Reply</p>
+                              <p className="text-[10px] text-neutral-400 dark:text-neutral-550">Stops further outreach sweeps automatically</p>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1285,16 +1684,59 @@ function DashboardContent() {
                 </button>
 
                 {selectedCompany.emailStatus === 'Approved' && (
-                  <button
-                    onClick={() => {
-                      handleSendEmail(selectedCompany.notionId);
-                      setSelectedCompanyId(null);
-                    }}
-                    disabled={actionLoading === selectedCompanyId + 'send'}
-                    className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2.5 px-6 rounded-full transition-all shadow-sm cursor-pointer"
-                  >
-                    Send Outreach Now
-                  </button>
+                  <div className="relative inline-flex items-center">
+                    <button
+                      onClick={() => {
+                        handleSendEmail(selectedCompany.notionId);
+                        setSelectedCompanyId(null);
+                      }}
+                      disabled={actionLoading === selectedCompanyId + 'send'}
+                      className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2.5 pl-6 pr-4 rounded-l-full transition-all shadow-sm cursor-pointer select-none"
+                    >
+                      Send Outreach Now
+                    </button>
+                    <button
+                      onClick={() => setDrawerSendMenuOpen(!drawerSendMenuOpen)}
+                      className="bg-blue-750 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-3 rounded-r-full border-l border-white/20 transition-all cursor-pointer select-none"
+                    >
+                      ▼
+                    </button>
+                    {drawerSendMenuOpen && (
+                      <div className="absolute right-0 bottom-full mb-2 w-56 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl py-2 z-50 animate-scale-up font-semibold text-left">
+                        <button
+                          onClick={() => {
+                            setDrawerSendMenuOpen(false);
+                            const optimal = getOptimalSendTime(selectedCompany.location || 'Bangalore').toISOString();
+                            handleScheduleSend(selectedCompany.notionId, optimal);
+                          }}
+                          className="w-full px-4 py-2.5 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-left flex items-center gap-2"
+                        >
+                          ✨ Send at Optimal Time
+                        </button>
+                        <button
+                          onClick={() => {
+                            setDrawerSendMenuOpen(false);
+                            const oneHourLater = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+                            handleScheduleSend(selectedCompany.notionId, oneHourLater);
+                          }}
+                          className="w-full px-4 py-2.5 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-left flex items-center gap-2"
+                        >
+                          ⏱️ Schedule for 1 Hour Later
+                        </button>
+                        <button
+                          onClick={() => {
+                            setDrawerSendMenuOpen(false);
+                            const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+                            tomorrow.setHours(9, 30, 0, 0);
+                            handleScheduleSend(selectedCompany.notionId, tomorrow.toISOString());
+                          }}
+                          className="w-full px-4 py-2.5 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-left flex items-center gap-2"
+                        >
+                          🌅 Schedule for Tomorrow 9:30 AM
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 {(selectedCompany.emailStatus === 'Draft Ready' || selectedCompany.emailStatus === 'Redo') && (

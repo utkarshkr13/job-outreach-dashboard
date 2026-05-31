@@ -26,7 +26,7 @@ export interface GmailCredentials {
 export async function sendEmail(
   payload: EmailPayload,
   creds: GmailCredentials
-): Promise<boolean> {
+): Promise<{ success: boolean; messageId?: string }> {
   if (process.env.NEXT_PUBLIC_APP_MODE === 'demo') {
     // In demo mode, log which file would be attached
     const customPath = path.join(process.cwd(), 'lib', 'resumes', `custom-${payload.notionId}.pdf`);
@@ -40,7 +40,7 @@ export async function sendEmail(
       attachedFile = `Remote Resume (${creds.resumeBlobUrl})`;
     }
     console.log(`[DEMO MODE] Mock-sent email to ${payload.toEmail} for ${payload.companyName}. Attached Resume: ${attachedFile}`);
-    return true;
+    return { success: true, messageId: `mock-msg-${payload.notionId}-${Date.now().toString().slice(-4)}` };
   }
 
   const { gmailUser, gmailClientId, gmailClientSecret, gmailRefreshToken, senderName, resumeBlobUrl } = creds;
@@ -117,7 +117,7 @@ export async function sendEmail(
   const trackingPixelUrl = `https://job-outreach-dashboard.vercel.app/api/track/${payload.notionId}/open${creds.userId ? `?u=${creds.userId}` : ''}`;
   const trackedHtml = `${payload.emailBody.replace(/\n/g, '<br>')}<br><br><img src="${trackingPixelUrl}" width="1" height="1" style="display:none;" alt="" />`;
 
-  await transporter.sendMail({
+  const info = await transporter.sendMail({
     from: `"${senderName || 'Job Seeker'}" <${gmailUser}>`,
     to: payload.toEmail,
     subject: payload.subject,
@@ -127,5 +127,5 @@ export async function sendEmail(
     attachments,
   });
 
-  return true;
+  return { success: true, messageId: info.messageId };
 }

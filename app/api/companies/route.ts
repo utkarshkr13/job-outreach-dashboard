@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAllCompanies, getCompaniesByStatus, updateStatus, getNotionConnection } from '@/lib/notion';
+import { getAllCompanies, getCompaniesByStatus, updateStatus, updateCompanyProperties, getNotionConnection } from '@/lib/notion';
 import { getAuthenticatedUser } from '@/lib/auth-middleware';
 
 export const dynamic = 'force-dynamic';
@@ -31,12 +31,29 @@ export async function POST(req: Request) {
     const { creds } = await getAuthenticatedUser(req);
     const connection = getNotionConnection(creds.notionApiKey, creds.notionDbId);
 
-    // 2. Perform status updates in their respective database
-    const { notionId, status, notes } = await req.json();
-    if (!notionId || !status) {
-      return NextResponse.json({ error: 'Missing notionId or status' }, { status: 400 });
+    // 2. Perform status or property updates in their respective database
+    const body = await req.json();
+    const { notionId, status, notes, emailSubject, emailDraft, draftNotes } = body;
+    
+    if (!notionId) {
+      return NextResponse.json({ error: 'Missing notionId' }, { status: 400 });
     }
-    await updateStatus(connection, notionId, status, notes);
+
+    const updatePayload: any = {};
+    if (status !== undefined) updatePayload.emailStatus = status;
+    if (notes !== undefined) updatePayload.draftNotes = notes;
+    if (emailSubject !== undefined) updatePayload.emailSubject = emailSubject;
+    if (emailDraft !== undefined) updatePayload.emailDraft = emailDraft;
+    if (draftNotes !== undefined) updatePayload.draftNotes = draftNotes;
+
+    // Support updating any other fields passed
+    for (const key of Object.keys(body)) {
+      if (!['notionId', 'status', 'notes', 'emailSubject', 'emailDraft', 'draftNotes'].includes(key)) {
+        updatePayload[key] = body[key];
+      }
+    }
+
+    await updateCompanyProperties(connection, notionId, updatePayload);
     return NextResponse.json({ success: true });
   } catch (e: any) {
     console.error('❌ POST /api/companies error:', e.message);
