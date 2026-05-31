@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const isDemoMode = process.env.NEXT_PUBLIC_APP_MODE === 'demo';
+  const isDemoMode = process.env.NEXT_PUBLIC_APP_MODE === 'demo' || !process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY === 'placeholder-api-key';
 
   // Helper to fetch onboarding status from session API
   const fetchSessionStatus = async (firebaseUser: User) => {
@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return data.user.onboardingComplete;
       }
     } catch (error) {
-      console.error('âŒ Failed to verify session token:', error);
+      console.error('❌ Failed to verify session token:', error);
     }
     return false;
   };
@@ -197,7 +197,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await firebaseSignOut(auth);
       router.push('/login');
     } catch (error: any) {
-      console.error('âŒ Sign out failed:', error.message);
+      console.error('❌ Sign out failed:', error.message);
       setLoading(false);
     }
   };

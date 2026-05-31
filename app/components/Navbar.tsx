@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
+import Link from 'next/link';
 
 export default function Navbar() {
   const { user, onboardingComplete, logout } = useAuth();
@@ -42,7 +43,7 @@ export default function Navbar() {
               { href: '/analytics', label: 'Analytics' },
               { href: '/settings', label: 'Settings' },
             ].map(({ href, label }) => (
-              <a
+              <Link
                 key={href}
                 href={href}
                 className={`apple-indicator-glow-sweep apple-dock-indicator apple-nav-border apple-zoom-indicator apple-tab-slide apple-indicator-sweep ${
@@ -52,7 +53,7 @@ export default function Navbar() {
                 } text-xs font-medium transition-colors`}
               >
                 {label}
-              </a>
+              </Link>
             ))}
           </div>
         )}
