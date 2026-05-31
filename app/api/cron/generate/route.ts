@@ -62,7 +62,7 @@ export async function GET(req: Request) {
             const result = await runAgentPipeline(company, creds);
             await updateEmailDraft(connection, company.notionId, result.subject, result.body, `Score: ${result.score}/10 — ${result.notes}`, 'Draft Ready');
             results.push({ company: company.company, success: true });
-            
+
             // Small throttling delay to avoid Anthropic rate limits
             await new Promise(r => setTimeout(r, 1200));
           } catch (e: any) {
@@ -76,20 +76,6 @@ export async function GET(req: Request) {
         console.error(`❌ Failed to run cron pipeline for user ${userId}:`, userErr.message);
         userResults.push({ userId, success: false, error: userErr.message });
       }
-    }
-
-    // Trigger background intelligence sweeps after draft generation
-    try {
-      const host = req.headers.get('host') || 'localhost:3000';
-      const protocol = host.includes('localhost') ? 'http' : 'https';
-      const secret = process.env.CRON_SECRET || 'b6e3f2d1e4c5a6b7f8c9d0e1f2a3b4c5';
-      
-      // Fire sweeps in background asynchronously to prevent blocking cron timeout
-      fetch(`${protocol}://${host}/api/followup/bulk?secret=${secret}`, { method: 'POST' }).catch(() => {});
-      fetch(`${protocol}://${host}/api/followup/archive?secret=${secret}`, { method: 'POST' }).catch(() => {});
-      fetch(`${protocol}://${host}/api/replies/scan?secret=${secret}`, { method: 'POST' }).catch(() => {});
-    } catch (cronSweepErr) {
-      console.warn('❌ Cron background sweeps launch failed:', cronSweepErr);
     }
 
     return NextResponse.json({ success: true, usersProcessed: userResults.length, details: userResults });
