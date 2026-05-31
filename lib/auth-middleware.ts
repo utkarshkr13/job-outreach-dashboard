@@ -5,6 +5,8 @@ export interface UserCredentials {
   notionApiKey: string;
   notionDbId: string;
   anthropicApiKey: string;
+  groqApiKey: string;
+  llmProvider: 'anthropic' | 'groq';
   gmailUser: string;
   gmailClientId: string;
   gmailClientSecret: string;
@@ -44,13 +46,15 @@ export async function getAuthenticatedUser(req: Request): Promise<{ userId: stri
         notionApiKey: process.env.NOTION_API_KEY || 'demo-notion-api-key',
         notionDbId: process.env.NOTION_DB_ID || 'demo-notion-db-id',
         anthropicApiKey: process.env.ANTHROPIC_API_KEY || 'demo-anthropic-api-key',
+        groqApiKey: process.env.GROQ_API_KEY || 'demo-groq-api-key',
+        llmProvider: (process.env.PREFERRED_LLM_PROVIDER as any) || 'anthropic',
         gmailUser: process.env.GMAIL_USER || 'demo@gmail.com',
         gmailClientId: process.env.GMAIL_CLIENT_ID || 'demo-gmail-client-id',
         gmailClientSecret: process.env.GMAIL_CLIENT_SECRET || 'demo-gmail-client-secret',
         gmailRefreshToken: process.env.GMAIL_REFRESH_TOKEN || 'demo-gmail-refresh-token',
         senderName: 'Utkarsh Kumar',
-        senderPhone: '+91 9999999999',
-        senderLinkedin: 'linkedin.com/in/utkarsh-kumar',
+        senderPhone: '+91 9969396063',
+        senderLinkedin: 'linkedin.com/in/utkarsh-kumar-rajput-76b673232',
         senderBio: 'I am a Business Analyst who shipped end-to-end at an AI-first startup.',
         targetRoles: 'Associate PM or Business Analyst',
         resumeBlobUrl: '',
@@ -69,7 +73,7 @@ export async function getAuthenticatedUser(req: Request): Promise<{ userId: stri
       throw new Error('User document not found in database.');
     }
 
-    const userData = userDoc.data();
+    const userData = userDoc.data()!;
     if (!userData) {
       throw new Error('User document is empty.');
     }
@@ -84,6 +88,8 @@ export async function getAuthenticatedUser(req: Request): Promise<{ userId: stri
         notionApiKey: decrypt(credentials.notionApiKey || ''),
         notionDbId: decrypt(credentials.notionDbId || ''),
         anthropicApiKey: decrypt(credentials.anthropicApiKey || ''),
+        groqApiKey: decrypt(credentials.groqApiKey || ''),
+        llmProvider: credentials.llmProvider || 'anthropic',
         gmailUser: credentials.gmailUser || '',
         // Use user-specific decrypted Gmail client ID/secret, or fallback to platform client ID/secret
         gmailClientId: decrypt(credentials.gmailClientId || '') || process.env.GMAIL_PLATFORM_CLIENT_ID || '',

@@ -37,6 +37,8 @@ export async function GET(req: Request) {
           notionApiKey: decrypt(credentials.notionApiKey || ''),
           notionDbId: decrypt(credentials.notionDbId || ''),
           anthropicApiKey: decrypt(credentials.anthropicApiKey || ''),
+          groqApiKey: decrypt(credentials.groqApiKey || ''),
+          llmProvider: credentials.llmProvider || 'anthropic',
           gmailUser: credentials.gmailUser || '',
           gmailClientId: decrypt(credentials.gmailClientId || '') || process.env.GMAIL_PLATFORM_CLIENT_ID || '',
           gmailClientSecret: decrypt(credentials.gmailClientSecret || '') || process.env.GMAIL_PLATFORM_CLIENT_SECRET || '',

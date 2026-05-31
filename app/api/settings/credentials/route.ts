@@ -24,6 +24,8 @@ export async function GET(req: Request) {
       notionConnected: true,
       notionDbId: '••••••••••••••••',
       anthropicApiKeyConnected: true,
+      groqApiKeyConnected: true,
+      llmProvider: 'anthropic',
     };
 
     let resumeBlobUrl = '';
@@ -53,6 +55,8 @@ export async function GET(req: Request) {
         notionConnected: !!rawCreds.notionApiKey,
         notionDbId: rawCreds.notionDbId ? '••••••••••••••••' : '',
         anthropicApiKeyConnected: !!rawCreds.anthropicApiKey,
+        groqApiKeyConnected: !!rawCreds.groqApiKey,
+        llmProvider: rawCreds.llmProvider || 'anthropic',
       };
 
       resumeBlobUrl = data.resumeBlobUrl || '';
@@ -118,6 +122,12 @@ export async function PUT(req: Request) {
         }
         if (inputCreds.anthropicApiKey && inputCreds.anthropicApiKey !== '••••••••••••••••') {
           newCreds.anthropicApiKey = encrypt(inputCreds.anthropicApiKey);
+        }
+        if (inputCreds.groqApiKey && inputCreds.groqApiKey !== '••••••••••••••••') {
+          newCreds.groqApiKey = encrypt(inputCreds.groqApiKey);
+        }
+        if (inputCreds.llmProvider) {
+          newCreds.llmProvider = inputCreds.llmProvider;
         }
         // Let them also update Gmail user or other fields if explicitly sent
         if (inputCreds.gmailUser) {

@@ -41,6 +41,9 @@ export default function SettingsPage() {
 
   const [anthropicApiKey, setAnthropicApiKey] = useState<string>('');
   const [anthropicConnected, setAnthropicConnected] = useState<boolean>(false);
+  const [groqApiKey, setGroqApiKey] = useState<string>('');
+  const [groqConnected, setGroqConnected] = useState<boolean>(false);
+  const [llmProvider, setLlmProvider] = useState<'anthropic' | 'groq'>('anthropic');
 
   // Resume State
   const [resume, setResume] = useState<ResumeState>({
@@ -99,6 +102,9 @@ export default function SettingsPage() {
 
       setAnthropicApiKey(c.anthropicApiKeyConnected ? '••••••••••••••••' : '');
       setAnthropicConnected(c.anthropicApiKeyConnected || false);
+      setGroqApiKey(c.groqApiKeyConnected ? '••••••••••••••••' : '');
+      setGroqConnected(c.groqApiKeyConnected || false);
+      setLlmProvider(c.llmProvider || 'anthropic');
 
       setCronEnabled(s.cronEnabled ?? true);
       setCronHour(s.cronHour ?? 4);
@@ -221,8 +227,8 @@ export default function SettingsPage() {
     }
   };
 
-  // Claude API Key save
-  const handleClaudeSave = async (e: React.FormEvent) => {
+  // AI Engines save
+  const handleAISave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaveLoading(true);
     setErrorMsg(null);
@@ -230,30 +236,40 @@ export default function SettingsPage() {
 
     try {
       const token = await user?.getIdToken();
+      const credentialsPayload: any = { llmProvider };
 
-      // Only save if modified
       if (anthropicApiKey !== '••••••••••••••••') {
-        const res = await fetch('/api/settings/credentials', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            credentials: {
-              anthropicApiKey
-            }
-          }),
-        });
-        const data = await res.json();
-        if (!data.success) throw new Error(data.error || 'Failed to update Claude API key.');
+        credentialsPayload.anthropicApiKey = anthropicApiKey;
+      }
+      if (groqApiKey !== '••••••••••••••••') {
+        credentialsPayload.groqApiKey = groqApiKey;
       }
 
-      setAnthropicConnected(true);
-      setSuccessMsg('Claude Anthropic API key updated successfully!');
+      const res = await fetch('/api/settings/credentials', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          credentials: credentialsPayload
+        }),
+      });
+
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Failed to update AI keys.');
+
+      if (anthropicApiKey !== '••••••••••••••••' && anthropicApiKey !== '') {
+        setAnthropicConnected(true);
+      }
+      if (groqApiKey !== '••••••••••••••••' && groqApiKey !== '') {
+        setGroqConnected(true);
+      }
+
+      setSuccessMsg('AI LLM Engine settings updated successfully!');
       setTimeout(() => setSuccessMsg(null), 4000);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to save Claude key.');
+      setErrorMsg(err.message || 'Failed to save AI key.');
     } finally {
       setSaveLoading(false);
     }
@@ -353,7 +369,7 @@ export default function SettingsPage() {
                 { id: 'profile', label: 'Profile Info', icon: '👤' },
                 { id: 'gmail', label: 'Gmail OAuth', icon: '✉️', status: gmailConnected },
                 { id: 'notion', label: 'Notion CRM', icon: '📓', status: notionConnected },
-                { id: 'claude', label: 'Claude AI API', icon: '🤖', status: anthropicConnected },
+                { id: 'claude', label: 'AI LLM Engines', icon: '🤖', status: anthropicConnected || groqConnected },
                 { id: 'resume', label: 'Resume Files', icon: '📄', status: !!resume.url },
                 { id: 'security', label: 'Account Security', icon: '🔒' }
               ] as { id: ActiveSection; label: string; icon: string; status?: boolean }[]
@@ -556,24 +572,49 @@ export default function SettingsPage() {
               </form>
             )}
 
-            {/* SECTION 4: CLAUDE AI API KEY */}
+            {/* SECTION 4: AI LLM ENGINES */}
             {activeSection === 'claude' && (
-              <form onSubmit={handleClaudeSave} className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 shadow-sm space-y-6">
+              <form onSubmit={handleAISave} className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 shadow-sm space-y-6">
                 <div>
-                  <h3 className="text-base font-bold text-neutral-900 dark:text-white">Claude AI Engine</h3>
-                  <p className="text-xs text-neutral-450 dark:text-neutral-500 mt-1">Configure your personal Anthropic Claude API key for dynamic email generation.</p>
+                  <h3 className="text-base font-bold text-neutral-900 dark:text-white">AI LLM Engines</h3>
+                  <p className="text-xs text-neutral-450 dark:text-neutral-500 mt-1">Configure your personal Anthropic Claude & Groq LLaMA keys, and select your preferred active engine.</p>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Anthropic API Key</label>
-                  <input
-                    type="password"
-                    required
-                    placeholder="sk-ant-..."
-                    value={anthropicApiKey}
-                    onChange={(e) => setAnthropicApiKey(e.target.value)}
-                    className="w-full h-11 px-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 dark:focus:ring-blue-500"
-                  />
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Preferred AI Engine</label>
+                    <select
+                      value={llmProvider}
+                      onChange={(e) => setLlmProvider(e.target.value as any)}
+                      className="w-full h-11 px-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 dark:focus:ring-blue-500 text-neutral-800 dark:text-neutral-100"
+                    >
+                      <option value="anthropic">Anthropic Claude 3.5 Sonnet (High Precision)</option>
+                      <option value="groq">Groq LLaMA 3.3 70B (Ultra-fast completion)</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Anthropic API Key</label>
+                    <input
+                      type="password"
+                      placeholder={anthropicConnected ? "••••••••••••••••" : "sk-ant-..."}
+                      value={anthropicApiKey}
+                      onChange={(e) => setAnthropicApiKey(e.target.value)}
+                      className="w-full h-11 px-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 dark:focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Groq API Key</label>
+                    <input
+                      type="password"
+                      placeholder={groqConnected ? "••••••••••••••••" : "gsk_..."}
+                      value={groqApiKey}
+                      onChange={(e) => setGroqApiKey(e.target.value)}
+                      className="w-full h-11 px-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 dark:focus:ring-blue-500"
+                    />
+                  </div>
+                  
                   <span className="text-[10px] text-neutral-450 dark:text-neutral-500 mt-1 block">
                     All key characters are stored AES-256 encrypted using platform-level env key maps.
                   </span>
@@ -585,7 +626,7 @@ export default function SettingsPage() {
                     disabled={saveLoading}
                     className="px-6 h-11 rounded-xl bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-750 dark:text-[#f5f5f7] border border-[#e8e8ed] dark:border-neutral-800 font-semibold text-sm hover:scale-102 transition-all cursor-pointer shadow-sm disabled:opacity-50"
                   >
-                    {saveLoading ? 'Saving...' : 'Save AI Key'}
+                    {saveLoading ? 'Saving...' : 'Save AI Configurations'}
                   </button>
                 </div>
               </form>

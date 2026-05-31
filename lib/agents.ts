@@ -3,35 +3,66 @@ import { Company, AgentResult } from '@/types';
 import { mockGenerateDraftPipeline } from './mockDb';
 import { UserCredentials } from './auth-middleware';
 
-const MODEL = 'claude-3-5-sonnet-20241022';
+interface ModelConfig {
+  provider: 'anthropic' | 'groq';
+  apiKey: string;
+}
 
 // ─── HELPER ──────────────────────────────────────────────────────────────────
 
-async function ask(
-  client: Anthropic,
+async function askModel(
+  config: ModelConfig,
   systemPrompt: string,
   userMessage: string
 ): Promise<string> {
-  const response = await client.messages.create({
-    model: MODEL,
-    max_tokens: 1024,
-    system: systemPrompt,
-    messages: [{ role: 'user', content: userMessage }],
-  });
-  return (response.content[0] as any).text;
+  if (config.provider === 'groq') {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${config.apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userMessage }
+        ],
+        temperature: 0.7,
+        max_tokens: 1024
+      })
+    });
+    
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error?.message || `Groq API request failed with status ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.choices[0]?.message?.content || '';
+  } else {
+    const client = new Anthropic({ apiKey: config.apiKey });
+    const response = await client.messages.create({
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userMessage }],
+    });
+    return (response.content[0] as any).text;
+  }
 }
 
 // ─── AGENT 1: COMPANY HOOK ───────────────────────────────────────────────────
 
-async function companyHookAgent(client: Anthropic, company: Company): Promise<string> {
+async function companyHookAgent(config: ModelConfig, company: Company): Promise<string> {
   const jdSection = company.jdKeywords ? `
 We have analyzed the job description for this role.
 Key themes/keywords the hiring manager values: ${company.jdKeywords}
 Skills gap detected: ${company.skillsGap || 'None'}
 INSTRUCTION: Weave one of these keywords naturally into the opening hook, matching their desired skills.` : '';
 
-  return ask(
-    client,
+  return askModel(
+    config,
     `You write the opening 2-3 sentences of a cold job application email.
 
 RULES — ALL MANDATORY:
@@ -56,13 +87,13 @@ Source URL: ${company.sourceUrl ?? ''}`
 // ─── AGENT 2: SUBJECT LINE ───────────────────────────────────────────────────
 
 async function subjectLineAgent(
-  client: Anthropic,
+  config: ModelConfig,
   company: Company,
   targetRoles: string,
   senderName: string
 ): Promise<string> {
-  return ask(
-    client,
+  return askModel(
+    config,
     `Write a cold email subject line for a job application.
 
 FORMAT: "[TARGET_ROLES] Interest at [Company Name] | [SENDER_NAME]"
@@ -80,13 +111,13 @@ FORMAT: "[TARGET_ROLES] Interest at [Company Name] | [SENDER_NAME]"
 // ─── AGENT 3: QUALITY GATE ───────────────────────────────────────────────────
 
 async function qualityGateAgent(
-  client: Anthropic,
+  config: ModelConfig,
   subject: string,
   body: string,
   company: Company
 ): Promise<{ score: number; approved: boolean; feedback: string }> {
-  const result = await ask(
-    client,
+  const result = await askModel(
+    config,
     `You are a cold email quality reviewer. Check this job application email strictly.
 
 Score each criterion 1-10, then return the average:
@@ -145,13 +176,20 @@ export async function runAgentPipeline(
     return mockGenerateDraftPipeline(company);
   }
 
-  // Dynamically instantiate the Anthropic client using the user's specific key
-  const apiKey = creds.anthropicApiKey || process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    throw new Error('Missing Anthropic API Key. Please configure your key in settings to run email generation.');
-  }
+  // Determine provider preference and keys
+  const provider = creds.llmProvider || 'anthropic';
+  const anthropicKey = creds.anthropicApiKey || process.env.ANTHROPIC_API_KEY;
+  const groqKey = creds.groqApiKey || process.env.GROQ_API_KEY;
 
-  const client = new Anthropic({ apiKey });
+  const useGroq = provider === 'groq' ? !!groqKey : !anthropicKey && !!groqKey;
+
+  const config: ModelConfig = useGroq 
+    ? { provider: 'groq', apiKey: groqKey! }
+    : { provider: 'anthropic', apiKey: anthropicKey! };
+
+  if (!config.apiKey) {
+    throw new Error(`Missing ${config.provider === 'groq' ? 'Groq' : 'Anthropic'} API Key. Please configure your key in settings to run email generation.`);
+  }
 
   const signature = [
     creds.senderName,
@@ -164,8 +202,8 @@ export async function runAgentPipeline(
     : 'there';
 
   const [companyHook, subject] = await Promise.all([
-    companyHookAgent(client, company),
-    subjectLineAgent(client, company, creds.targetRoles, creds.senderName),
+    companyHookAgent(config, company),
+    subjectLineAgent(config, company, creds.targetRoles, creds.senderName),
   ]);
 
   let body = assembleEmail(
@@ -177,11 +215,11 @@ export async function runAgentPipeline(
     signature
   );
   
-  let quality = await qualityGateAgent(client, subject, body, company);
+  let quality = await qualityGateAgent(config, subject, body, company);
 
   if (!quality.approved) {
-    const betterHook = await ask(
-      client,
+    const betterHook = await askModel(
+      config,
       `You write the opening 2-3 sentences of a cold job application email.
 
 RULES — ALL MANDATORY:
@@ -207,7 +245,7 @@ Source URL: ${company.sourceUrl ?? ''}`
       creds.targetRoles,
       signature
     );
-    quality = await qualityGateAgent(client, subject, body, company);
+    quality = await qualityGateAgent(config, subject, body, company);
   }
 
   return {
