@@ -118,7 +118,7 @@ export default function AnalyticsPage() {
   const maxSentInTimeline = Math.max(...dailyTimeline.map(t => t.count), 1);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-fade-in pb-12 text-[#1d1d1f] dark:text-[#f5f5f7] tracking-tight transition-colors duration-300">
+    <div className="w-full space-y-8 animate-fade-in pb-12 text-[#1d1d1f] dark:text-[#f5f5f7] tracking-tight transition-colors duration-300">
       
       {/* HEADER SECTION */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

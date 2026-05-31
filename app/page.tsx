@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import React, { useEffect, useState, Suspense } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -35,6 +35,26 @@ const CRM_STAGES: { status: EmailStatus; label: string; colorClass: string; desc
   { status: 'Rejected', label: 'Rejected', colorClass: 'bg-red-50 dark:bg-red-950/10 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-950/30', desc: 'Archived leads' },
   { status: 'No Response', label: 'No Response', colorClass: 'bg-slate-50 dark:bg-slate-950/10 text-slate-500 dark:text-slate-400 border border-slate-100 dark:border-slate-950/30', desc: 'No touchpoint response' },
 ];
+
+const getCompanyAvatarColors = (companyName: string) => {
+  const colors = [
+    { bg: 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900/50' },
+    { bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-250 dark:border-emerald-900/50' },
+    { bg: 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900/50' },
+    { bg: 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/50' },
+    { bg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border-amber-250 dark:border-amber-900/50' },
+    { bg: 'bg-cyan-50 dark:bg-cyan-950/40 text-cyan-600 dark:text-cyan-400 border-cyan-200 dark:border-cyan-900/50' },
+    { bg: 'bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-900/50' },
+    { bg: 'bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 border-teal-200 dark:border-teal-900/50' },
+  ];
+  
+  let hash = 0;
+  for (let i = 0; i < companyName.length; i++) {
+    hash = companyName.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % colors.length;
+  return colors[index].bg;
+};
 
 function DashboardContent() {
   const { user } = useAuth();
@@ -605,7 +625,7 @@ function DashboardContent() {
 
   return (
     <>
-      <div className="max-w-6xl mx-auto space-y-8 animate-fade-in relative text-[#1d1d1f] dark:text-[#f5f5f7] tracking-tight">
+      <div className="w-full space-y-8 animate-fade-in relative text-[#1d1d1f] dark:text-[#f5f5f7] tracking-tight">
       
       {/* CONFETTI FLOATING PARTICLES */}
       {showConfetti && (
@@ -886,7 +906,7 @@ function DashboardContent() {
                     >
                       <td className={`py-4 px-6 ${isFocused ? 'border-l-2 border-blue-600' : ''}`}>
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-xl bg-[#f5f5f7] dark:bg-neutral-900 flex items-center justify-center font-bold text-xs text-neutral-800 dark:text-neutral-200 uppercase transition-colors shrink-0 border border-neutral-200 dark:border-neutral-800">
+                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs uppercase transition-colors shrink-0 border ${getCompanyAvatarColors(company.company)}`}>
                             {company.company.charAt(0)}
                           </div>
                           <div>
@@ -896,16 +916,16 @@ function DashboardContent() {
                               </span>
                               {company.companySignal === 'Hot' && (
                                 <span className="text-[8.5px] font-bold px-1.5 py-0.2 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-250 dark:border-emerald-900/50 animate-pulse shrink-0 shadow-[0_0_8px_rgba(16,185,129,0.2)]" title="Hiring aggressively/Growth signal">
-                                  ðŸ”¥ Hot
+                                  🔥 Hot
                                 </span>
                               )}
                               {company.companySignal === 'Caution' && (
                                 <span className="text-[8.5px] font-bold px-1.5 py-0.2 rounded-md bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-250 dark:border-amber-900/50 shrink-0" title="Layoffs / Hiring freeze caution">
-                                  ⚠️ Caution
+                                  ⚠️  Caution
                                 </span>
                               )}
                             </div>
-                            <span className="text-[10px] text-neutral-450 mt-0.5 block leading-none font-medium">
+                            <span className="text-[10px] text-neutral-455 mt-0.5 block leading-none font-medium">
                               Added {company.dateAdded}
                             </span>
                           </div>
@@ -913,7 +933,7 @@ function DashboardContent() {
                       </td>
 
                       <td className="py-4 px-6">
-                        <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-200 block truncate w-36 leading-normal">
+                        <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-200 block truncate w-48 leading-normal">
                           {company.role}
                         </span>
                         {company.salaryRange && (
@@ -924,7 +944,7 @@ function DashboardContent() {
                       </td>
 
                       <td className="py-4 px-6 text-neutral-600 dark:text-neutral-400 text-xs transition-colors">
-                        <span className="font-semibold text-neutral-800 dark:text-neutral-200 block truncate w-36 leading-normal">
+                        <span className="font-semibold text-neutral-800 dark:text-neutral-200 block truncate w-48 leading-normal">
                           {company.contactName || 'Direct / Form'}
                         </span>
                         <span className="text-[10px] text-neutral-455 block leading-none font-medium mt-0.5">

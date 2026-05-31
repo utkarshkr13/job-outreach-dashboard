@@ -323,7 +323,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto pb-24 transition-colors duration-300">
+    <div className="w-full pb-24 transition-colors duration-300">
       
       {/* HEADER */}
       <div className="border-b border-[#e8e8ed] dark:border-neutral-900 pb-6 mb-10 flex justify-between items-end">

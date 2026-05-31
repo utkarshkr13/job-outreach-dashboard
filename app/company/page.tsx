@@ -68,7 +68,7 @@ export default function CompaniesPage() {
   });
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-fade-in text-[#1d1d1f] dark:text-[#f5f5f7] transition-colors duration-300">
+    <div className="w-full space-y-8 animate-fade-in text-[#1d1d1f] dark:text-[#f5f5f7] transition-colors duration-300">
       
       {/* ── HEADER ── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[#e8e8ed] dark:border-neutral-900 pb-6">

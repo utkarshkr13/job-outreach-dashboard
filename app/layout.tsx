@@ -15,7 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="transition-colors duration-300 min-h-screen bg-[#f5f5f7] dark:bg-[#000000] text-[#1d1d1f] dark:text-[#f5f5f7] antialiased">
         <AuthProvider>
           <Navbar />
-          <main className="pt-20 pb-6 px-6 md:px-8 max-w-7xl mx-auto">
+          <main className="pt-20 pb-6 px-4 md:px-12 w-[96%] max-w-[96%] mx-auto">
             {children}
           </main>
         </AuthProvider>
