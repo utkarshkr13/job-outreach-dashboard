@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getCompaniesByStatus, updateStatus, getNotionConnection } from '@/lib/notion';
+import { getCompaniesByStatus, updateCompanyProperties, getNotionConnection } from '@/lib/notion';
 import { sendEmail } from '@/lib/mailer';
 import { getAuthenticatedUser } from '@/lib/auth-middleware';
 
@@ -12,6 +12,7 @@ export async function POST(req: Request) {
     // 2. Fetch all approved leads from user's scoped DB
     const approved = await getCompaniesByStatus(connection, 'Approved');
     const results = [];
+    const today = new Date().toISOString().split('T')[0];
 
     for (const company of approved) {
       if (!company.email) {
@@ -19,7 +20,7 @@ export async function POST(req: Request) {
         continue;
       }
       try {
-        await sendEmail({
+        const sendResult = await sendEmail({
           notionId: company.notionId,
           toEmail: company.email,
           subject: company.emailSubject,
@@ -34,12 +35,18 @@ export async function POST(req: Request) {
           gmailRefreshToken: creds.gmailRefreshToken,
           senderName: creds.senderName,
           resumeBlobUrl: creds.resumeBlobUrl || undefined,
-          userId: userId
+          userId
         });
-        await updateStatus(connection, company.notionId, 'Sent');
+
+        // Save Sent status + lastContacted so follow-up sequencing works correctly
+        await updateCompanyProperties(connection, company.notionId, {
+          emailStatus: 'Sent',
+          lastContacted: today,
+        });
+
         results.push({ company: company.company, success: true });
-        
-        // Throttling delay between sends to respect SMTP policies
+
+        // Throttling delay between sends to respect SMTP rate limits
         await new Promise(r => setTimeout(r, 500));
       } catch (e: any) {
         results.push({ company: company.company, success: false, error: e.message });
