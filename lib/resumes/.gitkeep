@@ -1,0 +1,4 @@
+# This file keeps the lib/resumes/ directory in git.
+# Do NOT place real resume PDFs here — they are gitignored.
+# In production, resumes are stored in Vercel Blob.
+# In local dev, place your PDF here as global-resume.pdf (it will not be committed).
