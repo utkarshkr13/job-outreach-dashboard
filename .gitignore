@@ -42,3 +42,6 @@ next-env.d.ts
 
 # local files
 resume.txt
+
+# resume PDFs — never commit real resumes; use Vercel Blob in production
+lib/resumes/*.pdf
