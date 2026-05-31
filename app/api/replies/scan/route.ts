@@ -7,6 +7,9 @@ import { getGmailAccessToken, getGmailThread, parseRecruiterReply } from '@/lib/
 
 export const dynamic = 'force-dynamic';
 
+// Statuses that may have received a reply but haven't been classified yet
+const SCAN_STATUSES = ['Sent', 'Follow-up Ready', 'No Response'] as const;
+
 export async function POST(req: Request) {
   const url = new URL(req.url);
   const secret = req.headers.get('authorization')?.replace('Bearer ', '') || url.searchParams.get('secret');
@@ -18,15 +21,15 @@ export async function POST(req: Request) {
   try {
     if (process.env.NEXT_PUBLIC_APP_MODE === 'demo') {
       const { getMockCompanies, mockUpdateProperties } = require('@/lib/mockDb');
+      // Deterministic demo: mark companies whose name starts with A-M as replied
       const companies = getMockCompanies('Sent');
       let count = 0;
-
       for (const company of companies) {
-        // Mock a 35% chance that a recruiter has replied in demo mode
-        if (Math.random() > 0.65) {
+        const firstChar = (company.company || '').charAt(0).toUpperCase();
+        if (firstChar >= 'A' && firstChar <= 'M') {
           mockUpdateProperties(company.notionId, {
             emailStatus: 'Replied',
-            replySnippet: 'Thanks for reaching out! Your Business Analyst experience shipping end-to-end at an AI startup looks very impressive. Would you be free to chat next Thursday?',
+            replySnippet: 'Thanks for reaching out! Your Business Analyst experience looks impressive. Would you be free to chat next week?',
           });
           count++;
         }
@@ -66,7 +69,9 @@ export async function POST(req: Request) {
         if (!creds.notionApiKey || !creds.notionDbId || !creds.gmailRefreshToken) continue;
 
         const connection = getNotionConnection(creds.notionApiKey, creds.notionDbId);
-        const sentCompanies = await getCompaniesByStatus(connection, 'Sent');
+
+        // Scan all statuses that could have received a recruiter reply
+        const companies = await getCompaniesByStatus(connection, [...SCAN_STATUSES]);
 
         const accessToken = await getGmailAccessToken({
           clientId: creds.gmailClientId,
@@ -74,7 +79,7 @@ export async function POST(req: Request) {
           refreshToken: creds.gmailRefreshToken
         });
 
-        for (const company of sentCompanies) {
+        for (const company of companies) {
           if (!company.gmailThreadId) continue;
 
           try {
@@ -83,16 +88,14 @@ export async function POST(req: Request) {
 
             if (hasReplied) {
               const snippet = replyBody.slice(0, 200).trim();
-              
               await updateCompanyProperties(connection, company.notionId, {
                 emailStatus: 'Replied',
                 replySnippet: snippet
               });
-
               totalRepliesFound++;
             }
           } catch (e: any) {
-            console.warn(`[REPLIES/SCAN] Failed to scan thread ${company.gmailThreadId} for company ${company.company}:`, e.message);
+            console.warn(`[REPLIES/SCAN] Failed to scan thread ${company.gmailThreadId} for ${company.company}:`, e.message);
           }
         }
       } catch (err: any) {
