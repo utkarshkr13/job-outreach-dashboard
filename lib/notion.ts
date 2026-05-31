@@ -22,8 +22,54 @@ export function getNotionConnection(apiKey: string, dbId: string): NotionConnect
   return { notion, DB_ID: dbId };
 }
 
+function sanitizeString(str: any): any {
+  if (typeof str !== 'string') return str;
+  return str
+    .replace(/âœ…/g, '✅')
+    .replace(/â °/g, '⏱️')
+    .replace(/ðŸ” /g, '🔍')
+    .replace(/ðŸ“¨/g, '📬')
+    .replace(/ðŸ”¥/g, '🔥')
+    .replace(/👍 ï¸/g, '👍')
+    .replace(/ðŸ””/g, '🔔')
+    .replace(/ðŸ“Ž/g, '📎')
+    .replace(/â ³/g, '⏳')
+    .replace(/â ±ï¸/g, '⏱️')
+    .replace(/â Œ/g, '❌')
+    .replace(/âœ“/g, '✓')
+    .replace(/â–¼/g, '▼')
+    .replace(/ðŸ’¾/g, '💾')
+    .replace(/ðŸ’¬/g, '💬')
+    .replace(/ðŸ¤–/g, '🤖')
+    .replace(/ðŸ”Ž/g, '🔎')
+    .replace(/ðŸ“§/g, '📨')
+    .replace(/ðŸ“¥/g, '📥')
+    .replace(/ðŸ“¤/g, '📤')
+    .replace(/ðŸ˜Š/g, '😊')
+    .replace(/ðŸ™/g, '🙏')
+    .replace(/ðŸ’/g, '💡');
+}
+
+function deepSanitize(obj: any): any {
+  if (obj === null || obj === undefined) return obj;
+  if (typeof obj === 'string') {
+    return sanitizeString(obj);
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(deepSanitize);
+  }
+  if (typeof obj === 'object') {
+    const res: any = {};
+    for (const key of Object.keys(obj)) {
+      res[key] = deepSanitize(obj[key]);
+    }
+    return res;
+  }
+  return obj;
+}
+
 function mapPageToCompany(page: any): Company {
-  return {
+  const companyObj = {
     notionId: page.id,
     company: page.properties['Company']?.title?.[0]?.text?.content ?? '',
     role: page.properties['Role']?.rich_text?.[0]?.text?.content ?? '',
@@ -57,6 +103,7 @@ function mapPageToCompany(page: any): Company {
     signalReason: page.properties['Signal Reason']?.rich_text?.[0]?.text?.content ?? '',
     signalUpdated: page.properties['Signal Updated']?.date?.start ?? '',
   };
+  return deepSanitize(companyObj);
 }
 
 export async function getCompaniesByStatus(
