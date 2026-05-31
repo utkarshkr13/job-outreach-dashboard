@@ -1,32 +1,41 @@
 import crypto from 'crypto';
 
-// The key must be exactly 32 bytes (256 bits).
-// We expect ENCRYPTION_KEY to be a 64-character hex string in production.
-// Provide a secure default or warning fallback for local development.
+const ALGORITHM = 'aes-256-cbc';
+
 const getEncryptionKey = (): Buffer => {
   const envKey = process.env.ENCRYPTION_KEY;
+
   if (!envKey) {
-    // If not provided, fallback to a local development key
-    console.warn('⚠️ ENCRYPTION_KEY is missing from environment. Using a local development fallback key.');
-    return Buffer.from('8f2c349a1b02d8e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8', 'hex');
-  }
-  try {
-    const key = Buffer.from(envKey, 'hex');
-    if (key.length !== 32) {
-      throw new Error(`Invalid key length: ${key.length} bytes (expected 32 bytes).`);
+    // In local development, use a stable dev-only fallback so the app still works.
+    // In production this must never happen — throw immediately.
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(
+        'ENCRYPTION_KEY environment variable is not set. ' +
+        'Set a 64-character hex string in your Vercel project environment variables.'
+      );
     }
-    return key;
-  } catch (error: any) {
-    console.error('❌ Failed to parse ENCRYPTION_KEY as 32-byte hex. Falling back to local key.', error.message);
-    return Buffer.from('8f2c349a1b02d8e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8', 'hex');
+    console.warn(
+      '⚠️  ENCRYPTION_KEY is not set. Using a local-development-only fallback key. ' +
+      'This key is NOT secret — never rely on it in production.'
+    );
+    // Dev-only fallback — intentionally obvious, never ships to prod due to the throw above
+    return Buffer.from('0000000000000000000000000000000000000000000000000000000000000000', 'hex');
   }
+
+  const key = Buffer.from(envKey, 'hex');
+  if (key.length !== 32) {
+    throw new Error(
+      `ENCRYPTION_KEY must be a 64-character hex string (32 bytes). ` +
+      `Got ${key.length} bytes from a ${envKey.length}-character string.`
+    );
+  }
+  return key;
 };
 
 const KEY = getEncryptionKey();
-const ALGORITHM = 'aes-256-cbc';
 
 /**
- * Encrypts a plaintext string to a colon-separated hex format (iv:ciphertext)
+ * Encrypts a plaintext string → colon-separated hex (iv:ciphertext)
  */
 export function encrypt(text: string): string {
   if (!text) return '';
@@ -37,12 +46,14 @@ export function encrypt(text: string): string {
 }
 
 /**
- * Decrypts a colon-separated hex format (iv:ciphertext) back to plaintext
+ * Decrypts a colon-separated hex string (iv:ciphertext) → plaintext.
+ * Falls through to returning the raw value if it doesn't look encrypted
+ * (handles legacy plain-text fields written before encryption was added).
  */
 export function decrypt(text: string): string {
   if (!text) return '';
   if (!text.includes(':')) {
-    // Fallback if the field was saved as plain unencrypted text (e.g. legacy/local-dev fields)
+    // Legacy: field stored as plain text before encryption was introduced
     return text;
   }
   try {
@@ -52,8 +63,8 @@ export function decrypt(text: string): string {
     const decipher = crypto.createDecipheriv(ALGORITHM, KEY, iv);
     const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
     return decrypted.toString('utf8');
-  } catch (error: any) {
-    console.error('❌ Cryptography error: Decryption failed. Returning original cipher.', error.message);
-    return text;
+  } catch (err: any) {
+    console.error('❌ Decryption failed — returning empty string to avoid leaking cipher text.', err.message);
+    return '';
   }
 }
