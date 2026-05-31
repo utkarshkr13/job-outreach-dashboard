@@ -722,10 +722,10 @@ function DashboardContent() {
                     <tr
                       key={company.notionId}
                       onClick={() => openReviewDrawer(company.notionId)}
-                      className={`apple-row-saturate apple-row-sweep-border apple-row-focus apple-row-focus-sweep apple-row-hover apple-row-divider hover:bg-[#fafafa]/80 dark:hover:bg-neutral-900/20 transition-all cursor-pointer group ${isFocused ? 'active bg-blue-50/30 dark:bg-blue-950/5 border-l-2 border-blue-600' : ''}`}
+                      className={`apple-row-saturate apple-row-sweep-border apple-row-focus apple-row-focus-sweep apple-row-hover apple-row-divider hover:bg-[#fafafa]/80 dark:hover:bg-neutral-900/20 transition-all cursor-pointer group ${isFocused ? 'active bg-blue-50/30 dark:bg-blue-950/5' : ''}`}
                     >
                       {/* Company Name & status */}
-                      <td className="py-4 px-6">
+                      <td className={`py-4 px-6 ${isFocused ? 'border-l-2 border-blue-600' : ''}`}>
                         <div className="flex items-center gap-3">
                           <span className="font-semibold text-neutral-800 dark:text-neutral-100 text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                             {company.company}

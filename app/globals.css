@@ -1205,11 +1205,12 @@ body::-webkit-scrollbar-thumb:hover {
 
 /* Interactive Glassmorphic Row focus active sweep borders */
 .apple-row-focus-sweep {
-  position: relative;
-  overflow: hidden;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.apple-row-focus-sweep::before {
+.apple-row-focus-sweep td:first-child {
+  position: relative;
+}
+.apple-row-focus-sweep td:first-child::before {
   content: '';
   position: absolute;
   top: 0;
@@ -1219,8 +1220,9 @@ body::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(to bottom, #0071e3, #34c759);
   transform: scaleY(0);
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 10;
 }
-.apple-row-focus-sweep.active::before {
+.apple-row-focus-sweep.active td:first-child::before {
   transform: scaleY(1);
 }
 
@@ -1454,10 +1456,10 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 /* macOS Finder/Mail Hover Row Accent Border Sweeper */
-.apple-row-sweep-border {
+.apple-row-sweep-border td:first-child {
   position: relative;
 }
-.apple-row-sweep-border::after {
+.apple-row-sweep-border td:first-child::after {
   content: '';
   position: absolute;
   left: 0;
@@ -1468,8 +1470,9 @@ body::-webkit-scrollbar-thumb:hover {
   border-radius: 1.5px;
   transform: scaleY(0);
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 10;
 }
-.apple-row-sweep-border:hover::after {
+.apple-row-sweep-border:hover td:first-child::after {
   transform: scaleY(1);
 }
 
