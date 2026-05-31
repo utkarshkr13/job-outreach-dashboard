@@ -401,6 +401,9 @@ function DashboardContent() {
   // Compute Word Count and readability pill
   const wordCount = draftBody ? draftBody.trim().split(/\s+/).filter(Boolean).length : 0;
   const getReadabilityPill = () => {
+    if (selectedCompany && selectedCompany.emailStatus && ['Sent', 'Replied', 'Interview', 'Offer'].includes(selectedCompany.emailStatus)) {
+      return { label: 'Outreach Delivered', color: 'bg-emerald-50 dark:bg-emerald-950/10 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/20' };
+    }
     if (wordCount >= 120 && wordCount <= 140) return { label: 'Optimal Pitch (120-140 w)', color: 'bg-[#fafafa] dark:bg-neutral-900 border border-[#e8e8ed] dark:border-neutral-800 text-emerald-600 dark:text-emerald-400' };
     if (wordCount > 100 && wordCount < 160) return { label: 'Acceptable Pitch', color: 'bg-[#fafafa] dark:bg-neutral-900 border border-[#e8e8ed] dark:border-neutral-800 text-amber-600 dark:text-amber-500' };
     return { label: 'Fix Length Needed', color: 'bg-[#fafafa] dark:bg-neutral-900 border border-[#e8e8ed] dark:border-neutral-800 text-rose-600 dark:text-rose-400' };
@@ -628,7 +631,7 @@ function DashboardContent() {
                   setActiveTab(tab);
                   setFocusedIndex(-1);
                 }}
-                className={`apple-tab-elastic apple-badge-focus-shift px-4 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 flex items-center gap-2 cursor-pointer ${activeTab === tab ? 'bg-white dark:bg-[#333336] text-[#1d1d1f] dark:text-white shadow-sm' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-500 dark:hover:text-neutral-300'}`}
+                className={`apple-tab-elastic apple-badge-focus-shift px-5 py-2.5 rounded-xl text-xs font-semibold transition-all shrink-0 flex items-center gap-2 cursor-pointer ${activeTab === tab ? 'bg-white dark:bg-[#333336] text-[#1d1d1f] dark:text-white shadow-sm' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-500 dark:hover:text-neutral-300'}`}
               >
                 <span>{tab}</span>
                 <span className={`text-[9px] px-1.5 py-0.5 rounded-full transition-colors ${activeTab === tab ? 'bg-[#f5f5f7] dark:bg-neutral-900 text-neutral-500 dark:text-neutral-400' : 'bg-[#e8e8ed]/40 dark:bg-neutral-900/20 text-neutral-400 dark:text-neutral-600'}`}>
@@ -908,7 +911,7 @@ function DashboardContent() {
           <div className="flex-1" onClick={() => setSelectedCompanyId(null)}></div>
 
           {/* Drawer container styled as iPad multitasking sheet */}
-          <div className="apple-backdrop-spring w-full max-w-3xl bg-white dark:bg-[#161617]/90 apple-drawer-glass-border h-full flex flex-col justify-between shadow-2xl animate-slide-in transition-colors duration-300">
+          <div className="apple-backdrop-spring w-full max-w-3xl bg-white dark:bg-[#161617]/90 apple-drawer-glass-border h-screen max-h-screen flex flex-col justify-between overflow-hidden shadow-2xl animate-slide-in transition-colors duration-300">
             
             {/* Header */}
             <div className="border-b border-[#e8e8ed] dark:border-neutral-900 p-6 bg-[#fafafa]/60 dark:bg-neutral-900/10 flex justify-between items-center transition-colors">
@@ -991,7 +994,19 @@ function DashboardContent() {
 
                   <div className="space-y-1">
                     <div className="flex justify-between items-center">
-                      <label className="text-[10px] uppercase font-bold text-neutral-400 dark:text-neutral-500">Personalized Body Pitch</label>
+                      <div className="flex items-center gap-2">
+                        <label className="text-[10px] uppercase font-bold text-neutral-400 dark:text-neutral-500">Personalized Body Pitch</label>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(`Subject: ${draftSubject}\n\n${draftBody}`);
+                            setMessage('📋 Email copied to clipboard.');
+                            setTimeout(() => setMessage(''), 4000);
+                          }}
+                          className="text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 text-[9px] font-semibold bg-[#fafafa] dark:bg-neutral-900 border border-[#e8e8ed] dark:border-neutral-800 px-2 py-0.5 rounded-full cursor-pointer transition-colors"
+                        >
+                          Copy Email
+                        </button>
+                      </div>
                       <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${readability.color}`}>
                         {readability.label}
                       </span>

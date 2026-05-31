@@ -466,7 +466,7 @@ export default function SettingsPage() {
                   <button
                     type="submit"
                     disabled={saveLoading}
-                    className="px-6 h-11 rounded-xl bg-black text-white dark:bg-white dark:text-black font-semibold text-sm hover:scale-102 transition-all cursor-pointer shadow-sm disabled:opacity-50"
+                    className="px-6 h-11 rounded-xl bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-750 dark:text-[#f5f5f7] border border-[#e8e8ed] dark:border-neutral-800 font-semibold text-sm hover:scale-102 transition-all cursor-pointer shadow-sm disabled:opacity-50"
                   >
                     {saveLoading ? 'Saving...' : 'Save Changes'}
                   </button>
@@ -548,7 +548,7 @@ export default function SettingsPage() {
                   <button
                     type="submit"
                     disabled={saveLoading}
-                    className="px-6 h-11 rounded-xl bg-black text-white dark:bg-white dark:text-black font-semibold text-sm hover:scale-102 transition-all cursor-pointer shadow-sm disabled:opacity-50"
+                    className="px-6 h-11 rounded-xl bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-750 dark:text-[#f5f5f7] border border-[#e8e8ed] dark:border-neutral-800 font-semibold text-sm hover:scale-102 transition-all cursor-pointer shadow-sm disabled:opacity-50"
                   >
                     {saveLoading ? 'Testing...' : 'Test & Save Notion Link'}
                   </button>
@@ -583,7 +583,7 @@ export default function SettingsPage() {
                   <button
                     type="submit"
                     disabled={saveLoading}
-                    className="px-6 h-11 rounded-xl bg-black text-white dark:bg-white dark:text-black font-semibold text-sm hover:scale-102 transition-all cursor-pointer shadow-sm disabled:opacity-50"
+                    className="px-6 h-11 rounded-xl bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-750 dark:text-[#f5f5f7] border border-[#e8e8ed] dark:border-neutral-800 font-semibold text-sm hover:scale-102 transition-all cursor-pointer shadow-sm disabled:opacity-50"
                   >
                     {saveLoading ? 'Saving...' : 'Save AI Key'}
                   </button>
@@ -704,7 +704,7 @@ export default function SettingsPage() {
 
                     <div className="flex items-center justify-between p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-850">
                       <div>
-                        <span className="font-semibold text-xs text-neutral-800 dark:text-neutral-200 block">Trigger Hour (GMT/UTC)</span>
+                        <span className="font-semibold text-xs text-neutral-800 dark:text-neutral-200 block">Trigger Hour (Local Time - IST)</span>
                         <span className="text-[10px] text-neutral-450 dark:text-neutral-500 block mt-0.5">Specific hour of dispatch.</span>
                       </div>
                       <select

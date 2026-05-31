@@ -48,7 +48,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       <nav className="sticky top-0 z-40 backdrop-blur-md bg-white/70 dark:bg-[#161617]/70 border-b border-[#e8e8ed] dark:border-neutral-900 px-8 py-3 flex items-center justify-between transition-colors duration-300">
         <div className="flex items-center gap-8">
           <span className="font-semibold text-sm tracking-tight text-[#1d1d1f] dark:text-neutral-100 flex items-center gap-2">
-            <span className="w-2.5 h-2.5 bg-[#1d1d1f] dark:bg-[#f5f5f7] rounded-sm transition-colors"></span>
+            <span className="w-2.5 h-2.5 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-md shadow-sm transition-all duration-300"></span>
             Outreach Platform
           </span>
           
@@ -123,8 +123,8 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
           <div className="apple-dock-divider-line apple-dock-divider-sweep apple-separator-subpixel h-5"></div>
 
           {process.env.NEXT_PUBLIC_APP_MODE === 'demo' ? (
-            <span className="px-3 py-1 rounded-full text-[10px] font-medium bg-neutral-200 dark:bg-neutral-900 text-orange-600 dark:text-orange-400 border border-neutral-300 dark:border-neutral-850 flex items-center gap-1.5 shadow-sm transition-colors">
-              <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
+            <span className="px-3 py-1 rounded-full text-[10px] font-medium bg-purple-50 dark:bg-purple-950/15 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-900/30 flex items-center gap-1.5 shadow-sm transition-colors">
+              <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
               Demo mode
             </span>
           ) : (
@@ -143,7 +143,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <AuthProvider>
         <LayoutContent>{children}</LayoutContent>
       </AuthProvider>
