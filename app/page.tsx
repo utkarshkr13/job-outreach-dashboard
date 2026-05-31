@@ -1236,7 +1236,7 @@ function DashboardContent() {
                   💾 Save Edits
                 </button>
 
-                {selectedCompany.emailStatus === 'Approved' ? (
+                {selectedCompany.emailStatus === 'Approved' && (
                   <button
                     onClick={() => {
                       handleSendEmail(selectedCompany.notionId);
@@ -1247,7 +1247,9 @@ function DashboardContent() {
                   >
                     Send Outreach Now
                   </button>
-                ) : (
+                )}
+
+                {(selectedCompany.emailStatus === 'Draft Ready' || selectedCompany.emailStatus === 'Redo') && (
                   <button
                     onClick={() => {
                       handleStatusUpdate(selectedCompany.notionId, 'Approved');
@@ -1257,6 +1259,28 @@ function DashboardContent() {
                   >
                     Approve Outreach Draft
                   </button>
+                )}
+
+                {selectedCompany.emailStatus === 'New' && (
+                  <button
+                    disabled
+                    className="bg-neutral-100 dark:bg-neutral-900 text-neutral-400 dark:text-neutral-600 text-xs font-bold py-2.5 px-6 rounded-full border border-neutral-200 dark:border-neutral-850"
+                  >
+                    Draft Generation Pending
+                  </button>
+                )}
+
+                {(selectedCompany.emailStatus === 'Sent' || selectedCompany.emailStatus === 'Replied' || selectedCompany.emailStatus === 'Interview' || selectedCompany.emailStatus === 'Offer') && (
+                  <span className="bg-emerald-50 dark:bg-emerald-950/15 text-emerald-600 dark:text-emerald-400 border border-emerald-250/40 dark:border-emerald-900/30 text-[10.5px] font-bold py-2.5 px-5 rounded-full inline-flex items-center gap-1.5 shadow-sm transition-all">
+                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                    📬 Sent & Tracked Live
+                  </span>
+                )}
+
+                {selectedCompany.emailStatus === 'Rejected' && (
+                  <span className="bg-red-50 dark:bg-red-950/15 text-red-600 dark:text-red-400 border border-red-250/40 dark:border-red-900/30 text-[10.5px] font-bold py-2.5 px-5 rounded-full inline-flex items-center gap-1.5 shadow-sm transition-all">
+                    ❌ Lead Archived
+                  </span>
                 )}
               </div>
             </div>
