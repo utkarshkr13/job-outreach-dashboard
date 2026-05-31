@@ -81,6 +81,7 @@ function DashboardContent() {
   const [sortBy, setSortBy] = useState<'date' | 'company' | 'salary' | 'signal'>('date');
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
   const [focusedIndex, setFocusedIndex] = useState<number>(-1);
+  const [visibleCount, setVisibleCount] = useState(50);
 
   // Ingestion Form State
   const [ingestCompany, setIngestCompany] = useState('');
@@ -194,6 +195,8 @@ function DashboardContent() {
     fetchCompanies();
   }, []);
 
+
+
   useEffect(() => {
     const drawerId = searchParams.get('drawer');
     if (drawerId && companies.length > 0) {
@@ -236,7 +239,13 @@ function DashboardContent() {
       }
 
       if (e.key.toLowerCase() === 'j') {
-        setFocusedIndex(prev => (prev < filteredCompanies.length - 1 ? prev + 1 : prev));
+        setFocusedIndex(prev => {
+          const nextIndex = prev < filteredCompanies.length - 1 ? prev + 1 : prev;
+          if (nextIndex >= visibleCount) {
+            setVisibleCount(v => Math.min(v + 50, filteredCompanies.length));
+          }
+          return nextIndex;
+        });
       } else if (e.key.toLowerCase() === 'k') {
         setFocusedIndex(prev => (prev > 0 ? prev - 1 : prev));
       } else if (e.key.toLowerCase() === 'e' && focusedIndex !== -1) {
@@ -287,6 +296,28 @@ function DashboardContent() {
       }
       return b.dateAdded.localeCompare(a.dateAdded); 
     });
+
+  const displayedCompanies = filteredCompanies.slice(0, visibleCount);
+
+  // Reset pagination state when filters change
+  useEffect(() => {
+    setVisibleCount(50);
+  }, [activeTab, searchTerm, sortBy]);
+
+  // Infinite scroll listener to incrementally load more companies as the user scrolls down
+  useEffect(() => {
+    const handleScroll = () => {
+      // Trigger loading the next batch of 50 companies when scrolled near the bottom of the page
+      if (
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 300
+      ) {
+        setVisibleCount(prev => Math.min(prev + 50, filteredCompanies.length));
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [filteredCompanies.length]);
 
   // Fetch intelligence briefs using Claude
   const triggerAICompanyBrief = async (company: Company) => {
@@ -893,7 +924,7 @@ function DashboardContent() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800 transition-colors">
-                {filteredCompanies.map((company, idx) => {
+                {displayedCompanies.map((company, idx) => {
                   const isFocused = idx === focusedIndex;
                   const crmStage = CRM_STAGES.find(s => s.status === company.emailStatus);
                   const isSent = company.emailStatus === 'Sent' || company.emailStatus === 'Replied' || company.emailStatus === 'Interview' || company.emailStatus === 'Offer';
