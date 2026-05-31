@@ -12,6 +12,7 @@
     "@anthropic-ai/sdk": "^0.95.1",
     "@notionhq/client": "^2.2.15",
     "@opentelemetry/api": "^1.9.1",
+    "@vercel/analytics": "^2.0.1",
     "@vercel/blob": "^2.3.3",
     "firebase": "^12.14.0",
     "firebase-admin": "^13.10.0",
