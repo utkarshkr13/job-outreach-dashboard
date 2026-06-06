@@ -41,7 +41,7 @@ export async function POST(req: Request) {
 
     const updatePayload: any = {};
     if (status !== undefined) updatePayload.emailStatus = status;
-    if (notes !== undefined) updatePayload.draftNotes = notes;
+    if (notes !== undefined) updatePayload.notes = notes;
     if (emailSubject !== undefined) updatePayload.emailSubject = emailSubject;
     if (emailDraft !== undefined) updatePayload.emailDraft = emailDraft;
     if (draftNotes !== undefined) updatePayload.draftNotes = draftNotes;
@@ -60,4 +60,8 @@ export async function POST(req: Request) {
     const isAuthError = e.message.includes('Unauthorized') || e.message.includes('User not found');
     return NextResponse.json({ error: e.message }, { status: isAuthError ? 401 : 500 });
   }
+}
+
+export async function PATCH(req: Request) {
+  return POST(req);
 }

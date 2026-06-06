@@ -60,17 +60,25 @@ export default function AnalyticsPage() {
   const stageNew = companies.filter(c => c.emailStatus === 'New').length;
   const stageDrafted = companies.filter(c => c.emailStatus === 'Draft Ready' || c.emailStatus === 'Redo').length;
   const stageApproved = companies.filter(c => c.emailStatus === 'Approved').length;
-  const stageSent = companies.filter(c => c.emailStatus === 'Sent' || c.emailed).length;
-  const stageReplied = companies.filter(c => c.emailStatus === 'Replied').length;
-  const stageInterview = companies.filter(c => c.emailStatus === 'Interview').length;
-  const stageOffer = companies.filter(c => c.emailStatus === 'Offer').length;
-  const stageRejected = companies.filter(c => c.emailStatus === 'Rejected').length;
 
-  const totalInterviews = stageInterview + stageOffer;
-  const totalResponses = stageReplied + totalInterviews;
+  // Track active drafts
+  const activeDrafts = companies.filter(c => 
+    ['Draft Ready', 'Redo', 'Approved', 'Scheduled'].includes(c.emailStatus || '')
+  ).length;
+
+  // Track responses/interviews
+  const totalInterviews = companies.filter(c => 
+    ['Interview', 'Offer'].includes(c.emailStatus || '')
+  ).length;
+  const totalResponses = companies.filter(c => 
+    ['Replied', 'Interview', 'Offer'].includes(c.emailStatus || '')
+  ).length;
 
   // Track opens
-  const sentList = companies.filter(c => c.emailStatus === 'Sent' || c.emailed);
+  const sentList = companies.filter(c => 
+    c.emailed || 
+    ['Sent', 'Follow-up Ready', 'Replied', 'Interview', 'Offer', 'No Response'].includes(c.emailStatus || '')
+  );
   const totalOpens = sentList.reduce((acc, curr) => acc + (curr.openCount ?? 0), 0);
   const distinctOpenedCount = sentList.filter(c => (c.openCount ?? 0) > 0).length;
 
@@ -212,7 +220,7 @@ export default function AnalyticsPage() {
 
                 {/* 2. Drafted */}
                 <text x="300" y="75" fill="currentColor" fontSize="10" fontWeight="bold" textAnchor="middle" className="text-neutral-500 dark:text-neutral-400 transition-colors">
-                  2. AI drafts ready: {stageDrafted + stageApproved + stageSent + totalResponses} ({total > 0 ? Math.round(((stageDrafted + stageApproved + stageSent + totalResponses)/total)*100) : 0}%)
+                  2. AI drafts ready: {activeDrafts} active ({total > 0 ? Math.round((activeDrafts/total)*100) : 0}%)
                 </text>
 
                 {/* 3. Sent */}

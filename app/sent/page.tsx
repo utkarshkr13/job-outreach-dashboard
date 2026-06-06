@@ -288,7 +288,7 @@ export default function SentPage() {
 
       {/* Floating Toast Notification */}
       {copyStatus && (
-        <div className="apple-toast-overlay apple-toast-frosted fixed top-6 right-6 z-50 text-neutral-850 dark:text-neutral-200 text-xs font-semibold px-5 py-3.5 border border-neutral-250 dark:border-neutral-850 transition-all duration-300 max-w-sm animate-slide-in">
+        <div className="apple-toast-overlay apple-toast-frosted fixed top-6 right-6 z-50 text-neutral-850 dark:text-neutral-200 text-xs font-semibold px-5 py-3.5 border border-neutral-250 dark:border-neutral-850 transition-all duration-300 max-w-sm animate-slide-in flex gap-3 items-start">
           <span className="text-sm">📋</span>
           <div className="flex-1">
             <p className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider">System Copy</p>

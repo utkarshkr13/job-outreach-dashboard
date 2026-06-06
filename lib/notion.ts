@@ -257,6 +257,9 @@ export async function updateCompanyProperties(
   if (properties.draftNotes !== undefined) {
     props['Draft Notes'] = { rich_text: [{ text: { content: properties.draftNotes.slice(0, 2000) } }] };
   }
+  if (properties.notes !== undefined) {
+    props['Notes'] = { rich_text: [{ text: { content: properties.notes.slice(0, 2000) } }] };
+  }
   if (properties.followUpCount !== undefined) {
     props['Follow-up Count'] = { number: properties.followUpCount };
   }

@@ -275,6 +275,60 @@ export default function SettingsPage() {
     }
   };
 
+  const handleSecuritySave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaveLoading(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    try {
+      const token = await user?.getIdToken();
+      const payload: any = {
+        settings: {
+          cronEnabled,
+          cronHour,
+        }
+      };
+
+      const credentials: any = {};
+      let hasCreds = false;
+      if (notionApiKey !== '••••••••••••••••' && notionApiKey !== '') {
+        credentials.notionApiKey = notionApiKey;
+        hasCreds = true;
+      }
+      if (notionDbId !== '••••••••••••••••' && notionDbId !== '') {
+        credentials.notionDbId = notionDbId;
+        hasCreds = true;
+      }
+      if (hasCreds) {
+        payload.credentials = credentials;
+      }
+
+      const res = await fetch('/api/settings/credentials', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Failed to update security settings.');
+
+      if (notionApiKey !== '••••••••••••••••' && notionApiKey !== '') {
+        setNotionConnected(true);
+      }
+
+      setSuccessMsg('Security settings saved successfully!');
+      setTimeout(() => setSuccessMsg(null), 4000);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to save security changes.');
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
   // Resume Upload / Replace
   const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -691,7 +745,7 @@ export default function SettingsPage() {
 
             {/* SECTION 6: ACCOUNT SECURITY */}
             {activeSection === 'security' && (
-              <div className="space-y-6">
+              <form onSubmit={handleSecuritySave} className="space-y-6">
                 
                 {/* 2FA Card */}
                 <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 shadow-sm space-y-6">
@@ -706,6 +760,7 @@ export default function SettingsPage() {
                       <span className="text-[10px] text-neutral-450 dark:text-neutral-500 block mt-0.5">Scan QR code using Google Authenticator or Duo security apps.</span>
                     </div>
                     <button
+                      type="button"
                       onClick={() => setTwoFactorEnabled(!twoFactorEnabled)}
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer focus:outline-none ${
                         twoFactorEnabled ? 'bg-emerald-500' : 'bg-neutral-300 dark:bg-neutral-800'
@@ -715,6 +770,37 @@ export default function SettingsPage() {
                         twoFactorEnabled ? 'translate-x-6' : 'translate-x-1'
                       }`} />
                     </button>
+                  </div>
+                </div>
+
+                {/* Notion Credentials Card */}
+                <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 shadow-sm space-y-6">
+                  <div>
+                    <h3 className="text-base font-bold text-neutral-900 dark:text-white">Notion Database Integration</h3>
+                    <p className="text-xs text-neutral-450 dark:text-neutral-500 mt-1">Verify Notion token database configurations stored securely in your dashboard credentials.</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Notion API Integration Token (Notion Token)</label>
+                      <input
+                        type="password"
+                        placeholder="secret_..."
+                        value={notionApiKey}
+                        onChange={(e) => setNotionApiKey(e.target.value)}
+                        className="w-full h-11 px-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 dark:focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Notion Database ID</label>
+                      <input
+                        type="text"
+                        placeholder="Hexadecimal Database ID"
+                        value={notionDbId}
+                        onChange={(e) => setNotionDbId(e.target.value)}
+                        className="w-full h-11 px-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-transparent text-sm focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 dark:focus:ring-blue-500"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -732,6 +818,7 @@ export default function SettingsPage() {
                         <span className="text-[10px] text-neutral-450 dark:text-neutral-500 block mt-0.5">Triggers automatic daily pipeline scans.</span>
                       </div>
                       <button
+                        type="button"
                         onClick={() => setCronEnabled(!cronEnabled)}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer focus:outline-none ${
                           cronEnabled ? 'bg-emerald-500' : 'bg-neutral-300 dark:bg-neutral-800'
@@ -746,7 +833,7 @@ export default function SettingsPage() {
                     <div className="flex items-center justify-between p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-850">
                       <div>
                         <span className="font-semibold text-xs text-neutral-800 dark:text-neutral-200 block">Trigger Hour (Local Time - IST)</span>
-                        <span className="text-[10px] text-neutral-450 dark:text-neutral-500 block mt-0.5">Specific hour of dispatch.</span>
+                        <span className="text-[10px] text-neutral-455 dark:text-neutral-500 block mt-0.5">Specific hour of dispatch.</span>
                       </div>
                       <select
                         value={cronHour}
@@ -761,6 +848,17 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
+                {/* Save Button */}
+                <div className="flex justify-end gap-3 border-t border-neutral-100 dark:border-neutral-850 pt-6">
+                  <button
+                    type="submit"
+                    disabled={saveLoading}
+                    className="px-6 h-11 rounded-xl bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-750 dark:text-[#f5f5f7] border border-[#e8e8ed] dark:border-neutral-800 font-semibold text-sm hover:scale-102 transition-all cursor-pointer shadow-sm disabled:opacity-50"
+                  >
+                    {saveLoading ? 'Saving...' : 'Save Security Settings'}
+                  </button>
+                </div>
+
                 {/* Developer Utilities Reset */}
                 <div className="p-6 md:p-8 rounded-3xl bg-[#fff3cd] dark:bg-neutral-900/20 border border-[#ffeeba] dark:border-neutral-850 shadow-sm space-y-4">
                   <div>
@@ -770,6 +868,7 @@ export default function SettingsPage() {
                     <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">Resets your local demo lead database back to the default 10 leads.</p>
                   </div>
                   <button
+                    type="button"
                     onClick={triggerDbReset}
                     disabled={reseedLoading}
                     className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-red-50 hover:bg-red-100 dark:bg-red-950/10 dark:hover:bg-red-950/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-950/40 cursor-pointer disabled:opacity-50"
@@ -778,14 +877,14 @@ export default function SettingsPage() {
                   </button>
                 </div>
 
-              </div>
+              </form>
             )}
 
           </div>
         </div>
       )}
       {successMsg && (
-        <div className="apple-toast-overlay apple-toast-frosted fixed top-6 right-6 z-50 text-neutral-850 dark:text-neutral-200 text-xs font-semibold px-5 py-3.5 border border-neutral-200 dark:border-neutral-800 transition-all duration-300 max-w-sm animate-slide-in">
+        <div className="apple-toast-overlay apple-toast-frosted fixed top-6 right-6 z-50 text-neutral-850 dark:text-neutral-200 text-xs font-semibold px-5 py-3.5 border border-neutral-200 dark:border-neutral-800 transition-all duration-300 max-w-sm animate-slide-in flex gap-3 items-start">
           <span className="text-sm">✓</span>
           <div className="flex-1">
             <p className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider">System Confirmed</p>

@@ -47,18 +47,26 @@ export default function CompanyPage() {
   const [drawerSendMenuOpen, setDrawerSendMenuOpen] = useState(false);
 
   useEffect(() => {
-    authFetch('/api/companies').then(r => r.json()).then((data: Company[]) => {
-      const c = data.find(x => x.notionId === params.id);
-      if (c) {
-        setCompany(c);
-        setEditedSubject(c.emailSubject ?? '');
-        setEditedBody(c.emailDraft ?? '');
-        setJdUrl(c.jobDescriptionUrl || '');
-        setJdKeywords(c.jdKeywords ? c.jdKeywords.split(', ') : []);
-        setJdGaps(c.skillsGap ? c.skillsGap.split(', ') : []);
-      }
-      setLoading(false);
-    });
+    authFetch('/api/companies')
+      .then(r => r.json())
+      .then((data: any) => {
+        if (Array.isArray(data)) {
+          const c = data.find(x => x.notionId === params.id);
+          if (c) {
+            setCompany(c);
+            setEditedSubject(c.emailSubject ?? '');
+            setEditedBody(c.emailDraft ?? '');
+            setJdUrl(c.jobDescriptionUrl || '');
+            setJdKeywords(c.jdKeywords ? c.jdKeywords.split(', ') : []);
+            setJdGaps(c.skillsGap ? c.skillsGap.split(', ') : []);
+          }
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
 
     // Fetch custom resume status for this company
     authFetch(`/api/resume?companyId=${params.id}`)
@@ -160,11 +168,13 @@ export default function CompanyPage() {
         // Refresh company
         const refreshedRes = await authFetch('/api/companies');
         const refreshedData = await refreshedRes.json();
-        const c = refreshedData.find((x: Company) => x.notionId === params.id);
-        if (c) {
-          setCompany(c);
-          setEditedSubject(c.emailSubject ?? '');
-          setEditedBody(c.emailDraft ?? '');
+        if (Array.isArray(refreshedData)) {
+          const c = refreshedData.find((x: Company) => x.notionId === params.id);
+          if (c) {
+            setCompany(c);
+            setEditedSubject(c.emailSubject ?? '');
+            setEditedBody(c.emailDraft ?? '');
+          }
         }
         
         setResumeMsg('✅ JD Analysis completed. Pitch hook updated.');
