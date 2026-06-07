@@ -3,6 +3,7 @@ import { AuthProvider } from '@/lib/auth-context';
 import Navbar from '@/app/components/Navbar';
 import { Analytics } from '@vercel/analytics/react';
 import './globals.css';
+import './ui-fixes.css';
 
 export const metadata: Metadata = {
   title: 'Outreach Platform',
