@@ -1,174 +1,235 @@
-# Job Outreach Dashboard
+# 🚀 Job Outreach Dashboard: Setup & Deployment Guide
 
-A Next.js dashboard that automates personalised cold email outreach for job hunting. It pulls companies from a Notion database, generates tailored email drafts using Claude AI, lets you review and approve them, then sends via Gmail OAuth2 with your resume auto-attached.
+Welcome! This is a comprehensive, step-by-step setup guide for the **Job Outreach Dashboard**, a Next.js application that automates highly personalized cold email outreach for job hunting. 
 
-**Live:** https://job-outreach-dashboard.vercel.app
-
----
-
-## What It Does
-
-1. **Daily cron (4am IST)** — Pulls all companies with status `New` from Notion and generates a personalised cold email draft for each using Claude.
-2. **Review dashboard** — Read each draft, edit inline, approve or reject.
-3. **One-click send** — Sends directly from your Gmail via OAuth2, attaches your resume PDF automatically, and updates the Notion row to `Sent`.
+The dashboard connects to a **Notion database** of target companies, generates custom-tailored email pitches using **Claude AI / Llama 3**, and sends approved pitches directly from your **Gmail account** (via OAuth2) with your resume PDF automatically attached.
 
 ---
 
-## Tech Stack
+## 🌟 Key Features
 
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 16 (App Router, TypeScript) |
-| UI | React 19 + Tailwind CSS v4 |
-| Email drafts | Anthropic Claude (`claude-3-5-sonnet-20241022`) |
-| Database | Notion API |
-| Email sending | Nodemailer + Gmail OAuth2 |
-| File storage | Vercel Blob (resume PDF) |
-| Hosting | Vercel (cron + deployment) |
+1. **Notion Database Sync**: Pulls target companies, roles, contact names, and email addresses directly from your Notion workspace.
+2. **AI Pitch Generator**: Generates customized subject lines and body pitches tailored to the target company's products, tech stack, and job description.
+3. **CRM Status Pipeline**: Tracks leads through various stages: `New` ➜ `Notion Draft Ready` ➜ `Approved` ➜ `Scheduled` ➜ `Sent` ➜ `Replied` ➜ `Interview` ➜ `Offer` ➜ `Rejected`.
+4. **On-Demand & Bulk AI Generation**: Generate or regenerate pitches for individual companies directly from the UI drawer, or let the daily cron generate them in bulk.
+5. **Secure Authentication Gate**: Protects the dashboard from public access using a simple password gate (`utkarsh@2002`).
 
 ---
 
-## File Structure
+## 🛠️ Technology Stack
+
+*   **Framework**: Next.js 16 (App Router, TypeScript)
+*   **UI**: React 19 + Vanilla CSS & Tailwind CSS v4
+*   **AI Models**: Anthropic Claude (`claude-3-5-sonnet-20241022`) or Groq Llama 3 (`llama-3.3-70b-versatile`)
+*   **Database**: Notion API (Leads) + Firebase/Firestore (User Settings & Auth Tokens)
+*   **Email Engine**: Nodemailer + Gmail OAuth2 (sent from your personal Gmail address)
+*   **Storage**: Vercel Blob (stores your resume PDF securely)
+*   **Hosting**: Vercel (for serverless hosting, API routes, and Cron Jobs)
+
+---
+
+## 📂 Project Directory Structure
 
 ```
 job-outreach-dashboard/
 ├── app/
-│   ├── page.tsx                        # Dashboard — company table
-│   ├── company/[id]/page.tsx           # Company detail — view/edit draft
-│   ├── sent/page.tsx                   # Sent emails history
-│   ├── settings/page.tsx               # Resume upload UI
+│   ├── page.tsx                        # Main Dashboard page (Lead grid & Drawer)
+│   ├── layout.tsx                      # Root layout wrapper
+│   ├── login/page.tsx                  # Firebase sign-in page
+│   ├── password/page.tsx               # Password gate landing page
+│   ├── sent/page.tsx                   # History table of sent emails
+│   ├── settings/page.tsx               # User profile, API credentials, and resume upload UI
+│   ├── analytics/page.tsx              # Analytics charts (open rates, replies, success metrics)
 │   └── api/
-│       ├── companies/route.ts          # GET all companies from Notion
-│       ├── generate/route.ts           # POST generate draft for one company
-│       ├── generate/bulk/route.ts      # POST generate drafts for all New
-│       ├── approve/[id]/route.ts       # POST set status Approved
-│       ├── reject/[id]/route.ts        # POST set status Rejected
-│       ├── redo/[id]/route.ts          # POST regenerate draft
-│       ├── send/[id]/route.ts          # POST send one email
-│       ├── send/bulk/route.ts          # POST send all Approved
-│       ├── cron/generate/route.ts      # POST cron endpoint (4am IST daily)
-│       └── resume/                     # GET/POST resume blob management
+│       ├── auth/site-password/route.ts # Password gate verification API
+│       ├── companies/route.ts          # Notion companies fetch and update API
+│       ├── generate/route.ts           # Individual AI pitch generation API
+│       ├── cron/generate/route.ts      # Automated daily bulk generation (4 AM IST)
+│       ├── send/[id]/route.ts          # Gmail sender API for a specific company
+│       └── resume/upload/route.ts      # Vercel Blob upload endpoint for resumes
 ├── lib/
-│   ├── notion.ts                       # Notion API client + helpers
-│   ├── agents.ts                       # Claude email generation pipeline
-│   └── mailer.ts                       # Gmail OAuth2 email sender
-├── types/index.ts                      # TypeScript types
-├── vercel.json                         # Cron job config
-└── .env.local                          # Secrets — never commit this
+│   ├── notion.ts                       # Notion client helper (fetches/writes properties)
+│   ├── agents.ts                       # AI email generation pipeline
+│   ├── mailer.ts                       # Nodemailer + Gmail OAuth2 sender
+│   └── firebase-admin.ts               # Firebase admin client for backend operations
+├── types/index.ts                      # TypeScript types for Companies, Credentials, etc.
+└── vercel.json                         # Cron configuration for daily auto-runs
 ```
 
 ---
 
-## Environment Variables
+## ⚙️ Step 1: Environment Setup (`.env.local`)
 
-Create a `.env.local` file at the project root (never commit this file):
+Create a `.env.local` file in the root directory. Copy and paste the following keys, replacing placeholders with your credentials:
 
 ```env
-# Anthropic
-ANTHROPIC_API_KEY=your_anthropic_api_key
+# Active Mode: 'demo' (bypasses Firebase/Notion keys on localhost) or 'production'
+NEXT_PUBLIC_APP_MODE=demo
 
-# Notion
-NOTION_API_KEY=your_notion_integration_token
-NOTION_DB_ID=your_notion_database_id
+# AI API Keys
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+GROQ_API_KEY=your_groq_api_key_here
+PREFERRED_LLM_PROVIDER=anthropic
 
-# Cron protection
-CRON_SECRET=any_random_string
+# Notion Database Configuration
+NOTION_API_KEY=your_notion_integration_token_here
+NOTION_DB_ID=your_notion_database_id_here
 
-# Gmail OAuth2
-GMAIL_USER=your_gmail_address
-GMAIL_CLIENT_ID=your_google_oauth_client_id
-GMAIL_CLIENT_SECRET=your_google_oauth_client_secret
-GMAIL_REFRESH_TOKEN=your_gmail_refresh_token
+# Password Gate & Session Security
+SITE_PASSWORD=utkarsh@2002
+AUTH_SECRET=b6e3f2d1e4c5a6b7f8c9d0e1f2a3b4c5
+CRON_SECRET=b6e3f2d1e4c5a6b7f8c9d0e1f2a3b4c5
 
-# Sender details
+# Gmail OAuth2 Credentials
+GMAIL_USER=your_email@gmail.com
+GMAIL_CLIENT_ID=your_google_client_id_here
+GMAIL_CLIENT_SECRET=your_google_client_secret_here
+GMAIL_REFRESH_TOKEN=your_gmail_refresh_token_here
+
+# Vercel Blob Storage Token (For Resume Uploads)
+BLOB_READ_WRITE_TOKEN=your_vercel_blob_token_here
+
+# Firebase Configuration (for user credentials database)
+FIREBASE_PROJECT_ID=your_firebase_project_id
+FIREBASE_CLIENT_EMAIL=your_firebase_client_email
+FIREBASE_PRIVATE_KEY="your_firebase_private_key_here"
+
+# Default Sender Profile Information
 SENDER_NAME=Your Full Name
-SENDER_PHONE=your_phone_number
+SENDER_PHONE=+91 XXXXXXXXXX
 SENDER_LINKEDIN=linkedin.com/in/your-profile
-SENDER_BIO=One sentence professional bio
+SENDER_BIO=I am a Business Analyst with experience shipping end-to-end AI products.
 TARGET_ROLES=Associate PM or Business Analyst
 ```
 
-For production, set these in your Vercel project → Settings → Environment Variables.
+*Note: For production deployments, these environment variables must be added to your **Vercel Project Settings ➜ Environment Variables**.*
 
 ---
 
-## Gmail OAuth2 Setup (5 min)
+## 📊 Step 2: Notion Setup
 
-1. Go to [console.cloud.google.com](https://console.cloud.google.com) → New Project → Enable **Gmail API**
-2. APIs & Services → Credentials → **Create OAuth Client ID** (Web application)
-3. Add redirect URI: `https://developers.google.com/oauthplayground`
-4. Go to [OAuth2 Playground](https://developers.google.com/oauthplayground)
-   - Click the **gear icon** → check **"Use your own OAuth credentials"**
-   - Enter your Client ID and Client Secret
-5. Find **Gmail API v1** → select `https://mail.google.com/` → **Authorize APIs**
-6. Sign in with your Gmail account → Allow
-7. Click **Exchange authorization code for tokens** → copy the **Refresh token**
-8. Add the refresh token to your env vars
+1. **Create an Integration**: Go to [notion.so/my-integrations](https://notion.so/my-integrations), click **New integration**, name it, and copy the **Internal Integration Token** (which maps to `NOTION_API_KEY`).
+2. **Create a Database**: In Notion, create a database containing the following columns exactly (case-sensitive):
 
----
+| Property Name | Property Type | Description |
+|:---|:---|:---|
+| **Company** | `title` | Name of the target company (main column). |
+| **Role** | `rich_text` | Target job title (e.g. Associate PM). |
+| **Email** | `email` | Recruiter's email address. |
+| **Contact Name** | `rich_text` | Recruiter's first and last name. |
+| **Contact Title** | `rich_text` | Recruiter's role (e.g. HR Manager). |
+| **Company Type** | `select` | Dropdown values: `Startup` or `Stable`. |
+| **Email Status** | `select` | Dropdown values: `New`, `Draft Ready`, `Approved`, `Scheduled`, `Sent`, `Rejected`, `Redo`. |
+| **Email Subject** | `rich_text` | Stores the generated or edited email subject. |
+| **Email Draft** | `rich_text` | Stores the generated or edited email body. |
+| **Draft Notes** | `rich_text` | Stores the AI feedback and gatekeeper score. |
+| **Emailed** | `checkbox` | Checked automatically when the email is sent. |
+| **Date Added** | `date` | Date the lead was entered. |
+| **Notes** | `rich_text` | Personal notes or context about the lead. |
+| **Source** | `select` | Where the job was found (e.g. LinkedIn, Wellfound). |
+| **Source URL** | `url` | Link to the job posting. |
 
-## Notion Setup (2 min)
-
-1. Go to [notion.so/my-integrations](https://notion.so/my-integrations) → New integration → copy token
-2. Create a database with these properties:
-
-| Property | Type |
-|---|---|
-| Company | title |
-| Role | rich_text |
-| Email | email |
-| Contact Name | rich_text |
-| Contact Title | rich_text |
-| Company Type | select: Startup / Stable |
-| Email Status | select: New / Draft Ready / Approved / Sent / Rejected / Redo |
-| Email Subject | rich_text |
-| Email Draft | rich_text |
-| Draft Notes | rich_text |
-| Emailed | checkbox |
-| Date Added | date |
-| Number | number |
-
-3. Share the database with your integration
-4. Copy the database ID from the URL → set as `NOTION_DB_ID`
+3. **Share Database**: Open your Notion database page, click the **three dots** (top right) ➜ **Add connections** ➜ select your newly created integration.
+4. **Copy Database ID**: Extract the database ID from the URL of your Notion database (the 32-character alphanumeric string between `notion.so/` and `?v=`).
 
 ---
 
-## Running Locally
+## 🔑 Step 3: Gmail OAuth2 Authentication Setup
 
-```bash
-npm install
-cp .env.local.example .env.local   # fill in your values
-npm run dev
-```
+To send emails directly from your personal Gmail address, you need to configure OAuth2:
 
-Open [http://localhost:3000](http://localhost:3000).
-
----
-
-## Email Status Flow
-
-```
-New → (cron generates) → Draft Ready → (approve) → Approved → (send) → Sent
-                                     → (reject)  → Rejected
-                                     → (redo)    → Draft Ready (regenerated)
-```
-
----
-
-## Cron Job
-
-Configured in `vercel.json`:
-- Schedule: `30 22 * * *` = **4:00 AM IST** daily
-- Endpoint: `/api/cron/generate`
-- Protected by `x-cron-secret` header matching `CRON_SECRET` env var
+1. **Google Cloud Console**: Go to [console.cloud.google.com](https://console.cloud.google.com) and create a **New Project**.
+2. **Enable Gmail API**: Go to **APIs & Services ➜ Library**, search for **Gmail API**, and click **Enable**.
+3. **Configure Consent Screen**:
+   - Go to **OAuth consent screen**, select **External**, fill in the app details.
+   - Under **Test Users**, add your personal Gmail address (e.g., `your_email@gmail.com`).
+4. **Create Credentials**:
+   - Go to **Credentials ➜ Create Credentials ➜ OAuth client ID**.
+   - Select **Web application** as the application type.
+   - Under **Authorized redirect URIs**, add `https://developers.google.com/oauthplayground`.
+   - Click **Create** and save the **Client ID** and **Client Secret**.
+5. **Get Refresh Token via OAuth2 Playground**:
+   - Go to [Google OAuth2 Playground](https://developers.google.com/oauthplayground).
+   - Click the **Gear Icon** in the top-right corner.
+   - Check the box **"Use your own OAuth credentials"**.
+   - Input your **OAuth Client ID** and **OAuth Client Secret**, then close the gear panel.
+   - On the left sidebar, scroll down to **Gmail API v1** and expand it.
+   - Check the checkbox for `https://mail.google.com/`.
+   - Click **Authorize APIs** and log in with your personal Gmail account. Click **Allow** on the permissions screen.
+   - On Step 2 of the playground, click **Exchange authorization code for tokens**.
+   - Copy the generated **Refresh Token** (this is a long string starting with `1//`).
+   - Add these values to your environment variables.
 
 ---
 
-## Deploy Your Own
+## 🔥 Step 4: Firebase / Firestore Setup
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/utkarshkr13/job-outreach-dashboard&env=ANTHROPIC_API_KEY,NOTION_API_KEY,NOTION_DB_ID,CRON_SECRET,GMAIL_USER,GMAIL_CLIENT_ID,GMAIL_CLIENT_SECRET,GMAIL_REFRESH_TOKEN,SENDER_NAME,SENDER_PHONE,SENDER_LINKEDIN,SENDER_BIO,TARGET_ROLES&project-name=job-outreach-dashboard&repository-name=job-outreach-dashboard)
+The dashboard uses Firebase Auth to register/login users, and Firestore to store encrypted secrets.
 
-Fill in your own credentials when Vercel prompts during setup.
+1. **Create Firebase Project**: Go to [console.firebase.google.com](https://console.firebase.google.com) and create a new project.
+2. **Enable Firestore**: In the Firebase console, go to **Firestore Database** and click **Create Database**.
+3. **Users Collection Schema**:
+   Create a collection named `users`. Each document inside this collection represents a user, with the document ID corresponding to their Firebase Authentication `UID`.
+   Each user document should have the following structure:
+   
+   ```json
+   {
+     "name": "Your Name",
+     "credentials": {
+       "notionApiKey": "AES_ENCRYPTED_NOTION_TOKEN",
+       "notionDbId": "AES_ENCRYPTED_NOTION_DB_ID",
+       "anthropicApiKey": "AES_ENCRYPTED_ANTHROPIC_KEY",
+       "groqApiKey": "AES_ENCRYPTED_GROQ_KEY",
+       "llmProvider": "anthropic",
+       "gmailUser": "your_email@gmail.com",
+       "gmailClientId": "AES_ENCRYPTED_CLIENT_ID",
+       "gmailClientSecret": "AES_ENCRYPTED_CLIENT_SECRET",
+       "gmailRefreshToken": "AES_ENCRYPTED_REFRESH_TOKEN"
+     },
+     "profile": {
+       "senderName": "Your Name",
+       "phone": "+91 9969396063",
+       "linkedin": "linkedin.com/in/your-profile",
+       "bio": "Your professional elevator pitch bio.",
+       "targetRoles": "Associate PM or Business Analyst"
+     },
+     "resumeBlobUrl": "https://xxxxx.public.blob.vercel-storage.com/resume.pdf",
+     "settings": {
+       "cronEnabled": true
+     }
+   }
+   ```
+   *Note: On the settings page, the dashboard handles encrypting and saving these fields automatically when you input them.*
+
+4. **Service Account Key**:
+   - Go to **Project Settings ➜ Service accounts** in the Firebase console.
+   - Click **Generate new private key** to download a JSON file.
+   - Extract `clientEmail` and `privateKey` from this JSON file to set your `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY` environment variables.
 
 ---
-*Last audited and verified: June 6, 2026*
+
+## 🚀 Step 5: Running Locally
+
+Once all your environment variables are configured in `.env.local`:
+
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+2. **Run development server**:
+   ```bash
+   npm run dev
+   ```
+3. **Access the application**: Open [http://localhost:3000](http://localhost:3000) in your browser.
+4. **Login**: Enter the site password `utkarsh@2002` when prompted.
+
+---
+
+## 📤 Step 6: Deploying to Vercel
+
+1. **Repository**: Push your code to a GitHub repository.
+2. **Deploy on Vercel**: Create a new project on Vercel, import your repository, and copy all environment variables from `.env.local` to Vercel's environment settings.
+3. **Enable Cron**: Vercel will automatically read `vercel.json` and configure the daily cron job endpoint `/api/cron/generate`.
+
+---
+*Last audited and verified: June 7, 2026*
