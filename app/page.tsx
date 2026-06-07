@@ -177,7 +177,7 @@ function DashboardContent() {
     const particles = Array.from({ length: 40 }).map((_, i) => ({
       id: i,
       x: Math.random() * 100, 
-      y: 100 + Math.random() * 15,
+      y: Math.random() * 15,
       color: colors[Math.floor(Math.random() * colors.length)],
       size: Math.random() * 6 + 3
     }));
@@ -189,8 +189,8 @@ function DashboardContent() {
   };
 
   // Fetch CRM leads
-  const fetchCompanies = async () => {
-    setLoading(true);
+  const fetchCompanies = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const res = await authFetch('/api/companies');
       const data = await res.json();
@@ -200,7 +200,7 @@ function DashboardContent() {
     } catch (e) {
       console.error(e);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -218,17 +218,27 @@ function DashboardContent() {
     }
   }, [searchParams, companies]);
 
-  // Mouse movement effect for Apple Glow Cards
+  // Mouse movement effect for Apple Glow Cards (throttled via rAF for performance)
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    let ticking = false;
+    let lastEvent: MouseEvent | null = null;
+    const apply = () => {
+      ticking = false;
+      const e = lastEvent;
+      if (!e) return;
       const cards = document.querySelectorAll('.apple-glow-card');
       cards.forEach(card => {
         const rect = (card as HTMLElement).getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        (card as HTMLElement).style.setProperty('--mouse-x', `${x}px`);
-        (card as HTMLElement).style.setProperty('--mouse-y', `${y}px`);
+        (card as HTMLElement).style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+        (card as HTMLElement).style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
       });
+    };
+    const handleMouseMove = (e: MouseEvent) => {
+      lastEvent = e;
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(apply);
+      }
     };
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
@@ -419,7 +429,7 @@ function DashboardContent() {
         setJdGaps(data.gapSkills);
         setJdHookSuggestion(data.hookSuggestion);
         
-        await fetchCompanies();
+        await fetchCompanies(true);
         
         setMessage('✅ JD Analysis completed. Pitch hook updated.');
         setTimeout(() => setMessage(''), 4000);
@@ -542,7 +552,7 @@ function DashboardContent() {
       });
       const data = await res.json();
       if (data.success) {
-        await fetchCompanies();
+        await fetchCompanies(true);
         openReviewDrawer(id);
         setMessage(`📬 Threaded follow-up ${nextFollowup} drafted.`);
         setTimeout(() => setMessage(''), 5000);
@@ -597,7 +607,7 @@ function DashboardContent() {
       });
     }
     setBulkLoading(false);
-    fetchCompanies();
+    fetchCompanies(true);
     setMessage(`✅ Approved ${targets.length} drafts.`);
     setTimeout(() => setMessage(''), 4000);
   };
@@ -607,7 +617,7 @@ function DashboardContent() {
     const res = await authFetch('/api/send/bulk', { method: 'POST' });
     const data = await res.json();
     setBulkLoading(false);
-    fetchCompanies();
+    fetchCompanies(true);
     setDailyGoalCount(prev => Math.min(prev + (data.sent || 0), 5));
     triggerConfetti();
     setMessage(`🚀 Sent ${data.sent} outreaches successfully.`);
@@ -731,8 +741,8 @@ function DashboardContent() {
 
       {/* SYSTEM TOASTS */}
       {message && (
-        <div className="fixed top-6 right-6 z-50 bg-white dark:bg-[#161617] border border-neutral-200 dark:border-neutral-800 shadow-xl rounded-2xl p-4 text-xs font-semibold text-neutral-800 dark:text-neutral-200 animate-slide-in-right flex gap-3 items-start">
-          <span>🔔</span>
+        <div className={`fixed top-6 right-6 z-[60] shadow-xl rounded-2xl p-4 text-xs font-semibold animate-slide-in-right flex gap-3 items-start max-w-sm border ${message.startsWith('❌') ? 'bg-red-50 dark:bg-red-950/50 border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-300' : 'bg-white dark:bg-[#161617] border-neutral-200 dark:border-neutral-800 text-neutral-800 dark:text-neutral-200'}`}>
+          <span>{message.startsWith('❌') ? '⚠️' : '🔔'}</span>
           <p>{message}</p>
         </div>
       )}
@@ -1375,9 +1385,16 @@ function DashboardContent() {
                               setMessage('🚀 Reply sent to recruiter!');
                               setTimeout(() => setMessage(''), 4000);
                               setSelectedCompanyId(null);
-                              await fetchCompanies();
+                              await fetchCompanies(true);
+                            } else {
+                              const d = await res.json().catch(() => ({}));
+                              setMessage(`❌ ${d.error || 'Failed to send reply.'}`);
+                              setTimeout(() => setMessage(''), 8000);
                             }
-                          } catch (e) {}
+                          } catch (e: any) {
+                            setMessage(`❌ ${e?.message || 'Network error sending reply.'}`);
+                            setTimeout(() => setMessage(''), 8000);
+                          }
                           setActionLoading(null);
                         }}
                         disabled={actionLoading === selectedCompany.notionId + 'send'}
