@@ -787,7 +787,7 @@ function DashboardContent() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Ingestion Panel */}
-        <form onSubmit={handleIngest} className="apple-glow-card bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-5 shadow-[0_4px_12px_rgba(0,0,0,0.015)] dark:shadow-none flex flex-col justify-between gap-4 transition-colors duration-300">
+        <form onSubmit={handleIngest} className="apple-glow-card bg-white/75 dark:bg-[#161617]/50 backdrop-blur-xl border border-neutral-250/50 dark:border-neutral-900/60 rounded-3xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.03)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.22)] flex flex-col justify-between gap-4 transition-colors duration-300">
           <div>
             <h2 className="text-xs font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">Recruiter Ingestion</h2>
             <p className="text-[10px] text-neutral-500 mt-0.5">Finds target recruiters using Claude intelligence</p>
@@ -830,7 +830,7 @@ function DashboardContent() {
         </form>
 
         {/* Filter and sorting */}
-        <div className="apple-glow-card lg:col-span-2 bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-5 shadow-[0_4px_12px_rgba(0,0,0,0.015)] dark:shadow-none flex flex-col justify-between gap-4 transition-colors duration-300">
+        <div className="apple-glow-card lg:col-span-2 bg-white/75 dark:bg-[#161617]/50 backdrop-blur-xl border border-neutral-250/50 dark:border-neutral-900/60 rounded-3xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.03)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.22)] flex flex-col justify-between gap-4 transition-colors duration-300">
           <div className="flex justify-between items-start">
             <div>
               <h2 className="text-xs font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">Search & Control Console</h2>
@@ -925,7 +925,7 @@ function DashboardContent() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start mt-4">
           
           {/* Vertical Menu Sidebar - 3 Columns */}
-          <div className="lg:col-span-3 bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-4 space-y-1 shadow-[0_4px_24px_rgba(0,0,0,0.015)] transition-colors duration-300">
+          <div className="lg:col-span-3 bg-white/75 dark:bg-[#161617]/50 backdrop-blur-xl border border-neutral-250/50 dark:border-neutral-900/60 rounded-3xl p-4 space-y-1 shadow-[0_8px_30px_rgba(0,0,0,0.03)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.22)] transition-all duration-300">
             <div className="text-[10px] font-bold text-neutral-450 dark:text-neutral-500 uppercase tracking-wider px-3 pb-2 border-b border-neutral-100 dark:border-neutral-850 font-mono">
               CRM Status Categories
             </div>
@@ -964,206 +964,204 @@ function DashboardContent() {
                 <p className="text-xs text-neutral-400 mt-1">Try clearing your search or switching to another category.</p>
               </div>
             ) : (
-              <div className="bg-white dark:bg-[#161617] border border-neutral-200 dark:border-neutral-850 rounded-3xl shadow-[0_4px_12px_rgba(0,0,0,0.015)] transition-colors">
-          <div className="overflow-x-auto rounded-3xl">
-            <table className="w-full border-collapse text-left">
-              <thead>
-                <tr className="border-b border-neutral-200 dark:border-neutral-850 text-[10px] uppercase tracking-wider text-neutral-450 font-bold bg-[#fafafa]/50 dark:bg-neutral-900/10">
-                  <th className="py-4 px-6">Company</th>
-                  <th className="py-4 px-6">Target Role</th>
-                  <th className="py-4 px-6">Recruiter Contact</th>
-                  <th className="py-4 px-6">Source</th>
-                  <th className="py-4 px-6">Telemetry</th>
-                  <th className="py-4 px-6 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800 transition-colors">
-                {displayedCompanies.map((company, idx) => {
-                  const isFocused = idx === focusedIndex;
-                  const crmStage = CRM_STAGES.find(s => s.status === company.emailStatus);
-                  const isSent = company.emailStatus === 'Sent' || company.emailStatus === 'Replied' || company.emailStatus === 'Interview' || company.emailStatus === 'Offer';
-                  
-                  return (
-                    <tr
-                      key={company.notionId}
-                      onClick={() => openReviewDrawer(company.notionId)}
-                      className={`group hover:bg-[#fafafa]/80 dark:hover:bg-neutral-900/30 transition-colors cursor-pointer apple-row-hover ${isFocused ? 'bg-blue-50/40 dark:bg-neutral-900/40 apple-row-focus-sweep animate-fade-in' : 'border-b border-neutral-200 dark:border-neutral-800'}`}
-                    >
-                      <td className={`py-4 px-6 ${isFocused ? 'border-l-2 border-blue-600' : ''}`}>
-                        <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs uppercase transition-colors shrink-0 border ${getCompanyAvatarColors(company.company)}`}>
-                            {company.company.charAt(0)}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-semibold text-neutral-800 dark:text-neutral-100 text-xs truncate max-w-[120px] leading-normal block">
-                                {company.company}
-                              </span>
-                              {company.companySignal === 'Hot' && (
-                                <span className="text-[8.5px] font-bold px-1.5 py-0.2 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-250 dark:border-emerald-900/50 animate-pulse shrink-0 shadow-[0_0_8px_rgba(16,185,129,0.2)]" title="Hiring aggressively/Growth signal">
-                                  🔥 Hot
-                                </span>
-                              )}
-                              {company.companySignal === 'Caution' && (
-                                <span className="text-[8.5px] font-bold px-1.5 py-0.2 rounded-md bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-250 dark:border-amber-900/50 shrink-0" title="Layoffs / Hiring freeze caution">
-                                  ⚠️  Caution
-                                </span>
-                              )}
-                            </div>
-                            <span className="text-[10px] text-neutral-455 mt-0.5 block leading-none font-medium">
-                              Added {company.dateAdded}
-                            </span>
-                          </div>
-                        </div>
-                      </td>
-
-                      <td className="py-4 px-6">
-                        <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-200 block truncate w-48 leading-normal">
-                          {company.role}
-                        </span>
-                        {company.salaryRange && (
-                          <span className="inline-block mt-0.5 text-[8.5px] font-bold text-neutral-500 dark:text-neutral-455 bg-neutral-100 dark:bg-neutral-900 px-2 py-0.5 rounded-full transition-colors border border-neutral-200 dark:border-neutral-800">
-                            💰 {company.salaryRange} LPA
+              <div className="space-y-4 select-none">
+              {displayedCompanies.map((company, idx) => {
+                const isFocused = idx === focusedIndex;
+                const crmStage = CRM_STAGES.find(s => s.status === company.emailStatus);
+                const isSent = company.emailStatus === 'Sent' || company.emailStatus === 'Replied' || company.emailStatus === 'Interview' || company.emailStatus === 'Offer';
+                
+                return (
+                  <div
+                    key={company.notionId}
+                    onClick={() => openReviewDrawer(company.notionId)}
+                    className={`group relative overflow-hidden bg-white/70 dark:bg-[#161617]/50 backdrop-blur-xl border border-neutral-200/50 dark:border-neutral-900/60 p-5 rounded-2xl transition-all duration-300 hover:scale-[1.012] hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.03)] dark:hover:shadow-[0_8px_30px_rgba(0,0,0,0.22)] cursor-pointer flex flex-col md:flex-row md:items-center md:justify-between gap-4 ${
+                      isFocused ? 'ring-2 ring-blue-500/80 bg-blue-50/15 dark:bg-neutral-900/40' : ''
+                    }`}
+                  >
+                    {/* Left: Avatar + Title Info */}
+                    <div className="flex items-center gap-4">
+                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-xs uppercase transition-all shrink-0 border shadow-sm ${getCompanyAvatarColors(company.company)}`}>
+                        {company.company.charAt(0)}
+                      </div>
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-[#1d1d1f] dark:text-neutral-100 text-xs truncate max-w-[150px] leading-normal block">
+                            {company.company}
                           </span>
-                        )}
-                      </td>
+                          {company.companySignal === 'Hot' && (
+                            <span className="text-[8.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 animate-pulse shrink-0 shadow-[0_0_8px_rgba(16,185,129,0.15)]" title="Hiring aggressively/Growth signal">
+                              🔥 Hot
+                            </span>
+                          )}
+                          {company.companySignal === 'Caution' && (
+                            <span className="text-[8.5px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0" title="Layoffs / Hiring freeze caution">
+                              ⚠️ Caution
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-neutral-500 dark:text-neutral-450">
+                          <span className="font-semibold text-neutral-700 dark:text-neutral-300">{company.role}</span>
+                          {company.salaryRange && (
+                            <>
+                              <span className="text-neutral-300 dark:text-neutral-800 font-bold">•</span>
+                              <span className="text-[9.5px] font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
+                                💰 {company.salaryRange} LPA
+                              </span>
+                            </>
+                          )}
+                          <span className="text-neutral-300 dark:text-neutral-800 font-bold">•</span>
+                          <span className="text-[9.5px] text-neutral-400 dark:text-neutral-500 font-medium">Added {company.dateAdded}</span>
+                        </div>
+                      </div>
+                    </div>
 
-                      <td className="py-4 px-6 text-neutral-600 dark:text-neutral-400 text-xs transition-colors">
-                        <span className="font-semibold text-neutral-800 dark:text-neutral-200 block truncate w-48 leading-normal">
+                    {/* Middle: Recruiter Contact & Source */}
+                    <div className="flex items-center gap-6 md:ml-auto md:mr-10">
+                      <div className="space-y-0.5 hidden sm:block">
+                        <span className="text-[9px] uppercase font-bold text-neutral-400 dark:text-neutral-500 block tracking-wider">Recruiter</span>
+                        <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-250 block truncate w-36 leading-normal">
                           {company.contactName || 'Direct / Form'}
                         </span>
-                        <span className="text-[10px] text-neutral-455 block leading-none font-medium mt-0.5">
+                        <span className="text-[10px] text-neutral-455 dark:text-neutral-500 block leading-none font-medium truncate w-36">
                           {company.contactTitle || 'Hiring Coordinator'}
                         </span>
-                      </td>
+                      </div>
 
-                      <td className="py-4 px-6 text-xs text-neutral-455 dark:text-neutral-500 font-semibold transition-colors">
-                        <span className="px-2 py-0.5 rounded-full bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+                      <div className="space-y-0.5">
+                        <span className="text-[9px] uppercase font-bold text-neutral-400 dark:text-neutral-500 block tracking-wider">Source</span>
+                        <span className="inline-block px-2.5 py-0.5 rounded-full bg-neutral-200/50 dark:bg-neutral-900 border border-neutral-250/20 dark:border-neutral-800 text-[10px] font-bold text-neutral-700 dark:text-neutral-300">
                           {company.source || 'LinkedIn'}
                         </span>
-                      </td>
+                      </div>
 
-                      <td className="py-4 px-6 text-xs text-neutral-600 dark:text-neutral-400 font-mono transition-colors">
-                        {isSent ? (
-                          <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/20 inline-flex items-center gap-1 animate-pulse">
-                            👍  {company.openCount ?? 0} {company.openCount === 1 ? 'Open' : 'Opens'}
+                      {isSent && (
+                        <div className="space-y-0.5">
+                          <span className="text-[9px] uppercase font-bold text-neutral-455 dark:text-neutral-500 block tracking-wider">Telemetry</span>
+                          <span className="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 inline-flex items-center gap-1 animate-pulse">
+                            👍 {company.openCount ?? 0} {company.openCount === 1 ? 'Open' : 'Opens'}
                           </span>
-                        ) : (
-                          <span className="text-neutral-450">—</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Right: Actions / Status */}
+                    <div className="flex items-center gap-3 justify-end self-stretch md:self-auto border-t md:border-t-0 pt-3 md:pt-0 border-neutral-100 dark:border-neutral-900/60 shrink-0">
+                      <div className="flex flex-col items-end">
+                        <span className={`text-[9.5px] font-bold px-2.5 py-1 rounded-full ${crmStage ? crmStage.colorClass : 'bg-neutral-100 text-neutral-500'} ${company.emailStatus === 'Redo' ? 'apple-glow-warning border' : ''} ${company.emailStatus === 'New' ? 'apple-glow-cyan-new border' : ''} ${company.emailStatus === 'Approved' ? 'apple-glow-approved-teal border' : ''} ${company.emailStatus === 'Replied' ? 'apple-pulse-green border' : ''} ${company.emailStatus === 'Interview' ? 'apple-glow-indigo border' : ''} ${company.emailStatus === 'Offer' ? 'apple-glow-lime-emerald border' : ''} ${company.emailStatus === 'Scheduled' ? 'apple-glow-cyan border' : ''}`}>
+                          {company.emailStatus}
+                        </span>
+                        {company.emailStatus === 'Scheduled' && company.scheduledSendTime && (
+                          <span className="text-[9px] text-sky-600 dark:text-sky-400 font-mono font-bold mt-1 block">
+                            ⏳ {getScheduledCountdown(company.scheduledSendTime)}
+                          </span>
                         )}
-                      </td>
+                      </div>
 
-                      <td className="py-4 px-6 text-xs font-medium relative text-right">
-                        <div className="group-hover:opacity-0 transition-opacity flex flex-col items-end">
-                          <span className={`text-[8.5px] font-semibold px-2 py-0.5 rounded-full ${crmStage ? crmStage.colorClass : 'bg-neutral-100 text-neutral-500'} ${company.emailStatus === 'Redo' ? 'apple-glow-amber border' : ''} ${company.emailStatus === 'New' ? 'apple-glow-cyan-new border' : ''} ${company.emailStatus === 'Approved' ? 'apple-glow-approved-teal border' : ''} ${company.emailStatus === 'Replied' ? 'apple-glow-teal-cyan border' : ''} ${company.emailStatus === 'Interview' ? 'apple-glow-indigo-violet border' : ''} ${company.emailStatus === 'Offer' ? 'apple-glow-lime-emerald border' : ''} ${company.emailStatus === 'Scheduled' ? 'apple-glow-cyan border' : ''}`}>
-                            {company.emailStatus}
-                          </span>
-                          {company.emailStatus === 'Scheduled' && company.scheduledSendTime && (
-                            <span className="text-[8px] text-sky-600 dark:text-sky-400 font-mono font-semibold mt-0.5">
-                              ⏳ {getScheduledCountdown(company.scheduledSendTime)}
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="opacity-0 group-hover:opacity-100 absolute inset-0 py-4 px-6 flex items-center justify-end gap-1.5 bg-[#fafafa]/95 dark:bg-[#161617]/95 backdrop-blur-sm transition-all duration-200">
-                          {company.emailStatus === 'Approved' && (
-                            <div className="relative inline-flex items-center" data-send-menu="true">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleSendEmail(company.notionId);
-                                }}
-                                disabled={actionLoading === company.notionId + 'send'}
-                                className="bg-blue-600 hover:bg-blue-500 text-white rounded-l-full px-3 py-1.5 text-[10px] font-bold shadow-sm transition-all cursor-pointer select-none"
-                              >
-                                Send Now
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setActiveSendMenuId(activeSendMenuId === company.notionId ? null : company.notionId);
-                                }}
-                                className="bg-blue-700 hover:bg-blue-650 text-white rounded-r-full px-2 py-1.5 border-l border-white/20 transition-all text-[10px] font-bold cursor-pointer select-none"
-                              >
-                                ▼
-                              </button>
-                              {activeSendMenuId === company.notionId && (
-                                <div className="absolute right-0 top-full mt-1 w-52 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl py-1.5 z-50 animate-scale-up font-semibold text-left">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setActiveSendMenuId(null);
-                                      const optimal = getOptimalSendTime(company.location || 'Bangalore').toISOString();
-                                      handleScheduleSend(company.notionId, optimal);
-                                    }}
-                                    className="w-full px-4 py-2 text-[10px] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-left flex items-center gap-2"
-                                  >
-                                    ✨ Send at Optimal Time
-                                  </button>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setActiveSendMenuId(null);
-                                      const oneHourLater = new Date(Date.now() + 60 * 60 * 1000).toISOString();
-                                      handleScheduleSend(company.notionId, oneHourLater);
-                                    }}
-                                    className="w-full px-4 py-2 text-[10px] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-left flex items-center gap-2"
-                                  >
-                                    ⏱️  Schedule for 1 Hour Later
-                                  </button>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setActiveSendMenuId(null);
-                                      const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
-                                      tomorrow.setHours(9, 30, 0, 0);
-                                      handleScheduleSend(company.notionId, tomorrow.toISOString());
-                                    }}
-                                    className="w-full px-4 py-2 text-[10px] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-left flex items-center gap-2"
-                                  >
-                                    🌅 Schedule for Tomorrow 9:30 AM
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          {company.emailStatus === 'Draft Ready' && (
+                      <div className="flex items-center gap-2">
+                        {company.emailStatus === 'Approved' && (
+                          <div className="relative inline-flex items-center" data-send-menu="true">
                             <button
-                              onClick={() => handleStatusUpdate(company.notionId, 'Approved')}
-                              disabled={actionLoading === company.notionId + 'Approved'}
-                              className="bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/30 dark:hover:bg-blue-950/50 border border-blue-200 dark:border-blue-900/40 text-blue-600 dark:text-blue-400 rounded-full px-4 py-1.5 text-[10px] font-bold shadow-sm active:scale-95 transition-all cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSendEmail(company.notionId);
+                              }}
+                              disabled={actionLoading === company.notionId + 'send'}
+                              className="bg-blue-600 hover:bg-blue-500 text-white rounded-l-full px-3 py-1.5 text-[10px] font-bold shadow-sm transition-all cursor-pointer select-none active:scale-95"
                             >
-                              Approve
+                              Send Now
                             </button>
-                          )}
-
-                          {(company.emailStatus === 'Sent' || company.emailed) && (
                             <button
-                              onClick={() => handleGenerateFollowUp(company.notionId)}
-                              disabled={actionLoading === company.notionId + 'followup'}
-                              className="bg-white hover:bg-neutral-50 dark:bg-neutral-800 dark:hover:bg-neutral-750 border border-neutral-200 dark:border-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-full px-4 py-1.5 text-[10px] font-bold shadow-sm active:scale-95 transition-all cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveSendMenuId(activeSendMenuId === company.notionId ? null : company.notionId);
+                              }}
+                              className="bg-blue-700 hover:bg-blue-650 text-white rounded-r-full px-2.5 py-1.5 border-l border-white/20 transition-all text-[10px] font-bold cursor-pointer select-none"
                             >
-                              Follow-Up
+                              ▼
                             </button>
-                          )}
+                            {activeSendMenuId === company.notionId && (
+                              <div className="absolute right-0 top-full mt-1.5 w-52 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl py-1.5 z-50 animate-scale-up font-semibold text-left">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActiveSendMenuId(null);
+                                    const optimal = getOptimalSendTime(company.location || 'Bangalore').toISOString();
+                                    handleScheduleSend(company.notionId, optimal);
+                                  }}
+                                  className="w-full px-4 py-2 text-[10px] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-left flex items-center gap-2"
+                                >
+                                  ✨ Send at Optimal Time
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActiveSendMenuId(null);
+                                    const oneHourLater = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+                                    handleScheduleSend(company.notionId, oneHourLater);
+                                  }}
+                                  className="w-full px-4 py-2 text-[10px] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-left flex items-center gap-2"
+                                >
+                                  ⏱️ Schedule for 1 Hour Later
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActiveSendMenuId(null);
+                                    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+                                    tomorrow.setHours(9, 30, 0, 0);
+                                    handleScheduleSend(company.notionId, tomorrow.toISOString());
+                                  }}
+                                  className="w-full px-4 py-2 text-[10px] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-left flex items-center gap-2"
+                                >
+                                  🌅 Schedule for Tomorrow 9:30 AM
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
 
+                        {company.emailStatus === 'Draft Ready' && (
                           <button
-                            onClick={() => openReviewDrawer(company.notionId)}
-                            className="bg-white hover:bg-neutral-50 dark:bg-neutral-800 dark:hover:bg-neutral-750 border border-neutral-200 dark:border-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-full px-3.5 py-1.5 text-[10px] font-bold shadow-sm active:scale-95 transition-all cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStatusUpdate(company.notionId, 'Approved');
+                            }}
+                            disabled={actionLoading === company.notionId + 'Approved'}
+                            className="bg-blue-600 hover:bg-blue-500 text-white rounded-full px-4 py-1.5 text-[10px] font-bold shadow-sm active:scale-95 transition-all cursor-pointer"
                           >
-                            Edit
+                            Approve
                           </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+                        )}
+
+                        {(company.emailStatus === 'Sent' || company.emailed) && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleGenerateFollowUp(company.notionId);
+                            }}
+                            disabled={actionLoading === company.notionId + 'followup'}
+                            className="bg-white hover:bg-neutral-50 dark:bg-neutral-850 dark:hover:bg-neutral-800 border border-neutral-250 dark:border-neutral-850 text-neutral-850 dark:text-neutral-200 rounded-full px-4 py-1.5 text-[10px] font-bold shadow-sm active:scale-95 transition-all cursor-pointer"
+                          >
+                            Follow-Up
+                          </button>
+                        )}
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openReviewDrawer(company.notionId);
+                          }}
+                          className="bg-white hover:bg-neutral-50 dark:bg-neutral-850 dark:hover:bg-neutral-800 border border-neutral-250 dark:border-neutral-850 text-neutral-850 dark:text-neutral-200 rounded-full px-3.5 py-1.5 text-[10px] font-bold shadow-sm active:scale-95 transition-all cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            )}
           </div>
         </div>
   ) : (
@@ -1298,11 +1296,11 @@ function DashboardContent() {
               </button>
             </div>
 
-            {/* TAB SELECTOR Segmented style */}
-            <div className="border-b border-[#e8e8ed] dark:border-neutral-900 px-6 py-2 flex bg-[#fafafa]/50 dark:bg-neutral-900/5 text-xs gap-1 transition-colors shrink-0">
+            {/* Segmented Control Selector */}
+            <div className="mx-6 my-2 bg-neutral-200/55 dark:bg-neutral-900/45 p-1 rounded-xl flex text-xs gap-0.5 border border-neutral-300/10 dark:border-neutral-800/10 shrink-0 select-none">
               <button
                 onClick={() => setDrawerTab('editor')}
-                className={`py-2 px-4 rounded-lg font-semibold transition-all cursor-pointer ${drawerTab === 'editor' ? 'bg-[#fafafa] dark:bg-neutral-900 text-neutral-800 dark:text-white border border-[#e8e8ed] dark:border-neutral-850' : 'text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300 border border-transparent'}`}
+                className={`flex-1 py-1.5 px-3 rounded-lg font-bold transition-all cursor-pointer text-center ${drawerTab === 'editor' ? 'bg-white dark:bg-neutral-850 text-neutral-850 dark:text-white shadow-sm border border-neutral-200/40 dark:border-neutral-800/40' : 'text-neutral-500 hover:text-neutral-850 dark:text-neutral-400 dark:hover:text-neutral-200'}`}
               >
                 Pitch Editor
               </button>
@@ -1312,14 +1310,14 @@ function DashboardContent() {
                   setDrawerTab('intelligence');
                   if (!companyIntelBrief) triggerAICompanyBrief(selectedCompany);
                 }}
-                className={`py-2 px-4 rounded-lg font-semibold transition-all cursor-pointer ${drawerTab === 'intelligence' ? 'bg-[#fafafa] dark:bg-neutral-900 text-neutral-800 dark:text-white border border-[#e8e8ed] dark:border-neutral-850' : 'text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300 border border-transparent'}`}
+                className={`flex-1 py-1.5 px-3 rounded-lg font-bold transition-all cursor-pointer text-center ${drawerTab === 'intelligence' ? 'bg-white dark:bg-neutral-850 text-neutral-850 dark:text-white shadow-sm border border-neutral-200/40 dark:border-neutral-800/40' : 'text-neutral-500 hover:text-neutral-850 dark:text-neutral-400 dark:hover:text-neutral-200'}`}
               >
                 AI Recruiter Intel
               </button>
 
               <button
                 onClick={() => setDrawerTab('tracking')}
-                className={`py-2 px-4 rounded-lg font-semibold transition-all cursor-pointer ${drawerTab === 'tracking' ? 'bg-[#fafafa] dark:bg-neutral-900 text-neutral-800 dark:text-white border border-[#e8e8ed] dark:border-neutral-850' : 'text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300 border border-transparent'}`}
+                className={`flex-1 py-1.5 px-3 rounded-lg font-bold transition-all cursor-pointer text-center ${drawerTab === 'tracking' ? 'bg-white dark:bg-neutral-850 text-neutral-850 dark:text-white shadow-sm border border-neutral-200/40 dark:border-neutral-800/40' : 'text-neutral-500 hover:text-neutral-850 dark:text-neutral-400 dark:hover:text-neutral-200'}`}
               >
                 Receipts & Cadence
               </button>
@@ -1832,12 +1830,12 @@ function DashboardContent() {
             </div>
 
             {/* Actions footer */}
-            <div className="border-t border-[#e8e8ed] dark:border-neutral-900 p-6 bg-[#fafafa]/60 dark:bg-neutral-900/10 flex justify-between items-center gap-3 transition-colors shrink-0">
+            <div className="border-t border-neutral-200/50 dark:border-neutral-900/60 p-6 bg-white/80 dark:bg-neutral-950/45 backdrop-blur-xl flex justify-between items-center gap-3 transition-colors shrink-0 select-none">
               <div className="flex gap-2">
                 <button
                   onClick={() => handleStatusUpdate(selectedCompany.notionId, 'Rejected')}
                   disabled={actionLoading === selectedCompanyId + 'Rejected'}
-                  className="bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 border border-[#e8e8ed] dark:border-neutral-800 text-rose-600 dark:text-rose-400 text-xs font-semibold py-2.5 px-4 rounded-full transition-all cursor-pointer"
+                  className="bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 border border-[#e8e8ed] dark:border-neutral-800 text-rose-600 dark:text-rose-400 text-xs font-bold py-2.5 px-4 rounded-full transition-all cursor-pointer active:scale-95 shadow-sm"
                 >
                   Reject Card
                 </button>
@@ -1845,7 +1843,7 @@ function DashboardContent() {
                 <button
                   onClick={() => handleStatusUpdate(selectedCompany.notionId, 'Redo')}
                   disabled={actionLoading === selectedCompanyId + 'Redo'}
-                  className="bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 border border-[#e8e8ed] dark:border-neutral-800 text-orange-600 dark:text-orange-400 text-xs font-semibold py-2.5 px-4 rounded-full transition-all cursor-pointer"
+                  className="bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 border border-[#e8e8ed] dark:border-neutral-800 text-orange-600 dark:text-orange-400 text-xs font-bold py-2.5 px-4 rounded-full transition-all cursor-pointer active:scale-95 shadow-sm"
                 >
                   🔄 Redo AI
                 </button>
@@ -1854,7 +1852,7 @@ function DashboardContent() {
               <div className="flex gap-2">
                 <button
                   onClick={handleSaveDrawerEdits}
-                  className="bg-white hover:bg-[#fafafa] dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-700 dark:text-neutral-300 text-xs font-semibold py-2.5 px-5 rounded-full border border-[#e8e8ed] dark:border-neutral-850 transition-all cursor-pointer"
+                  className="bg-white hover:bg-[#fafafa] dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-750 dark:text-neutral-300 text-xs font-bold py-2.5 px-5 rounded-full border border-neutral-250 dark:border-neutral-800 transition-all cursor-pointer active:scale-95 shadow-sm"
                 >
                   💾 Save Edits
                 </button>
@@ -1867,7 +1865,7 @@ function DashboardContent() {
                         setSelectedCompanyId(null);
                       }}
                       disabled={actionLoading === selectedCompanyId + 'send'}
-                      className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2.5 pl-6 pr-4 rounded-l-full transition-all shadow-sm cursor-pointer select-none"
+                      className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2.5 pl-6 pr-4 rounded-l-full transition-all shadow-sm cursor-pointer select-none active:scale-95"
                     >
                       Send Outreach Now
                     </button>
@@ -1921,7 +1919,7 @@ function DashboardContent() {
                       handleStatusUpdate(selectedCompany.notionId, 'Approved');
                       setSelectedCompanyId(null);
                     }}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2.5 px-6 rounded-full transition-all shadow-sm cursor-pointer"
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2.5 px-6 rounded-full transition-all shadow-sm cursor-pointer active:scale-95"
                   >
                     Approve Outreach Draft
                   </button>
@@ -1945,14 +1943,14 @@ function DashboardContent() {
                 )}
 
                 {(selectedCompany.emailStatus === 'Sent' || selectedCompany.emailStatus === 'Replied' || selectedCompany.emailStatus === 'Interview' || selectedCompany.emailStatus === 'Offer') && (
-                  <span className="bg-emerald-50 dark:bg-emerald-950/15 text-emerald-600 dark:text-emerald-400 border border-emerald-250/40 dark:border-emerald-900/30 text-[10.5px] font-bold py-2.5 px-5 rounded-full inline-flex items-center gap-1.5 shadow-sm transition-all">
+                  <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10.5px] font-bold py-2.5 px-5 rounded-full inline-flex items-center gap-1.5 shadow-sm transition-all select-none">
                     <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
                     📬 Sent & Tracked Live
                   </span>
                 )}
 
                 {selectedCompany.emailStatus === 'Rejected' && (
-                  <span className="bg-red-50 dark:bg-red-950/15 text-red-600 dark:text-red-400 border border-red-250/40 dark:border-red-900/30 text-[10.5px] font-bold py-2.5 px-5 rounded-full inline-flex items-center gap-1.5 shadow-sm transition-all">
+                  <span className="bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 text-[10.5px] font-bold py-2.5 px-5 rounded-full inline-flex items-center gap-1.5 shadow-sm transition-all select-none">
                     ❌ Lead Archived
                   </span>
                 )}
