@@ -169,3 +169,6 @@ Configured in `vercel.json`:
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/utkarshkr13/job-outreach-dashboard&env=ANTHROPIC_API_KEY,NOTION_API_KEY,NOTION_DB_ID,CRON_SECRET,GMAIL_USER,GMAIL_CLIENT_ID,GMAIL_CLIENT_SECRET,GMAIL_REFRESH_TOKEN,SENDER_NAME,SENDER_PHONE,SENDER_LINKEDIN,SENDER_BIO,TARGET_ROLES&project-name=job-outreach-dashboard&repository-name=job-outreach-dashboard)
 
 Fill in your own credentials when Vercel prompts during setup.
+
+---
+*Last audited and verified: June 6, 2026*
