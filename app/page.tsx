@@ -1067,7 +1067,7 @@ function DashboardContent() {
 
                         <div className="opacity-0 group-hover:opacity-100 absolute inset-0 py-4 px-6 flex items-center justify-end gap-1.5 bg-[#fafafa]/95 dark:bg-[#161617]/95 backdrop-blur-sm transition-all duration-200">
                           {company.emailStatus === 'Approved' && (
-                            <div className="relative inline-flex items-center" data-send-menu>
+                            <div className="relative inline-flex items-center" data-send-menu="true">
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
