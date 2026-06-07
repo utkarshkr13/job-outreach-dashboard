@@ -126,6 +126,19 @@ function DashboardContent() {
   const [activeSendMenuId, setActiveSendMenuId] = useState<string | null>(null);
   const [drawerSendMenuOpen, setDrawerSendMenuOpen] = useState(false);
 
+  // Close send dropdown when clicking outside
+  useEffect(() => {
+    if (!activeSendMenuId) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-send-menu]')) {
+        setActiveSendMenuId(null);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [activeSendMenuId]);
+
   // Audio Context chime for quick sends
   const playSendSound = () => {
     try {
@@ -556,9 +569,17 @@ function DashboardContent() {
         triggerConfetti();
         setMessage('🚀 Email sent successfully.');
         setTimeout(() => setMessage(''), 5000);
+      } else {
+        const errMsg = data.error || 'Send failed — unknown error.';
+        setMessage(`❌ ${errMsg}`);
+        setTimeout(() => setMessage(''), 8000);
+        console.error('Send failed:', errMsg);
       }
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      const errMsg = e?.message || 'Network error — could not reach the server.';
+      setMessage(`❌ ${errMsg}`);
+      setTimeout(() => setMessage(''), 8000);
+      console.error('Send error:', e);
     } finally {
       setActionLoading(null);
     }
@@ -788,7 +809,7 @@ function DashboardContent() {
             <select
               value={ingestRole}
               onChange={e => setIngestRole(e.target.value)}
-              className="apple-select-elastic apple-select-bounds w-full bg-[#f5f5f7]/60 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-3 py-2 text-xs text-neutral-700 dark:text-neutral-300 focus:outline-none transition-all"
+              className="apple-select-elastic apple-select-bounds w-full bg-white dark:bg-neutral-900 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-3 py-2 text-xs text-neutral-700 dark:text-neutral-300 focus:outline-none transition-all"
             >
               <option value="Associate PM">Associate PM</option>
               <option value="Business Analyst">Business Analyst</option>
@@ -869,7 +890,7 @@ function DashboardContent() {
               <select
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value as any)}
-                className="flex-1 bg-[#f5f5f7]/60 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-3 py-2 text-xs text-neutral-700 dark:text-neutral-300 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-700 transition-colors"
+                className="flex-1 bg-white dark:bg-neutral-900 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-3 py-2 text-xs text-neutral-700 dark:text-neutral-300 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-700 transition-colors"
               >
                 <option value="date">Date Extracted</option>
                 <option value="company">Company Name</option>
@@ -943,8 +964,8 @@ function DashboardContent() {
                 <p className="text-xs text-neutral-400 mt-1">Try clearing your search or switching to another category.</p>
               </div>
             ) : (
-              <div className="bg-white dark:bg-[#161617] border border-neutral-200 dark:border-neutral-850 rounded-3xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.015)] transition-colors">
-          <div className="overflow-x-auto">
+              <div className="bg-white dark:bg-[#161617] border border-neutral-200 dark:border-neutral-850 rounded-3xl shadow-[0_4px_12px_rgba(0,0,0,0.015)] transition-colors">
+          <div className="overflow-x-auto rounded-3xl">
             <table className="w-full border-collapse text-left">
               <thead>
                 <tr className="border-b border-neutral-200 dark:border-neutral-850 text-[10px] uppercase tracking-wider text-neutral-450 font-bold bg-[#fafafa]/50 dark:bg-neutral-900/10">
@@ -1046,7 +1067,7 @@ function DashboardContent() {
 
                         <div className="opacity-0 group-hover:opacity-100 absolute inset-0 py-4 px-6 flex items-center justify-end gap-1.5 bg-[#fafafa]/95 dark:bg-[#161617]/95 backdrop-blur-sm transition-all duration-200">
                           {company.emailStatus === 'Approved' && (
-                            <div className="relative inline-flex items-center">
+                            <div className="relative inline-flex items-center" data-send-menu>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
