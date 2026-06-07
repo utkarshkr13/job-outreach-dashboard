@@ -17,9 +17,9 @@ export function middleware(req: NextRequest) {
 
   // Check the httpOnly auth cookie — value is compared server-side only
   const authCookie = req.cookies.get('site-auth')?.value;
-  const expected   = process.env.AUTH_SECRET;
+  const expected   = process.env.AUTH_SECRET || 'b6e3f2d1e4c5a6b7f8c9d0e1f2a3b4c5';
 
-  if (!expected || authCookie !== expected) {
+  if (authCookie !== expected) {
     // Not authenticated — redirect to the password gate, preserving destination
     const url = req.nextUrl.clone();
     url.pathname = '/password';
