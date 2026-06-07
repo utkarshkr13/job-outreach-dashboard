@@ -1,0 +1,46 @@
+/* ───────────────────────────────────────────────────────────────────────────
+   UI FIXES (loaded after globals.css so these definitions win)
+
+   1. The original @keyframes fadeIn ended on `transform: translateY(0)`, which
+      leaves a transform on the dashboard wrapper. A transformed ancestor becomes
+      the containing block for any position:fixed descendant, so the confetti
+      overlay AND the success/error toasts were being positioned/clipped relative
+      to that (very tall) wrapper instead of the viewport — pushing them off the
+      visible screen. Ending on `transform: none` removes that trap.
+
+   2. The confetti particles are rendered with an inline `bottom: 100%..115%`
+      (i.e. at/above the top edge) and the old float-up animation only pushed
+      them further up, so they were never on screen. float-up now animates the
+      `bottom` property itself (which overrides the inline value during the
+      animation) from just below the bottom edge to just above the top edge, so
+      the confetti visibly rises across the whole viewport.
+
+   3. .animate-slide-in-right (toasts) and .animate-scale-up (the Send dropdown
+      menu) were referenced in the markup but never defined.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes float-up {
+  0%   { bottom: -5%;  transform: rotate(0deg) scale(1);     opacity: 0.9; }
+  100% { bottom: 105%; transform: rotate(720deg) scale(0.35); opacity: 0; }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-in-right {
+  animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.92) translateY(-4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-scale-up {
+  animation: scaleUp 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

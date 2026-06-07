@@ -1,0 +1,108 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   DESIGN SYSTEM  ·  loaded last so it refines the app globally
+   Goal: Apple/Google-grade consistency — symmetric buttons, calm spacing,
+   crisp focus states, restrained shadows, smooth micro-interactions.
+   These rules are intentionally additive: they normalise structure/behaviour
+   without fighting the existing Tailwind colour/padding utilities.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --ds-ring: #0071e3;
+  --ds-radius-sm: 8px;
+  --ds-radius-md: 12px;
+  --ds-radius-lg: 18px;
+  --ds-shadow-sm: 0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06);
+  --ds-shadow-md: 0 4px 14px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.04);
+  --ds-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Crisper text everywhere */
+html, body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+::selection { background: rgba(0,113,227,0.18); }
+
+/* ─── BUTTONS: symmetric, centred, consistent feel ──────────────────────────
+   `display` only takes effect on buttons that don't already set a Tailwind
+   display utility, so dense/left-aligned menu buttons keep their own layout.   */
+button {
+  align-items: center;
+  justify-content: center;
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.011em;
+  transition-property: transform, background-color, border-color, color, box-shadow, opacity;
+  transition-duration: 0.18s;
+  transition-timing-function: var(--ds-ease);
+  -webkit-tap-highlight-color: transparent;
+}
+button:not([class*="flex"]):not([class*="grid"]):not([class*="block"]) {
+  display: inline-flex;
+}
+button:active:not(:disabled) { transform: translateY(0.5px) scale(0.985); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Keyboard-only focus rings (don't show on mouse click) */
+:where(button, a, [role="button"], input, select, textarea):focus:not(:focus-visible) {
+  outline: none;
+}
+:where(button, a, [role="button"]):focus-visible {
+  outline: 2px solid var(--ds-ring);
+  outline-offset: 2px;
+  border-radius: var(--ds-radius-sm);
+}
+:where(input, select, textarea):focus-visible {
+  outline: none;
+  border-color: var(--ds-ring) !important;
+  box-shadow: 0 0 0 3px rgba(0,113,227,0.18) !important;
+}
+
+/* ─── REUSABLE BUTTON COMPONENTS (for markup that opts in via class) ───────── */
+.ds-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 2.5rem;
+  padding: 0 1.1rem;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  transition: all 0.18s var(--ds-ease);
+}
+.ds-btn:active:not(:disabled) { transform: scale(0.97); }
+.ds-btn-primary { background: var(--ds-ring); color: #fff; box-shadow: var(--ds-shadow-sm); }
+.ds-btn-primary:hover:not(:disabled) { background: #0a84ff; box-shadow: var(--ds-shadow-md); }
+.ds-btn-secondary {
+  background: #fff; color: #1d1d1f; border-color: #e3e3e8;
+}
+.dark .ds-btn-secondary { background: #1c1c1e; color: #f5f5f7; border-color: #2c2c2e; }
+.ds-btn-secondary:hover:not(:disabled) { background: #fafafa; }
+.dark .ds-btn-secondary:hover:not(:disabled) { background: #2a2a2c; }
+
+/* ─── INPUTS: consistent rhythm ─────────────────────────────────────────────*/
+input, textarea, select { transition: border-color 0.18s var(--ds-ease), box-shadow 0.18s var(--ds-ease); }
+textarea { line-height: 1.55; }
+
+/* ─── REFINED SCROLLBARS ────────────────────────────────────────────────────*/
+* { scrollbar-width: thin; scrollbar-color: rgba(120,120,128,0.4) transparent; }
+*::-webkit-scrollbar { width: 9px; height: 9px; }
+*::-webkit-scrollbar-thumb {
+  background: rgba(120,120,128,0.35);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover { background: rgba(120,120,128,0.6); background-clip: padding-box; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}

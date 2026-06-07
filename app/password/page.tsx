@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -28,8 +28,7 @@ function PasswordForm() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        router.push(data.redirect);
-        router.refresh();
+        window.location.assign(data.redirect);
       } else {
         setError('Incorrect password. Try again.');
         setValue('');
@@ -82,7 +81,7 @@ function PasswordForm() {
               disabled={loading || !value}
               className="w-full py-2.5 rounded-xl bg-[#1d1d1f] dark:bg-white text-white dark:text-black text-sm font-semibold transition hover:opacity-90 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
             >
-              {loading ? 'Verifying…' : 'Continue'}
+              {loading ? 'Verifyingâ€¦' : 'Continue'}
             </button>
           </form>
         </div>
