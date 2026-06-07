@@ -92,7 +92,11 @@ export async function sendEmail(
       // Tier 4: Fallback remote Vercel Blob lookup
       try {
         const { blobs } = await list();
-        let resumeBlob = blobs.find(b => b.pathname === `custom-${payload.notionId}.pdf`);
+        const uid = creds.userId || 'demo-user-id';
+        let resumeBlob =
+          blobs.find(b => b.pathname === `custom-${uid}-${payload.notionId}.pdf`) ||
+          blobs.find(b => b.pathname === `custom-${payload.notionId}.pdf`) ||
+          blobs.find(b => b.pathname === `resume-${uid}.pdf`);
         if (!resumeBlob) {
           resumeBlob = blobs.find(b => b.pathname === 'resume.pdf');
         }

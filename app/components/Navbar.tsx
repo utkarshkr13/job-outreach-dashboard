@@ -96,7 +96,7 @@ export default function Navbar() {
 
         <div className="w-[1px] h-4 bg-neutral-200 dark:bg-neutral-800"></div>
 
-        {(process.env.NEXT_PUBLIC_APP_MODE === 'demo' || !process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY === 'placeholder-api-key') ? (
+        {false ? (
           <span className="px-2.5 py-1 rounded-full text-[9px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center gap-1 select-none">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
             Demo

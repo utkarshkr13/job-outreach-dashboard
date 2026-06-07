@@ -1,27 +1,32 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
-  const { password, next } = await req.json();
+  const { username, password, next } = await req.json();
 
-  // Compare against env var (with secure server-side fallback)
+  // Single-operator credentials (configure in env; safe server-side fallbacks).
+  const expectedUser = (process.env.LOGIN_USERNAME || 'utkarsh').trim().toLowerCase();
   const expectedPassword = process.env.SITE_PASSWORD || 'utkarsh@2002';
-  if (!password || password !== expectedPassword) {
-    return NextResponse.json({ error: 'Incorrect password' }, { status: 401 });
+
+  const userOk = (username || '').trim().toLowerCase() === expectedUser;
+  const passOk = !!password && password === expectedPassword;
+
+  if (!userOk || !passOk) {
+    return NextResponse.json({ error: 'Incorrect username or password' }, { status: 401 });
   }
 
   const secret = process.env.AUTH_SECRET || 'b6e3f2d1e4c5a6b7f8c9d0e1f2a3b4c5';
 
-  // Set httpOnly cookie â€” inaccessible to browser JS / DevTools JS tab
-  const destination = (typeof next === 'string' && next.startsWith('/') && !next.startsWith('/password'))
-    ? next
-    : '/';
+  const destination =
+    typeof next === 'string' && next.startsWith('/') && !next.startsWith('/password') && !next.startsWith('/login')
+      ? next
+      : '/';
 
   const response = NextResponse.json({ success: true, redirect: destination });
 
   response.cookies.set('site-auth', secret, {
-    httpOnly: true,        // not readable by document.cookie or JS
-    secure: true,          // HTTPS only
-    sameSite: 'lax',       // sent on top-level navigations (fixes password redirect loop)
+    httpOnly: true,
+    secure: true,
+    sameSite: 'lax', // sent on top-level navigations (fixes the password redirect loop)
     path: '/',
     maxAge: 60 * 60 * 24 * 30, // 30 days
   });

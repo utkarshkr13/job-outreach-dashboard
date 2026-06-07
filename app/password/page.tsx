@@ -1,16 +1,16 @@
-﻿'use client';
+'use client';
 
 import { useState, useRef } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
 function PasswordForm() {
-  const [value, setValue]     = useState('');
-  const [error, setError]     = useState('');
-  const [loading, setLoading] = useState(false);
-  const searchParams          = useSearchParams();
-  const router                = useRouter();
-  const inputRef              = useRef<HTMLInputElement>(null);
+  const [username, setUsername] = useState('');
+  const [value, setValue]       = useState('');
+  const [error, setError]       = useState('');
+  const [loading, setLoading]   = useState(false);
+  const searchParams            = useSearchParams();
+  const inputRef                = useRef<HTMLInputElement>(null);
 
   const next = searchParams.get('next') || '/';
 
@@ -23,14 +23,15 @@ function PasswordForm() {
       const res  = await fetch('/api/auth/site-password', {
         method : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({ password: value, next }),
+        body   : JSON.stringify({ username, password: value, next }),
       });
       const data = await res.json();
 
       if (res.ok && data.success) {
+        // Hard navigation so the freshly-set cookie is sent on the next request.
         window.location.assign(data.redirect);
       } else {
-        setError('Incorrect password. Try again.');
+        setError('Incorrect username or password. Try again.');
         setValue('');
         inputRef.current?.focus();
       }
@@ -54,20 +55,31 @@ function PasswordForm() {
 
         <div className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-8 shadow-sm">
           <h1 className="text-base font-semibold text-neutral-900 dark:text-white mb-1">
-            Protected access
+            Sign in
           </h1>
           <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-6">
-            Enter the site password to continue.
+            Enter your username and password to continue.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            <input
+              type="text"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              placeholder="Username"
+              autoFocus
+              autoComplete="username"
+              required
+              className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 text-sm text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition"
+            />
+
             <input
               ref={inputRef}
               type="password"
               value={value}
               onChange={e => setValue(e.target.value)}
               placeholder="Password"
-              autoFocus
+              autoComplete="current-password"
               required
               className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 text-sm text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition"
             />
@@ -78,10 +90,10 @@ function PasswordForm() {
 
             <button
               type="submit"
-              disabled={loading || !value}
+              disabled={loading || !value || !username}
               className="w-full py-2.5 rounded-xl bg-[#1d1d1f] dark:bg-white text-white dark:text-black text-sm font-semibold transition hover:opacity-90 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
             >
-              {loading ? 'Verifyingâ€¦' : 'Continue'}
+              {loading ? 'Signing in…' : 'Sign in'}
             </button>
           </form>
         </div>

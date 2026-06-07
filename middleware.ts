@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Routes that are always public — the password gate itself + its API
-const PUBLIC_PATHS = ['/password', '/api/auth/site-password'];
+// Routes that are always public — the password gate + its auth endpoints
+const PUBLIC_PATHS = ['/password', '/api/auth/site-password', '/api/auth/logout'];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -20,7 +20,6 @@ export function middleware(req: NextRequest) {
   const expected   = process.env.AUTH_SECRET || 'b6e3f2d1e4c5a6b7f8c9d0e1f2a3b4c5';
 
   if (authCookie !== expected) {
-    // Not authenticated — redirect to the password gate, preserving destination
     const url = req.nextUrl.clone();
     url.pathname = '/password';
     url.searchParams.set('next', req.nextUrl.pathname);
@@ -31,6 +30,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // Run on all routes except static files
   matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };
