@@ -76,7 +76,7 @@ function DashboardContent() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentView, setCurrentView] = useState<'list' | 'kanban'>('list');
-  const [activeTab, setActiveTab] = useState<EmailStatus | 'All'>('All');
+  const [activeTab, setActiveTab] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'date' | 'company' | 'salary' | 'signal'>('date');
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
@@ -276,6 +276,7 @@ function DashboardContent() {
       
       if (currentView === 'kanban') return matchesSearch; 
       if (activeTab === 'All') return matchesSearch;
+      if (activeTab === 'Notion Draft Ready') return matchesSearch && c.emailStatus === 'Draft Ready';
       return matchesSearch && c.emailStatus === activeTab;
     })
     .sort((a, b) => {
@@ -880,8 +881,12 @@ function DashboardContent() {
               CRM Status Categories
             </div>
             <div className="pt-2 flex flex-col gap-1">
-              {(['Draft Ready', 'Approved', 'Scheduled', 'New', 'Redo', 'Sent', 'Follow-up Ready', 'Replied', 'Interview', 'Offer', 'Rejected', 'No Response', 'All'] as const).map(tab => {
-                const count = tab === 'All' ? companies.length : companies.filter(c => c.emailStatus === tab).length;
+              {(['Notion Draft Ready', 'Approved', 'Scheduled', 'New', 'Redo', 'Sent', 'Follow-up Ready', 'Replied', 'Interview', 'Offer', 'Rejected', 'No Response', 'All'] as const).map(tab => {
+                const count = tab === 'All' 
+                  ? companies.length 
+                  : tab === 'Notion Draft Ready'
+                    ? companies.filter(c => c.emailStatus === 'Draft Ready').length
+                    : companies.filter(c => c.emailStatus === tab).length;
                 return (
                   <button
                     key={tab}
