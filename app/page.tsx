@@ -321,6 +321,7 @@ function DashboardContent() {
   }, [filteredCompanies.length]);
 
   // Fetch intelligence briefs using Claude
+  // Fetch intelligence briefs using Claude and generate/update draft
   const triggerAICompanyBrief = async (company: Company) => {
     setIntelLoading(true);
     try {
@@ -330,8 +331,35 @@ function DashboardContent() {
         body: JSON.stringify({ notionId: company.notionId }),
       });
       const data = await response.json();
-      if (data.result && data.result.notes) {
-        setCompanyIntelBrief(data.result.notes);
+      if (data.result) {
+        // Update dossier notes
+        if (data.result.notes) {
+          setCompanyIntelBrief(data.result.notes);
+          setDraftNotes(`Score: ${data.result.score}/10 — ${data.result.notes}`);
+        }
+        // Update draft fields in Pitch Editor
+        if (data.result.subject) {
+          setDraftSubject(data.result.subject);
+        }
+        if (data.result.body) {
+          setDraftBody(data.result.body);
+        }
+        // Synchronize local companies state so the changes persist in UI
+        setCompanies(prev =>
+          prev.map(c =>
+            c.notionId === company.notionId
+              ? {
+                  ...c,
+                  emailSubject: data.result.subject || c.emailSubject,
+                  emailDraft: data.result.body || c.emailDraft,
+                  draftNotes: data.result.notes ? `Score: ${data.result.score}/10 — ${data.result.notes}` : c.draftNotes,
+                  emailStatus: 'Draft Ready'
+                }
+              : c
+          )
+        );
+        setMessage('🤖 Email draft generated successfully!');
+        setTimeout(() => setMessage(''), 4000);
       } else {
         setCompanyIntelBrief(`**Company Dossier: ${company.company}**\n- Targeted Role: ${company.role}\n- Location: ${company.location || 'Not Specified'}\n- Tech Stack: Next.js, Node.js, Vercel platforms, Claude AI, Salesforce CRM\n- Compete: Direct competition in the high-velocity operations sector.\n- News: Strong hiring initiatives focusing on BA/APM roles in APAC regions.`);
       }
@@ -1420,55 +1448,99 @@ function DashboardContent() {
                     )}
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="text-[10px] uppercase font-bold text-neutral-400 dark:text-neutral-500">Email Subject Line</label>
-                    <input
-                      type="text"
-                      value={draftSubject}
-                      onChange={e => setDraftSubject(e.target.value)}
-                      className="w-full bg-[#f5f5f7]/40 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-900 rounded-xl px-4 py-2.5 text-xs text-neutral-800 dark:text-neutral-100 focus:outline-none focus:border-neutral-300 dark:focus:border-neutral-800 transition-colors"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <label className="text-[10px] uppercase font-bold text-neutral-400 dark:text-neutral-500">Personalized Body Pitch</label>
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(`Subject: ${draftSubject}\n\n${draftBody}`);
-                            setMessage('📋 Email copied to clipboard.');
-                            setTimeout(() => setMessage(''), 4000);
-                          }}
-                          className="text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 text-[9px] font-semibold bg-[#fafafa] dark:bg-neutral-900 border border-[#e8e8ed] dark:border-neutral-800 px-2 py-0.5 rounded-full cursor-pointer transition-colors"
-                        >
-                          Copy Email
-                        </button>
+                  {(!draftSubject && !draftBody) ? (
+                    <div className="bg-amber-500/5 dark:bg-amber-400/5 border border-dashed border-amber-250/30 dark:border-amber-900/30 rounded-2xl p-6 text-center space-y-4 my-2">
+                      <div className="mx-auto w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 text-xl shadow-sm">
+                        🤖
                       </div>
-                      <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${readability.color}`}>
-                        {readability.label}
-                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-xs font-bold text-neutral-700 dark:text-neutral-200">No Email Pitch Generated Yet</h4>
+                        <p className="text-[11px] text-neutral-500 dark:text-neutral-400 max-w-sm mx-auto leading-relaxed">
+                          This company does not have an active pitch draft in Notion. Click the button below to run our AI agents and draft a tailored outreach.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => triggerAICompanyBrief(selectedCompany)}
+                        disabled={intelLoading}
+                        className="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold py-2.5 px-6 rounded-full transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer inline-flex items-center gap-1.5"
+                      >
+                        {intelLoading ? (
+                          <>
+                            <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                            Generating Pitch...
+                          </>
+                        ) : (
+                          '🤖 Generate AI Pitch'
+                        )}
+                      </button>
                     </div>
-                    <textarea
-                      rows={11}
-                      value={draftBody}
-                      onChange={e => setDraftBody(e.target.value)}
-                      className="w-full bg-[#f5f5f7]/40 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-900 rounded-xl p-4 text-xs text-neutral-800 dark:text-neutral-100 leading-relaxed font-mono focus:outline-none focus:border-neutral-300 dark:focus:border-neutral-800 transition-colors"
-                    />
-                    <div className="text-[10px] text-neutral-400 dark:text-neutral-500 text-right mt-0.5">
-                      Word Count: <span className="text-neutral-700 dark:text-neutral-300 font-semibold">{wordCount} words</span>
-                    </div>
-                  </div>
+                  ) : (
+                    <>
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase font-bold text-neutral-400 dark:text-neutral-500">Email Subject Line</label>
+                        <input
+                          type="text"
+                          value={draftSubject}
+                          onChange={e => setDraftSubject(e.target.value)}
+                          className="w-full bg-[#f5f5f7]/40 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-900 rounded-xl px-4 py-2.5 text-xs text-neutral-800 dark:text-neutral-100 focus:outline-none focus:border-neutral-300 dark:focus:border-neutral-800 transition-colors"
+                        />
+                      </div>
 
-                  <div className="bg-[#fafafa] dark:bg-neutral-900/20 border border-[#e8e8ed] dark:border-neutral-900 rounded-2xl p-4 space-y-2">
-                    <h4 className="text-xs font-semibold text-amber-600 dark:text-amber-500">🤖 Claude Gatekeeper Evaluation</h4>
-                    <textarea
-                      rows={3}
-                      value={draftNotes}
-                      onChange={e => setDraftNotes(e.target.value)}
-                      className="w-full bg-white dark:bg-neutral-950 border border-[#e8e8ed] dark:border-neutral-900 rounded-xl p-3 text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed focus:outline-none focus:border-neutral-350 dark:focus:border-neutral-800 transition-colors"
-                    />
-                  </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-2">
+                            <label className="text-[10px] uppercase font-bold text-neutral-400 dark:text-neutral-500">Personalized Body Pitch</label>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(`Subject: ${draftSubject}\n\n${draftBody}`);
+                                setMessage('📋 Email copied to clipboard.');
+                                setTimeout(() => setMessage(''), 4000);
+                              }}
+                              className="text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 text-[9px] font-semibold bg-[#fafafa] dark:bg-neutral-900 border border-[#e8e8ed] dark:border-neutral-800 px-2 py-0.5 rounded-full cursor-pointer transition-colors"
+                            >
+                              Copy Email
+                            </button>
+                            <button
+                              onClick={() => triggerAICompanyBrief(selectedCompany)}
+                              disabled={intelLoading}
+                              className="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 text-[9px] font-semibold bg-[#fafafa] dark:bg-neutral-900 border border-[#e8e8ed] dark:border-neutral-800 px-2 py-0.5 rounded-full cursor-pointer transition-colors inline-flex items-center gap-1 disabled:opacity-50"
+                            >
+                              {intelLoading ? (
+                                <>
+                                  <span className="w-2 h-2 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+                                  Regenerating...
+                                </>
+                              ) : (
+                                '🤖 Regenerate'
+                              )}
+                            </button>
+                          </div>
+                          <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${readability.color}`}>
+                            {readability.label}
+                          </span>
+                        </div>
+                        <textarea
+                          rows={11}
+                          value={draftBody}
+                          onChange={e => setDraftBody(e.target.value)}
+                          className="w-full bg-[#f5f5f7]/40 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-900 rounded-xl p-4 text-xs text-neutral-800 dark:text-neutral-100 leading-relaxed font-mono focus:outline-none focus:border-neutral-300 dark:focus:border-neutral-800 transition-colors"
+                        />
+                        <div className="text-[10px] text-neutral-400 dark:text-neutral-500 text-right mt-0.5">
+                          Word Count: <span className="text-neutral-700 dark:text-neutral-300 font-semibold">{wordCount} words</span>
+                        </div>
+                      </div>
+
+                      <div className="bg-[#fafafa] dark:bg-neutral-900/20 border border-[#e8e8ed] dark:border-neutral-900 rounded-2xl p-4 space-y-2">
+                        <h4 className="text-xs font-semibold text-amber-600 dark:text-amber-500">🤖 Claude Gatekeeper Evaluation</h4>
+                        <textarea
+                          rows={3}
+                          value={draftNotes}
+                          onChange={e => setDraftNotes(e.target.value)}
+                          className="w-full bg-white dark:bg-neutral-950 border border-[#e8e8ed] dark:border-neutral-900 rounded-xl p-3 text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed focus:outline-none focus:border-neutral-350 dark:focus:border-neutral-800 transition-colors"
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 
@@ -1836,10 +1908,18 @@ function DashboardContent() {
 
                 {selectedCompany.emailStatus === 'New' && (
                   <button
-                    disabled
-                    className="bg-neutral-100 dark:bg-neutral-900 text-neutral-400 dark:text-neutral-600 text-xs font-bold py-2.5 px-6 rounded-full border border-neutral-200 dark:border-neutral-850"
+                    onClick={() => triggerAICompanyBrief(selectedCompany)}
+                    disabled={intelLoading}
+                    className="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold py-2.5 px-6 rounded-full transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer inline-flex items-center gap-1.5"
                   >
-                    Draft Generation Pending
+                    {intelLoading ? (
+                      <>
+                        <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        Generating Pitch...
+                      </>
+                    ) : (
+                      '🤖 Generate Outreach Pitch'
+                    )}
                   </button>
                 )}
 
