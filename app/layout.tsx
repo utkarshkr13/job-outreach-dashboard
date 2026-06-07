@@ -4,6 +4,7 @@ import Navbar from '@/app/components/Navbar';
 import { Analytics } from '@vercel/analytics/react';
 import './globals.css';
 import './ui-fixes.css';
+import './design-system.css';
 
 export const metadata: Metadata = {
   title: 'Outreach Platform',
