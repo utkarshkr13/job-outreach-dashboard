@@ -5,15 +5,12 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
 
   // Gzip/Brotli compress all responses
   compress: true,
 
-  // Tree-shake heavy packages — only import what's actually used
-  // Firebase alone is ~700KB unoptimized; this cuts it dramatically
+  // Tree-shake heavy packages — only import what's actually used.
+  // Firebase alone is ~700KB unoptimized; this cuts it dramatically.
   experimental: {
     optimizePackageImports: [
       'firebase',
