@@ -144,3 +144,15 @@ tbody tr:hover { background: var(--c-accent-soft) !important; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 }
+
+/* ─── 8. Readability & breathing room ───────────────────────────────────────
+   Lift the very smallest text so nothing feels cramped, and give table rows
+   and list items a little more vertical space. Pure spacing/size — safe.       */
+[class*="text-[8px]"], [class*="text-[8.5px]"], [class*="text-[9px]"] { font-size: 10.5px !important; }
+[class*="text-[9.5px]"], [class*="text-[10px]"] { font-size: 11px !important; }
+[class*="text-[10.5px]"], [class*="text-[11px]"] { font-size: 11.5px !important; }
+
+td { padding-top: 11px !important; padding-bottom: 11px !important; }
+
+/* Section eyebrow labels (UPPERCASE tracking) — calmer, not shouting */
+[class*="uppercase"][class*="tracking-w"] { letter-spacing: 0.04em !important; opacity: 0.8; }
