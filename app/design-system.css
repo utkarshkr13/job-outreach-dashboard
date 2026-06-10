@@ -156,3 +156,41 @@ td { padding-top: 11px !important; padding-bottom: 11px !important; }
 
 /* Section eyebrow labels (UPPERCASE tracking) — calmer, not shouting */
 [class*="uppercase"][class*="tracking-w"] { letter-spacing: 0.04em !important; opacity: 0.8; }
+
+/* ─── 9. Clear action affordances ───────────────────────────────────────────
+   Make it obvious what's clickable and what state you're in.                   */
+
+/* Primary blue buttons: solid, confident, full-contrast label */
+button[class*="bg-blue-6"], a[class*="bg-blue-6"],
+button[class*="bg-blue-5"], button[class*="bg-indigo-6"] {
+  background-color: var(--c-accent) !important;
+  color: #fff !important;
+  border: none !important;
+}
+button[class*="bg-blue-6"]:hover, a[class*="bg-blue-6"]:hover { filter: brightness(1.06); }
+
+/* Neutral/secondary buttons: white surface + hairline + gentle hover */
+button[class*="border"][class*="bg-white"],
+button[class*="border"][class*="dark:bg-neutral"] {
+  border-color: var(--c-border) !important;
+}
+
+/* Active nav link + selected list/tab: one clear accent treatment */
+a[aria-current="page"], [class*="apple-tab"][class*="active"], [data-active="true"] {
+  color: var(--c-accent) !important;
+}
+
+/* Selected status row / active filter: soft accent fill, no glow */
+[class*="bg-blue-50"], [class*="bg-blue-100"], [class*="bg-blue-950"] {
+  background-color: var(--c-accent-soft) !important;
+  border-color: transparent !important;
+}
+
+/* Consistent control height for inputs/selects/primary pills so rows line up */
+input:not([type="checkbox"]):not([type="radio"]), select {
+  min-height: 38px;
+}
+
+/* Links use the accent, subtle underline on hover only */
+a:not([class*="bg-"]):not([class*="rounded"]) { color: var(--c-accent); }
+a:not([class*="bg-"]):hover { text-decoration: underline; text-underline-offset: 2px; }
