@@ -1,4 +1,3 @@
-'use client';
 import React, { useEffect, useState, Suspense } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -566,30 +565,37 @@ function DashboardContent() {
 
   // Single-tap quick send
   const handleSendEmail = async (id: string) => {
+    const company = companies.find(c => c.notionId === id);
+    if (!company) return;
+    if (!company.email) {
+      setMessage('❌ No email address found for this company.');
+      setTimeout(() => setMessage(''), 5000);
+      return;
+    }
+    // Open default mail client with pre-filled to/subject/body
+    const subject = encodeURIComponent(company.emailSubject || `Application for ${company.role} at ${company.company}`);
+    const body = encodeURIComponent((company.emailDraft || '').replace(/\n/g, '\r\n'));
+    window.open(`mailto:${company.email}?subject=${subject}&body=${body}`, '_self');
+
+    // Mark as Sent in Notion
     setActionLoading(id + 'send');
     try {
-      const res = await authFetch(`/api/send/${id}`, { method: 'POST' });
-      const data = await res.json();
-      if (data.success) {
-        setCompanies(prev =>
-          prev.map(c => (c.notionId === id ? { ...c, emailStatus: 'Sent', emailed: true } : c))
-        );
-        setDailyGoalCount(prev => Math.min(prev + 1, 5));
-        setStreakCount(prev => prev + 1);
-        triggerConfetti();
-        setMessage('🚀 Email sent successfully.');
-        setTimeout(() => setMessage(''), 5000);
-      } else {
-        const errMsg = data.error || 'Send failed — unknown error.';
-        setMessage(`❌ ${errMsg}`);
-        setTimeout(() => setMessage(''), 8000);
-        console.error('Send failed:', errMsg);
-      }
+      await authFetch('/api/companies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notionId: id, status: 'Sent' }),
+      });
+      setCompanies(prev =>
+        prev.map(c => (c.notionId === id ? { ...c, emailStatus: 'Sent', emailed: true } : c))
+      );
+      setDailyGoalCount(prev => Math.min(prev + 1, 5));
+      setStreakCount(prev => prev + 1);
+      triggerConfetti();
+      setMessage('📧 Mail client opened — attach your resume PDF and hit send!');
+      setTimeout(() => setMessage(''), 7000);
     } catch (e: any) {
-      const errMsg = e?.message || 'Network error — could not reach the server.';
-      setMessage(`❌ ${errMsg}`);
+      setMessage(`❌ ${e?.message || 'Network error.'}`);
       setTimeout(() => setMessage(''), 8000);
-      console.error('Send error:', e);
     } finally {
       setActionLoading(null);
     }
@@ -613,15 +619,36 @@ function DashboardContent() {
   };
 
   const handleBulkSend = async () => {
+    const approved = companies.filter(c => c.emailStatus === 'Approved' && c.email);
+    if (approved.length === 0) {
+      setMessage('No approved outreaches with email addresses found.');
+      setTimeout(() => setMessage(''), 4000);
+      return;
+    }
     setBulkLoading(true);
-    const res = await authFetch('/api/send/bulk', { method: 'POST' });
-    const data = await res.json();
+    let sent = 0;
+    for (const c of approved) {
+      const subj = encodeURIComponent(c.emailSubject || `Application for ${c.role} at ${c.company}`);
+      const bdy = encodeURIComponent((c.emailDraft || '').replace(/\n/g, '\r\n'));
+      window.open(`mailto:${c.email}?subject=${subj}&body=${bdy}`, '_blank');
+      try {
+        await authFetch('/api/companies', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notionId: c.notionId, status: 'Sent' }),
+        });
+        sent++;
+      } catch (e) { console.error(e); }
+      await new Promise(resolve => setTimeout(resolve, 600));
+    }
+    setCompanies(prev =>
+      prev.map(c => c.emailStatus === 'Approved' && c.email ? { ...c, emailStatus: 'Sent', emailed: true } : c)
+    );
+    setDailyGoalCount(prev => Math.min(prev + sent, 5));
     setBulkLoading(false);
-    fetchCompanies(true);
-    setDailyGoalCount(prev => Math.min(prev + (data.sent || 0), 5));
     triggerConfetti();
-    setMessage(`🚀 Sent ${data.sent} outreaches successfully.`);
-    setTimeout(() => setMessage(''), 5000);
+    setMessage(`📧 Opened ${sent} mail windows — attach your resume PDF to each and send!`);
+    setTimeout(() => setMessage(''), 8000);
   };
 
   const handleBulkRedo = async () => {
@@ -1364,7 +1391,12 @@ function DashboardContent() {
                       
                       <button
                         onClick={async () => {
-                          setActionLoading(selectedCompany.notionId + 'send');
+                          // Open default mail client with reply pre-filled
+                          const to = selectedCompany.email || '';
+                          const subj = encodeURIComponent(draftSubject || `Re: ${selectedCompany.company}`);
+                          const bdy = encodeURIComponent((draftBody || '').replace(/\n/g, '\r\n'));
+                          window.open(`mailto:${to}?subject=${subj}&body=${bdy}`, '_self');
+                          // Save draft to Notion
                           try {
                             await authFetch('/api/companies', {
                               method: 'POST',
@@ -1376,29 +1408,16 @@ function DashboardContent() {
                                 status: 'Replied'
                               })
                             });
-                            const res = await authFetch(`/api/send/${selectedCompany.notionId}`, {
-                              method: 'POST',
-                            });
-                            if (res.ok) {
-                              setMessage('🚀 Reply sent to recruiter!');
-                              setTimeout(() => setMessage(''), 4000);
-                              setSelectedCompanyId(null);
-                              await fetchCompanies(true);
-                            } else {
-                              const d = await res.json().catch(() => ({}));
-                              setMessage(`❌ ${d.error || 'Failed to send reply.'}`);
-                              setTimeout(() => setMessage(''), 8000);
-                            }
+                            setMessage('📧 Mail client opened — draft saved!');
+                            setTimeout(() => setMessage(''), 5000);
                           } catch (e: any) {
-                            setMessage(`❌ ${e?.message || 'Network error sending reply.'}`);
+                            setMessage(`❌ ${e?.message || 'Network error.'}`);
                             setTimeout(() => setMessage(''), 8000);
                           }
-                          setActionLoading(null);
                         }}
-                        disabled={actionLoading === selectedCompany.notionId + 'send'}
                         className="w-full bg-pink-600 hover:bg-pink-500 text-white py-2.5 rounded-xl font-bold text-xs shadow-sm active:scale-95 transition-all cursor-pointer text-center block"
                       >
-                        {actionLoading === selectedCompany.notionId + 'send' ? 'Sending Reply...' : '✉️  Send Response'}
+                        ✉️  Open Mail Client to Reply
                       </button>
                     </div>
                   )}
@@ -1478,541 +1497,3 @@ function DashboardContent() {
                                 Weave Hook into Email Draft
                               </button>
                             </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {(!draftSubject && !draftBody) ? (
-                    <div className="bg-amber-500/5 dark:bg-amber-400/5 border border-dashed border-amber-250/30 dark:border-amber-900/30 rounded-2xl p-6 text-center space-y-4 my-2">
-                      <div className="mx-auto w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 text-xl shadow-sm">
-                        🤖
-                      </div>
-                      <div className="space-y-1">
-                        <h4 className="text-xs font-bold text-neutral-700 dark:text-neutral-200">No Email Pitch Generated Yet</h4>
-                        <p className="text-[11px] text-neutral-500 dark:text-neutral-400 max-w-sm mx-auto leading-relaxed">
-                          This company does not have an active pitch draft in Notion. Click the button below to run our AI agents and draft a tailored outreach.
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => triggerAICompanyBrief(selectedCompany)}
-                        disabled={intelLoading}
-                        className="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold py-2.5 px-6 rounded-full transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer inline-flex items-center gap-1.5"
-                      >
-                        {intelLoading ? (
-                          <>
-                            <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                            Generating Pitch...
-                          </>
-                        ) : (
-                          '🤖 Generate AI Pitch'
-                        )}
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="space-y-1">
-                        <label className="text-[10px] uppercase font-bold text-neutral-400 dark:text-neutral-500">Email Subject Line</label>
-                        <input
-                          type="text"
-                          value={draftSubject}
-                          onChange={e => setDraftSubject(e.target.value)}
-                          className="w-full bg-[#f5f5f7]/40 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-900 rounded-xl px-4 py-2.5 text-xs text-neutral-800 dark:text-neutral-100 focus:outline-none focus:border-neutral-300 dark:focus:border-neutral-800 transition-colors"
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center gap-2">
-                            <label className="text-[10px] uppercase font-bold text-neutral-400 dark:text-neutral-500">Personalized Body Pitch</label>
-                            <button
-                              onClick={() => {
-                                navigator.clipboard.writeText(`Subject: ${draftSubject}\n\n${draftBody}`);
-                                setMessage('📋 Email copied to clipboard.');
-                                setTimeout(() => setMessage(''), 4000);
-                              }}
-                              className="text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 text-[9px] font-semibold bg-[#fafafa] dark:bg-neutral-900 border border-[#e8e8ed] dark:border-neutral-800 px-2 py-0.5 rounded-full cursor-pointer transition-colors"
-                            >
-                              Copy Email
-                            </button>
-                            <button
-                              onClick={() => triggerAICompanyBrief(selectedCompany)}
-                              disabled={intelLoading}
-                              className="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 text-[9px] font-semibold bg-[#fafafa] dark:bg-neutral-900 border border-[#e8e8ed] dark:border-neutral-800 px-2 py-0.5 rounded-full cursor-pointer transition-colors inline-flex items-center gap-1 disabled:opacity-50"
-                            >
-                              {intelLoading ? (
-                                <>
-                                  <span className="w-2 h-2 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
-                                  Regenerating...
-                                </>
-                              ) : (
-                                '🤖 Regenerate'
-                              )}
-                            </button>
-                          </div>
-                          <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${readability.color}`}>
-                            {readability.label}
-                          </span>
-                        </div>
-                        <textarea
-                          rows={11}
-                          value={draftBody}
-                          onChange={e => setDraftBody(e.target.value)}
-                          className="w-full bg-[#f5f5f7]/40 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-900 rounded-xl p-4 text-xs text-neutral-800 dark:text-neutral-100 leading-relaxed font-mono focus:outline-none focus:border-neutral-300 dark:focus:border-neutral-800 transition-colors"
-                        />
-                        <div className="text-[10px] text-neutral-400 dark:text-neutral-500 text-right mt-0.5">
-                          Word Count: <span className="text-neutral-700 dark:text-neutral-300 font-semibold">{wordCount} words</span>
-                        </div>
-                      </div>
-
-                      <div className="bg-[#fafafa] dark:bg-neutral-900/20 border border-[#e8e8ed] dark:border-neutral-900 rounded-2xl p-4 space-y-2">
-                        <h4 className="text-xs font-semibold text-amber-600 dark:text-amber-500">🤖 Claude Gatekeeper Evaluation</h4>
-                        <textarea
-                          rows={3}
-                          value={draftNotes}
-                          onChange={e => setDraftNotes(e.target.value)}
-                          className="w-full bg-white dark:bg-neutral-950 border border-[#e8e8ed] dark:border-neutral-900 rounded-xl p-3 text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed focus:outline-none focus:border-neutral-350 dark:focus:border-neutral-800 transition-colors"
-                        />
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
-
-              {/* TAB 2: RECRUITER INTEL */}
-              {drawerTab === 'intelligence' && (
-                <div className="space-y-6">
-                  
-                  {/* LinkedIn copy board */}
-                  <div className="bg-blue-50/30 dark:bg-blue-600/5 border border-blue-100 dark:border-blue-900/20 rounded-2xl p-4 space-y-2">
-                    <div className="flex justify-between items-center">
-                      <h4 className="text-xs font-semibold text-blue-600 dark:text-blue-400">🔗 LinkedIn Connection Invite Note</h4>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(`Hi ${selectedCompany.contactName?.split(' ')[0] || 'there'},\n\nI noticed your work hiring at ${selectedCompany.company}. I'm a Business Analyst who shipped end-to-end at an AI-first startup, owning everything from BRDs to client go-lives. I would love to connect and explore Associate PM / BA fit!`);
-                          setMessage('📋 Connection invitation copied.');
-                          setTimeout(() => setMessage(''), 4000);
-                        }}
-                        className="bg-white hover:bg-neutral-50 dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-700 dark:text-neutral-300 text-[10px] font-semibold px-3.5 py-1 rounded-full border border-[#e8e8ed] dark:border-neutral-850 cursor-pointer transition-colors"
-                      >
-                        Copy Note
-                      </button>
-                    </div>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400 italic bg-white dark:bg-neutral-950 p-3 rounded-xl border border-[#e8e8ed] dark:border-neutral-900 leading-relaxed font-mono transition-colors">
-                      "Hi {selectedCompany.contactName?.split(' ')[0] || 'there'}, I noticed your work hiring at {selectedCompany.company}. I'm a Business Analyst who shipped end-to-end at an AI-first startup, owning everything from BRDs to client go-lives. I would love to connect and explore Associate PM / BA fit!"
-                    </p>
-                    <span className="text-[9px] text-neutral-400 dark:text-neutral-500">Fit rating limit: <strong className="text-blue-600 dark:text-blue-400 font-semibold">234 / 300 characters</strong></span>
-                  </div>
-
-                  {/* Company intel brief */}
-                  <div className="bg-[#fafafa] dark:bg-neutral-900/20 border border-[#e8e8ed] dark:border-neutral-900 rounded-2xl p-4 space-y-3">
-                    <h4 className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">🕵️  Company Intelligence Brief</h4>
-                    {intelLoading ? (
-                      <p className="text-xs text-neutral-400 dark:text-neutral-500 animate-pulse">Consulting Claude brief...</p>
-                    ) : (
-                      <p className="text-xs text-neutral-600 dark:text-neutral-300 font-mono leading-relaxed whitespace-pre-line bg-white dark:bg-neutral-950 p-3 rounded-xl border border-[#e8e8ed] dark:border-neutral-900 transition-colors">
-                        {companyIntelBrief}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* cover letter build */}
-                  <div className="bg-[#fafafa] dark:bg-neutral-900/20 border border-[#e8e8ed] dark:border-neutral-900 rounded-2xl p-4 space-y-3">
-                    <div className="flex justify-between items-center">
-                      <h4 className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">📄 Cover Letter Generator</h4>
-                      <button
-                        onClick={() => {
-                          setCoverLetterLoading(true);
-                          setTimeout(() => {
-                            setCoverLetterLoading(false);
-                            setCoverLetterGenerated(true);
-                          }, 1000);
-                        }}
-                        className="bg-white hover:bg-neutral-50 dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-700 dark:text-neutral-300 text-[10px] font-semibold px-3.5 py-1 rounded-full border border-[#e8e8ed] dark:border-neutral-850 cursor-pointer transition-colors"
-                      >
-                        Generate Letter
-                      </button>
-                    </div>
-                    
-                    {coverLetterLoading ? (
-                      <p className="text-xs text-neutral-400 dark:text-neutral-500 animate-pulse">Drafting Cover Letter...</p>
-                    ) : coverLetterGenerated ? (
-                      <div className="space-y-2">
-                        <div className="bg-white dark:bg-neutral-950 border border-[#e8e8ed] dark:border-neutral-900 rounded-xl p-4 font-mono text-[10.5px] leading-relaxed text-neutral-500 transition-colors">
-                          <p className="text-right">May 30, 2026</p>
-                          <p>To,<br />{selectedCompany.contactName}<br />Talent Acquisition | {selectedCompany.company}</p>
-                          <p className="my-2 font-semibold text-neutral-600 dark:text-neutral-300">RE: Application for {selectedCompany.role}</p>
-                          <p>I am writing to express my earnest interest in the {selectedCompany.role} role at {selectedCompany.company}. Having spent significant time as a Business Analyst shipping end-to-end at an AI-first company owning BRDs, sprints, and client go-lives, I bring a structured analytical focus aligned with your engineering team velocity...</p>
-                        </div>
-                        <button
-                          onClick={() => {
-                            setMessage('📥 PDF Cover Letter downloaded.');
-                            setTimeout(() => setMessage(''), 4000);
-                          }}
-                          className="w-full bg-white hover:bg-[#f5f5f7] dark:bg-neutral-900 dark:hover:bg-neutral-850 border border-[#e8e8ed] dark:border-neutral-850 text-neutral-700 dark:text-white rounded-xl py-2 text-xs font-semibold cursor-pointer transition-colors"
-                        >
-                          Download cover_letter.pdf
-                        </button>
-                      </div>
-                    ) : (
-                      <p className="text-xs text-neutral-400 dark:text-neutral-500 italic">Generate a custom formatted Cover Letter PDF aligned with their products with 1-click.</p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* TAB 3: RECEIPTS & CADENCES */}
-              {drawerTab === 'tracking' && (
-                <div className="space-y-6">
-                  
-                  {/* Timezone Planner */}
-                  <div className="bg-[#fafafa] dark:bg-neutral-900/20 border border-[#e8e8ed] dark:border-neutral-900 rounded-2xl p-4 space-y-2 transition-colors">
-                    <h4 className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">🕒 Smart Timezone advisor</h4>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed transition-colors">
-                      Company is situated in <strong className="text-neutral-800 dark:text-neutral-200 font-semibold">{selectedCompany.location || 'Bangalore'}</strong>. Recruiter time is currently <strong className="text-neutral-800 dark:text-neutral-200 font-semibold">{new Date().toLocaleTimeString()}</strong>.
-                    </p>
-                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-950/20 px-2.5 py-0.5 rounded-full border border-emerald-100 dark:border-emerald-900/30 transition-colors">
-                      💡 Recommended: <strong className="text-emerald-600 dark:text-emerald-400 font-semibold">9:15 AM - 10:00 AM Recruiter Time</strong>
-                    </span>
-                  </div>
-
-                  {/* Pixel opens */}
-                  <div className="bg-[#fafafa] dark:bg-neutral-900/20 border border-[#e8e8ed] dark:border-neutral-900 rounded-2xl p-4 space-y-3 transition-colors">
-                    <h4 className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">👍  Tracking Pixel Receipt Logs</h4>
-                    <div className="flex justify-between items-center bg-white dark:bg-neutral-950 p-3 rounded-xl border border-[#e8e8ed] dark:border-neutral-900 transition-colors">
-                      <span className="text-xs text-neutral-400">Total Recruiter Opens:</span>
-                      <span className="text-sm font-bold text-emerald-500">{selectedCompany.openCount ?? 0}</span>
-                    </div>
-                  </div>
-
-                  {/* Sentiment class auto-reply */}
-                  <div className="bg-[#fafafa] dark:bg-neutral-900/20 border border-[#e8e8ed] dark:border-neutral-900 rounded-2xl p-4 space-y-3 transition-colors">
-                    <h4 className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">💬 Sentiment Auto-Reply Suggest</h4>
-                    <textarea
-                      rows={3}
-                      placeholder="Paste recruiter email reply here..."
-                      value={recruiterReplyText}
-                      onChange={e => setRecruiterReplyText(e.target.value)}
-                      className="w-full bg-white dark:bg-neutral-950 border border-[#e8e8ed] dark:border-neutral-900 rounded-xl p-3 text-xs text-neutral-800 dark:text-neutral-100 focus:outline-none focus:border-neutral-300 dark:focus:border-neutral-800 transition-colors"
-                    />
-
-                    <button
-                      onClick={handleSentimentAnalysis}
-                      disabled={!recruiterReplyText}
-                      className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-full py-2 text-xs font-semibold transition-all disabled:opacity-40 cursor-pointer shadow-sm"
-                    >
-                      Classify Reply & Draft Response
-                    </button>
-
-                    {sentimentAnalysis && (
-                      <div className="space-y-2 border-t border-[#e8e8ed] dark:border-neutral-900 pt-3 transition-colors">
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="font-semibold text-emerald-600 dark:text-emerald-400">{sentimentAnalysis.score}</span>
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(sentimentAnalysis.reply);
-                              setMessage('📋 Response copied.');
-                              setTimeout(() => setMessage(''), 4000);
-                            }}
-                            className="bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-850 text-xs font-semibold px-3 py-1 rounded-full border border-[#e8e8ed] dark:border-neutral-800 text-neutral-700 dark:text-white cursor-pointer transition-colors"
-                          >
-                            Copy response
-                          </button>
-                        </div>
-                        <textarea
-                          rows={6}
-                          value={sentimentAnalysis.reply}
-                          readOnly
-                          className="w-full bg-white dark:bg-neutral-950 border border-[#e8e8ed] dark:border-neutral-900 rounded-xl p-3 text-[10px] text-neutral-500 dark:text-neutral-400 font-mono focus:outline-none transition-colors"
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Cadence Timeline */}
-                  <div className="bg-[#fafafa] dark:bg-neutral-900/20 border border-[#e8e8ed] dark:border-neutral-900 rounded-2xl p-4 space-y-3 transition-colors">
-                    <h4 className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">📅 Threaded Cadence Timelines</h4>
-                    <div className="apple-timeline-hairline flex flex-col gap-4 pl-5 py-2 ml-1 relative border-l border-neutral-200 dark:border-neutral-800 transition-colors">
-                      {/* Touch 0: Original Sent */}
-                      <div className="relative">
-                        <span className="absolute -left-[25px] top-1 bg-emerald-500 w-2.5 h-2.5 rounded-full ring-4 ring-white dark:ring-neutral-950 flex items-center justify-center text-[7px] text-white">✓</span>
-                        <div className="text-xs">
-                          <p className="font-semibold text-neutral-700 dark:text-neutral-200">Day 0: Original Sent</p>
-                          <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Sent on Date Added via Gmail SMTP {selectedCompany.openCount ? `(Opened ${selectedCompany.openCount}x)` : ''}</p>
-                        </div>
-                      </div>
-
-                      {/* Touch 1: Follow-up 1 (Day 3) */}
-                      <div className="relative">
-                        {selectedCompany.followUpCount && selectedCompany.followUpCount >= 1 ? (
-                          <>
-                            <span className="absolute -left-[25px] top-1 bg-emerald-500 w-2.5 h-2.5 rounded-full ring-4 ring-white dark:ring-neutral-950 flex items-center justify-center text-[7px] text-white">✓</span>
-                            <div className="text-xs">
-                              <p className="font-semibold text-neutral-700 dark:text-neutral-200">Day 3: Follow-up 1 Sent</p>
-                              <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Soft check-in completed</p>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <span className={`absolute -left-[25px] top-1 w-2.5 h-2.5 rounded-full ring-4 ring-white dark:ring-neutral-950 ${selectedCompany.emailStatus === 'Sent' && (!selectedCompany.followUpCount || selectedCompany.followUpCount === 0) ? 'bg-blue-500 animate-pulse' : 'bg-neutral-300 dark:bg-neutral-700'}`}></span>
-                            <div className="text-xs">
-                              <p className="font-semibold text-neutral-500 dark:text-neutral-400">Day 3: Follow-up 1 Due</p>
-                              <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Soft check-in, reference original email</p>
-                            </div>
-                          </>
-                        )}
-                      </div>
-
-                      {/* Touch 2: Follow-up 2 (Day 7) */}
-                      <div className="relative">
-                        {selectedCompany.followUpCount && selectedCompany.followUpCount >= 2 ? (
-                          <>
-                            <span className="absolute -left-[25px] top-1 bg-emerald-500 w-2.5 h-2.5 rounded-full ring-4 ring-white dark:ring-neutral-950 flex items-center justify-center text-[7px] text-white">✓</span>
-                            <div className="text-xs">
-                              <p className="font-semibold text-neutral-700 dark:text-neutral-200">Day 7: Follow-up 2 Sent</p>
-                              <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Lighter ask with portfolio / schedule offer</p>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <span className={`absolute -left-[25px] top-1 w-2.5 h-2.5 rounded-full ring-4 ring-white dark:ring-neutral-950 ${selectedCompany.followUpCount === 1 ? 'bg-blue-500 animate-pulse' : 'bg-neutral-300 dark:bg-neutral-700'}`}></span>
-                            <div className="text-xs">
-                              <p className="font-semibold text-neutral-500 dark:text-neutral-400">Day 7: Follow-up 2 Scheduled</p>
-                              <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Offer specific availability or portfolio link</p>
-                            </div>
-                          </>
-                        )}
-                      </div>
-
-                      {/* Touch 3: Follow-up 3 (Day 10) */}
-                      <div className="relative">
-                        {selectedCompany.followUpCount && selectedCompany.followUpCount >= 3 ? (
-                          <>
-                            <span className="absolute -left-[25px] top-1 bg-emerald-500 w-2.5 h-2.5 rounded-full ring-4 ring-white dark:ring-neutral-950 flex items-center justify-center text-[7px] text-white">✓</span>
-                            <div className="text-xs">
-                              <p className="font-semibold text-neutral-700 dark:text-neutral-200">Day 10: Follow-up 3 Sent</p>
-                              <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Graceful exit touchpoint delivered</p>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <span className={`absolute -left-[25px] top-1 w-2.5 h-2.5 rounded-full ring-4 ring-white dark:ring-neutral-950 ${selectedCompany.followUpCount === 2 ? 'bg-blue-500 animate-pulse' : 'bg-neutral-300 dark:bg-neutral-700'}`}></span>
-                            <div className="text-xs">
-                              <p className="font-semibold text-neutral-500 dark:text-neutral-400">Day 10: Follow-up 3 Scheduled</p>
-                              <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Graceful exit — zero pressure close</p>
-                            </div>
-                          </>
-                        )}
-                      </div>
-
-                      {/* Day 14: Archive */}
-                      <div className="relative">
-                        {selectedCompany.emailStatus === 'No Response' ? (
-                          <>
-                            <span className="absolute -left-[25px] top-1 bg-neutral-600 w-2.5 h-2.5 rounded-full ring-4 ring-white dark:ring-neutral-950 flex items-center justify-center text-[7px] text-white">✓</span>
-                            <div className="text-xs">
-                              <p className="font-semibold text-neutral-700 dark:text-neutral-200">Day 14: Archived</p>
-                              <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Closed lead — No response after 14 days</p>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <span className="absolute -left-[25px] top-1 bg-neutral-300 dark:bg-neutral-700 w-2.5 h-2.5 rounded-full ring-4 ring-white dark:ring-neutral-950"></span>
-                            <div className="text-xs">
-                              <p className="font-semibold text-neutral-500 dark:text-neutral-450">Day 14: Archive If No Reply</p>
-                              <p className="text-[10px] text-neutral-400 dark:text-neutral-550">Stops further outreach sweeps automatically</p>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Self healing Suggestion alternate contact */}
-                  <div className="bg-[#fafafa] dark:bg-neutral-900/20 border border-[#e8e8ed] dark:border-neutral-900 rounded-2xl p-4 space-y-2 transition-colors">
-                    <h4 className="text-xs font-semibold text-orange-600 dark:text-orange-400">🛡️  Alternate Recruiter Suggestion</h4>
-                    <p className="text-[10.5px] text-neutral-500 dark:text-neutral-400 leading-normal">
-                      Bouncing recruiter emails? Alternate contact at <strong className="text-neutral-800 dark:text-neutral-200 font-semibold">{selectedCompany.company}</strong> matches:
-                    </p>
-                    <div className="bg-white dark:bg-neutral-950 border border-[#e8e8ed] dark:border-neutral-900 rounded-xl p-3 text-xs space-y-1 transition-colors">
-                      <p className="font-semibold text-neutral-800 dark:text-neutral-200">Rachel Jenkins</p>
-                      <p className="text-[10px] text-neutral-500">Lead Recruiting Partner | rachel.jenkins@{selectedCompany.company.toLowerCase().replace(/[^a-z0-9]/g, '')}.com</p>
-                    </div>
-                  </div>
-
-                </div>
-              )}
-
-            </div>
-
-            {/* Actions footer */}
-            <div className="border-t border-neutral-200/50 dark:border-neutral-900/60 p-6 bg-white/80 dark:bg-neutral-950/45 backdrop-blur-xl flex justify-between items-center gap-3 transition-colors shrink-0 select-none">
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleStatusUpdate(selectedCompany.notionId, 'Rejected')}
-                  disabled={actionLoading === selectedCompanyId + 'Rejected'}
-                  className="bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 border border-[#e8e8ed] dark:border-neutral-800 text-rose-600 dark:text-rose-400 text-xs font-bold py-2.5 px-4 rounded-full transition-all cursor-pointer active:scale-95 shadow-sm"
-                >
-                  Reject Card
-                </button>
-                
-                <button
-                  onClick={() => handleStatusUpdate(selectedCompany.notionId, 'Redo')}
-                  disabled={actionLoading === selectedCompanyId + 'Redo'}
-                  className="bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 border border-[#e8e8ed] dark:border-neutral-800 text-orange-600 dark:text-orange-400 text-xs font-bold py-2.5 px-4 rounded-full transition-all cursor-pointer active:scale-95 shadow-sm"
-                >
-                  🔄 Redo AI
-                </button>
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  onClick={handleSaveDrawerEdits}
-                  className="bg-white hover:bg-[#fafafa] dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-750 dark:text-neutral-300 text-xs font-bold py-2.5 px-5 rounded-full border border-neutral-250 dark:border-neutral-800 transition-all cursor-pointer active:scale-95 shadow-sm"
-                >
-                  💾 Save Edits
-                </button>
-
-                {selectedCompany.emailStatus === 'Approved' && (
-                  <div className="relative inline-flex items-center">
-                    <button
-                      onClick={() => {
-                        handleSendEmail(selectedCompany.notionId);
-                        setSelectedCompanyId(null);
-                      }}
-                      disabled={actionLoading === selectedCompanyId + 'send'}
-                      className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2.5 pl-6 pr-4 rounded-l-full transition-all shadow-sm cursor-pointer select-none active:scale-95"
-                    >
-                      Send Outreach Now
-                    </button>
-                    <button
-                      onClick={() => setDrawerSendMenuOpen(!drawerSendMenuOpen)}
-                      className="bg-blue-750 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-3 rounded-r-full border-l border-white/20 transition-all cursor-pointer select-none"
-                    >
-                      ▼
-                    </button>
-                    {drawerSendMenuOpen && (
-                      <div className="absolute right-0 bottom-full mb-2 w-56 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl py-2 z-50 animate-scale-up font-semibold text-left">
-                        <button
-                          onClick={() => {
-                            setDrawerSendMenuOpen(false);
-                            const optimal = getOptimalSendTime(selectedCompany.location || 'Bangalore').toISOString();
-                            handleScheduleSend(selectedCompany.notionId, optimal);
-                          }}
-                          className="w-full px-4 py-2.5 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-left flex items-center gap-2"
-                        >
-                          ✨ Send at Optimal Time
-                        </button>
-                        <button
-                          onClick={() => {
-                            setDrawerSendMenuOpen(false);
-                            const oneHourLater = new Date(Date.now() + 60 * 60 * 1000).toISOString();
-                            handleScheduleSend(selectedCompany.notionId, oneHourLater);
-                          }}
-                          className="w-full px-4 py-2.5 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-left flex items-center gap-2"
-                        >
-                          ⏱️  Schedule for 1 Hour Later
-                        </button>
-                        <button
-                          onClick={() => {
-                            setDrawerSendMenuOpen(false);
-                            const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
-                            tomorrow.setHours(9, 30, 0, 0);
-                            handleScheduleSend(selectedCompany.notionId, tomorrow.toISOString());
-                          }}
-                          className="w-full px-4 py-2.5 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-left flex items-center gap-2"
-                        >
-                          🌅 Schedule for Tomorrow 9:30 AM
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {(selectedCompany.emailStatus === 'Draft Ready' || selectedCompany.emailStatus === 'Redo') && (
-                  <button
-                    onClick={() => {
-                      handleStatusUpdate(selectedCompany.notionId, 'Approved');
-                      setSelectedCompanyId(null);
-                    }}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2.5 px-6 rounded-full transition-all shadow-sm cursor-pointer active:scale-95"
-                  >
-                    Approve Outreach Draft
-                  </button>
-                )}
-
-                {selectedCompany.emailStatus === 'New' && (
-                  <button
-                    onClick={() => triggerAICompanyBrief(selectedCompany)}
-                    disabled={intelLoading}
-                    className="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold py-2.5 px-6 rounded-full transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer inline-flex items-center gap-1.5"
-                  >
-                    {intelLoading ? (
-                      <>
-                        <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                        Generating Pitch...
-                      </>
-                    ) : (
-                      '🤖 Generate Outreach Pitch'
-                    )}
-                  </button>
-                )}
-
-                {(selectedCompany.emailStatus === 'Sent' || selectedCompany.emailStatus === 'Replied' || selectedCompany.emailStatus === 'Interview' || selectedCompany.emailStatus === 'Offer') && (
-                  <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10.5px] font-bold py-2.5 px-5 rounded-full inline-flex items-center gap-1.5 shadow-sm transition-all select-none">
-                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                    📬 Sent & Tracked Live
-                  </span>
-                )}
-
-                {selectedCompany.emailStatus === 'Rejected' && (
-                  <span className="bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 text-[10.5px] font-bold py-2.5 px-5 rounded-full inline-flex items-center gap-1.5 shadow-sm transition-all select-none">
-                    ❌ Lead Archived
-                  </span>
-                )}
-              </div>
-            </div>
-
-          </div>
-        </div>
-      )}
-
-    </>
-  );
-}
-
-
-
-// ── MAIN CONDITIONAL EXPORT WRAPPER ──
-export default function MorningDashboard() {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-[80vh] flex items-center justify-center bg-[#f5f5f7] dark:bg-black transition-colors duration-300">
-        <svg className="animate-spin h-8 w-8 text-neutral-500" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-        </svg>
-      </div>
-    );
-  }
-
-  if (user) {
-    return (
-      <Suspense fallback={
-        <div className="min-h-[80vh] flex items-center justify-center bg-[#f5f5f7] dark:bg-black transition-colors duration-300">
-          <svg className="animate-spin h-8 w-8 text-neutral-500" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-          </svg>
-        </div>
-      }>
-        <DashboardContent />
-      </Suspense>
-    );
-  }
-
-  return <MarketingHomepage />;
-}
