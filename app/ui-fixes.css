@@ -71,3 +71,22 @@
   border-color: #ffffff !important;
   border-top-color: transparent !important;
 }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   5. The Settings page primary save/submit buttons ("Save Changes",
+      "Test & Save Notion Link", "Save AI Configurations", "Save Security
+      Settings") used the same near-white bg-[#fafafa] secondary treatment, so
+      the main action of each form had no affordance. The class pair
+      `.bg-[#fafafa].hover:scale-102` is unique to exactly these four buttons,
+      so we promote them to the same blue primary as the rest of the app
+      without touching the markup.
+   ─────────────────────────────────────────────────────────────────────────── */
+.bg-\[\#fafafa\].hover\:scale-102 {
+  background-color: #2563eb !important;            /* blue-600 */
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+}
+.bg-\[\#fafafa\].hover\:scale-102:hover:not(:disabled) {
+  background-color: #3b82f6 !important;            /* blue-500 */
+  border-color: #3b82f6 !important;
+}
