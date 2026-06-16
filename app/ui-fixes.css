@@ -44,3 +44,49 @@
 .animate-scale-up {
   animation: scaleUp 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   4. The "Discover Recruiter Lead" button (.apple-glow-blue) is the primary
+      action of the Recruiter Ingestion panel, but it was styled as a near-white
+      secondary button (bg-[#fafafa] + light-grey border). With no fill colour it
+      had no affordance and read as disabled/inactive — inconsistent with the
+      solid-blue primary actions used everywhere else (Approve, Send Now).
+      These rules promote it to a proper blue primary CTA. Loaded after globals
+      (and unique to this button), so they win.
+   ─────────────────────────────────────────────────────────────────────────── */
+.apple-glow-blue {
+  background-color: #2563eb !important;            /* blue-600 */
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+}
+.apple-glow-blue:hover:not(:disabled) {
+  background-color: #3b82f6 !important;            /* blue-500 */
+  border-color: #3b82f6 !important;
+}
+.apple-glow-blue:disabled {
+  cursor: not-allowed;
+}
+/* Loading spinner sits on the blue fill now — make it white for contrast. */
+.apple-glow-blue .animate-spin {
+  border-color: #ffffff !important;
+  border-top-color: transparent !important;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   5. The Settings page primary save/submit buttons ("Save Changes",
+      "Test & Save Notion Link", "Save AI Configurations", "Save Security
+      Settings") used the same near-white bg-[#fafafa] secondary treatment, so
+      the main action of each form had no affordance. The class pair
+      `.bg-[#fafafa].hover:scale-102` is unique to exactly these four buttons,
+      so we promote them to the same blue primary as the rest of the app
+      without touching the markup.
+   ─────────────────────────────────────────────────────────────────────────── */
+.bg-\[\#fafafa\].hover\:scale-102 {
+  background-color: #2563eb !important;            /* blue-600 */
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+}
+.bg-\[\#fafafa\].hover\:scale-102:hover:not(:disabled) {
+  background-color: #3b82f6 !important;            /* blue-500 */
+  border-color: #3b82f6 !important;
+}
