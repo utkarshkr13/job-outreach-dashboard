@@ -255,3 +255,74 @@ Source URL: ${company.sourceUrl ?? ''}`
     notes: quality.feedback,
   };
 }
+
+// ─── CONFIG HELPER ────────────────────────────────────────────────────────────
+
+function buildConfig(creds: UserCredentials): ModelConfig {
+  const provider = creds.llmProvider || 'anthropic';
+  const anthropicKey = creds.anthropicApiKey || process.env.ANTHROPIC_API_KEY;
+  const groqKey = creds.groqApiKey || process.env.GROQ_API_KEY;
+  const useGroq = provider === 'groq' ? !!groqKey : !anthropicKey && !!groqKey;
+  const config: ModelConfig = useGroq
+    ? { provider: 'groq', apiKey: groqKey! }
+    : { provider: 'anthropic', apiKey: anthropicKey! };
+  if (!config.apiKey) {
+    throw new Error(`Missing ${config.provider === 'groq' ? 'Groq' : 'Anthropic'} API Key. Add it in Settings → AI LLM Engines.`);
+  }
+  return config;
+}
+
+// ─── COMPANY INTELLIGENCE BRIEF (read-only; never writes to Notion) ───────────
+
+export async function generateCompanyBrief(company: Company, creds: UserCredentials): Promise<string> {
+  if (process.env.NEXT_PUBLIC_APP_MODE === 'demo') {
+    return `What they do: ${company.company} operates in the ${company.companyType || 'technology'} space targeting ${company.role} talent.\nMarket & traction: Actively hiring across APAC with a focus on product and analytics roles.\nLikely tech/teams: Modern web stack, data/analytics tooling, cross-functional product pods.\nWhy you could fit: Your ${creds.targetRoles} background maps to their analytics and product needs.\nPersonalized hook: Reference their recent hiring push for ${company.role} and tie it to a concrete win you delivered.`;
+  }
+  const config = buildConfig(creds);
+  return askModel(
+    config,
+    `You are a research analyst preparing a concise company brief for a job applicant about to send a cold email.
+Return PLAIN TEXT with these exact labelled lines, each on its own line, no markdown symbols, no bullets:
+What they do: <one tight sentence>
+Market & traction: <one sentence on funding/growth/scale if known, else best inference>
+Likely tech/teams: <one short line>
+Why you could fit: <one sentence tied to ${creds.targetRoles}>
+Personalized hook: <one sentence the applicant can adapt into their opener>
+No preamble, no sign-off.`,
+    `Company: ${company.company}
+Role: ${company.role}
+Type: ${company.companyType ?? ''}
+Location: ${company.location ?? ''}
+Notes: ${company.notes ?? ''}
+Source URL: ${company.sourceUrl ?? ''}`
+  );
+}
+
+// ─── COVER LETTER (read-only; returns text) ───────────────────────────────────
+
+export async function generateCoverLetter(company: Company, creds: UserCredentials): Promise<string> {
+  const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  if (process.env.NEXT_PUBLIC_APP_MODE === 'demo') {
+    return `${today}\n\nDear ${company.contactName?.split(' ')[0] || 'Hiring Team'},\n\nI am writing to apply for the ${company.role} role at ${company.company}. I am a ${creds.targetRoles} candidate who has shipped end-to-end in fast-moving teams.\n\nIn my recent work I owned requirements, sprints, and go-lives, turning ambiguous problems into measurable outcomes. I would bring that same structured, ownership-driven approach to ${company.company}.\n\nI would welcome a 15-minute call to explore the fit.\n\nSincerely,\n${creds.senderName || 'Applicant'}`;
+  }
+  const config = buildConfig(creds);
+  return askModel(
+    config,
+    `Write a professional, specific one-page cover letter (220-300 words) for a job application.
+Rules:
+- Plain text only. No markdown, no placeholders, no [brackets], no em dashes (use hyphens).
+- Structure: a date line, a salutation to the recruiter by first name if available else "Dear Hiring Team,", three short paragraphs (1: a hook specific to this company; 2: relevant experience and skills from the bio; 3: a close with a clear 15-minute call request), then "Sincerely," on its own line and the applicant's name on the next.
+- Be concrete about the company. No generic flattery.`,
+    `Date: ${today}
+Applicant name: ${creds.senderName || 'Applicant'}
+Applicant bio: ${creds.senderBio || ''}
+Target roles: ${creds.targetRoles}
+Phone: ${creds.senderPhone || ''}
+LinkedIn: ${creds.senderLinkedin || ''}
+Company: ${company.company}
+Role: ${company.role}
+Recruiter: ${company.contactName || ''} (${company.contactTitle || ''})
+Location: ${company.location ?? ''}
+Company notes: ${company.notes ?? ''}`
+  );
+}

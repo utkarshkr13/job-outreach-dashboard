@@ -57,6 +57,51 @@ const getCompanyAvatarColors = (companyName: string) => {
   return colors[index].bg;
 };
 
+// Dependency-free single-page PDF generator for plain ASCII text (Helvetica 11pt, US Letter).
+function buildSimplePdf(rawText: string): string {
+  // Normalise to ASCII so string length == UTF-8 byte length (keeps xref offsets valid).
+  const text = rawText
+    .replace(/[‘’]/g, "'")
+    .replace(/[“”]/g, '"')
+    .replace(/[–—]/g, '-')
+    .replace(/[^\x00-\x7F]/g, '');
+  const escape = (s: string) => s.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+  const maxChars = 92;
+  const wrapped: string[] = [];
+  for (const line of text.replace(/\r/g, '').split('\n')) {
+    if (line.length <= maxChars) { wrapped.push(line); continue; }
+    let s = line;
+    while (s.length > maxChars) {
+      let cut = s.lastIndexOf(' ', maxChars);
+      if (cut <= 0) cut = maxChars;
+      wrapped.push(s.slice(0, cut));
+      s = s.slice(cut).replace(/^\s+/, '');
+    }
+    wrapped.push(s);
+  }
+  let content = 'BT\n/F1 11 Tf\n15 TL\n72 740 Td\n';
+  for (const ln of wrapped) content += `(${escape(ln)}) Tj\nT*\n`;
+  content += 'ET';
+  const objects = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+    `<< /Length ${content.length} >>\nstream\n${content}\nendstream`,
+  ];
+  let pdf = '%PDF-1.4\n';
+  const offsets: number[] = [];
+  objects.forEach((obj, i) => {
+    offsets.push(pdf.length);
+    pdf += `${i + 1} 0 obj\n${obj}\nendobj\n`;
+  });
+  const xrefStart = pdf.length;
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+  offsets.forEach(off => { pdf += String(off).padStart(10, '0') + ' 00000 n \n'; });
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefStart}\n%%EOF`;
+  return pdf;
+}
+
 function DashboardContent() {
   const { user } = useAuth();
   const router = useRouter();
@@ -109,6 +154,7 @@ function DashboardContent() {
   const [draftBody, setDraftBody] = useState('');
   const [draftNotes, setDraftNotes] = useState('');
   const [coverLetterGenerated, setCoverLetterGenerated] = useState(false);
+  const [coverLetterText, setCoverLetterText] = useState('');
   const [companyIntelBrief, setCompanyIntelBrief] = useState('');
   const [intelLoading, setIntelLoading] = useState(false);
   const [coverLetterLoading, setCoverLetterLoading] = useState(false);
@@ -347,52 +393,72 @@ function DashboardContent() {
 
   // Fetch intelligence briefs using Claude
   // Fetch intelligence briefs using Claude and generate/update draft
+  // Read-only company intelligence brief. Does NOT touch the Notion email draft.
   const triggerAICompanyBrief = async (company: Company) => {
     setIntelLoading(true);
+    setCompanyIntelBrief('');
     try {
-      const response = await authFetch('/api/generate', {
+      const response = await authFetch('/api/brief', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notionId: company.notionId }),
+        body: JSON.stringify({ company }),
       });
       const data = await response.json();
-      if (data.result) {
-        // Update dossier notes
-        if (data.result.notes) {
-          setCompanyIntelBrief(data.result.notes);
-          setDraftNotes(`Score: ${data.result.score}/10 — ${data.result.notes}`);
-        }
-        // Update draft fields in Pitch Editor
-        if (data.result.subject) {
-          setDraftSubject(data.result.subject);
-        }
-        if (data.result.body) {
-          setDraftBody(data.result.body);
-        }
-        // Synchronize local companies state so the changes persist in UI
-        setCompanies(prev =>
-          prev.map(c =>
-            c.notionId === company.notionId
-              ? {
-                  ...c,
-                  emailSubject: data.result.subject || c.emailSubject,
-                  emailDraft: data.result.body || c.emailDraft,
-                  draftNotes: data.result.notes ? `Score: ${data.result.score}/10 — ${data.result.notes}` : c.draftNotes,
-                  emailStatus: 'Draft Ready'
-                }
-              : c
-          )
-        );
-        setMessage('🤖 Email draft generated successfully!');
-        setTimeout(() => setMessage(''), 4000);
+      if (response.ok && data.brief) {
+        setCompanyIntelBrief(data.brief);
       } else {
-        setCompanyIntelBrief(`**Company Dossier: ${company.company}**\n- Targeted Role: ${company.role}\n- Location: ${company.location || 'Not Specified'}\n- Tech Stack: Next.js, Node.js, Vercel platforms, Claude AI, Salesforce CRM\n- Compete: Direct competition in the high-velocity operations sector.\n- News: Strong hiring initiatives focusing on BA/APM roles in APAC regions.`);
+        setMessage(`❌ ${data.error || 'Could not generate brief.'}`);
+        setTimeout(() => setMessage(''), 6000);
       }
-    } catch (e) {
-      setCompanyIntelBrief(`**Company Dossier: ${company.company}**\n- Targeted Role: ${company.role}\n- Location: ${company.location || 'Not Specified'}\n- Tech Stack: Next.js, Node.js, Vercel platforms, Claude AI, Salesforce CRM\n- Compete: Direct competition in the high-velocity operations sector.\n- News: Strong hiring initiatives focusing on BA/APM roles in APAC regions.`);
+    } catch (e: any) {
+      setMessage(`❌ ${e?.message || 'Could not generate brief.'}`);
+      setTimeout(() => setMessage(''), 6000);
     } finally {
       setIntelLoading(false);
     }
+  };
+
+  // Real cover-letter generation (AI) + dependency-free PDF download.
+  const handleGenerateCoverLetter = async () => {
+    if (!selectedCompany) return;
+    setCoverLetterLoading(true);
+    setCoverLetterGenerated(false);
+    try {
+      const res = await authFetch('/api/cover-letter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ company: selectedCompany }),
+      });
+      const data = await res.json();
+      if (res.ok && data.text) {
+        setCoverLetterText(data.text);
+        setCoverLetterGenerated(true);
+      } else {
+        setMessage(`❌ ${data.error || 'Could not generate cover letter.'}`);
+        setTimeout(() => setMessage(''), 6000);
+      }
+    } catch (e: any) {
+      setMessage(`❌ ${e?.message || 'Could not generate cover letter.'}`);
+      setTimeout(() => setMessage(''), 6000);
+    } finally {
+      setCoverLetterLoading(false);
+    }
+  };
+
+  const downloadCoverLetterPdf = () => {
+    if (!selectedCompany || !coverLetterText) return;
+    const pdf = buildSimplePdf(coverLetterText);
+    const blob = new Blob([pdf], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cover_letter_${selectedCompany.company.replace(/[^a-z0-9]+/gi, '_')}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setMessage('📥 Cover letter PDF downloaded.');
+    setTimeout(() => setMessage(''), 4000);
   };
 
   // Recruiter Sentiment Analyzer auto-reply suggest
@@ -1475,7 +1541,7 @@ function DashboardContent() {
                     )}
                   </div>
 
-                  {(!draftSubject && !draftBody) ? (
+                  {false ? (
                     <div className="bg-amber-500/5 dark:bg-amber-400/5 border border-dashed border-amber-250/30 dark:border-amber-900/30 rounded-2xl p-6 text-center space-y-4 my-2">
                       <div className="mx-auto w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 text-xl shadow-sm">
                         🤖
@@ -1526,20 +1592,6 @@ function DashboardContent() {
                               className="text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 text-[9px] font-semibold bg-[#fafafa] dark:bg-neutral-900 border border-[#e8e8ed] dark:border-neutral-800 px-2 py-0.5 rounded-full cursor-pointer transition-colors"
                             >
                               Copy Email
-                            </button>
-                            <button
-                              onClick={() => triggerAICompanyBrief(selectedCompany)}
-                              disabled={intelLoading}
-                              className="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 text-[9px] font-semibold bg-[#fafafa] dark:bg-neutral-900 border border-[#e8e8ed] dark:border-neutral-800 px-2 py-0.5 rounded-full cursor-pointer transition-colors inline-flex items-center gap-1 disabled:opacity-50"
-                            >
-                              {intelLoading ? (
-                                <>
-                                  <span className="w-2 h-2 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
-                                  Regenerating...
-                                </>
-                              ) : (
-                                '🤖 Regenerate'
-                              )}
                             </button>
                           </div>
                           <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${readability.color}`}>
@@ -1598,13 +1650,37 @@ function DashboardContent() {
 
                   {/* Company intel brief */}
                   <div className="bg-[#fafafa] dark:bg-neutral-900/20 border border-[#e8e8ed] dark:border-neutral-900 rounded-2xl p-4 space-y-3">
-                    <h4 className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">🕵️  Company Intelligence Brief</h4>
+                    <div className="flex justify-between items-center">
+                      <h4 className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">🕵️ Company Intelligence Brief</h4>
+                      <button
+                        onClick={() => triggerAICompanyBrief(selectedCompany)}
+                        disabled={intelLoading}
+                        className="bg-white hover:bg-neutral-50 dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-700 dark:text-neutral-300 text-[10px] font-semibold px-3.5 py-1 rounded-full border border-[#e8e8ed] dark:border-neutral-850 cursor-pointer transition-colors disabled:opacity-50"
+                      >
+                        {intelLoading ? 'Generating…' : companyIntelBrief ? 'Regenerate' : 'Generate'}
+                      </button>
+                    </div>
                     {intelLoading ? (
-                      <p className="text-xs text-neutral-400 dark:text-neutral-500 animate-pulse">Consulting Claude brief...</p>
+                      <p className="text-xs text-neutral-400 dark:text-neutral-500 animate-pulse">Researching {selectedCompany.company} with AI…</p>
+                    ) : companyIntelBrief ? (
+                      <div className="space-y-1.5 bg-white dark:bg-neutral-950 p-3.5 rounded-xl border border-[#e8e8ed] dark:border-neutral-900">
+                        {companyIntelBrief.split('\n').filter(l => l.trim()).map((line, i) => {
+                          const idx = line.indexOf(':');
+                          const hasLabel = idx > 0 && idx < 40;
+                          return (
+                            <p key={i} className="text-[11px] leading-relaxed text-neutral-600 dark:text-neutral-300">
+                              {hasLabel ? (
+                                <>
+                                  <span className="font-semibold text-neutral-800 dark:text-neutral-100">{line.slice(0, idx + 1)}</span>
+                                  {line.slice(idx + 1)}
+                                </>
+                              ) : line}
+                            </p>
+                          );
+                        })}
+                      </div>
                     ) : (
-                      <p className="text-xs text-neutral-600 dark:text-neutral-300 font-mono leading-relaxed whitespace-pre-line bg-white dark:bg-neutral-950 p-3 rounded-xl border border-[#e8e8ed] dark:border-neutral-900 transition-colors">
-                        {companyIntelBrief}
-                      </p>
+                      <p className="text-[11px] text-neutral-400 dark:text-neutral-500 italic">Generate an AI brief on {selectedCompany.company} to tailor your outreach.</p>
                     )}
                   </div>
 
@@ -1613,41 +1689,33 @@ function DashboardContent() {
                     <div className="flex justify-between items-center">
                       <h4 className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">📄 Cover Letter Generator</h4>
                       <button
-                        onClick={() => {
-                          setCoverLetterLoading(true);
-                          setTimeout(() => {
-                            setCoverLetterLoading(false);
-                            setCoverLetterGenerated(true);
-                          }, 1000);
-                        }}
-                        className="bg-white hover:bg-neutral-50 dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-700 dark:text-neutral-300 text-[10px] font-semibold px-3.5 py-1 rounded-full border border-[#e8e8ed] dark:border-neutral-850 cursor-pointer transition-colors"
+                        onClick={handleGenerateCoverLetter}
+                        disabled={coverLetterLoading}
+                        className="bg-white hover:bg-neutral-50 dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-700 dark:text-neutral-300 text-[10px] font-semibold px-3.5 py-1 rounded-full border border-[#e8e8ed] dark:border-neutral-850 cursor-pointer transition-colors disabled:opacity-50"
                       >
-                        Generate Letter
+                        {coverLetterLoading ? 'Generating…' : coverLetterGenerated ? 'Regenerate' : 'Generate Letter'}
                       </button>
                     </div>
-                    
+
                     {coverLetterLoading ? (
-                      <p className="text-xs text-neutral-400 dark:text-neutral-500 animate-pulse">Drafting Cover Letter...</p>
+                      <p className="text-xs text-neutral-400 dark:text-neutral-500 animate-pulse">Drafting cover letter with AI…</p>
                     ) : coverLetterGenerated ? (
                       <div className="space-y-2">
-                        <div className="bg-white dark:bg-neutral-950 border border-[#e8e8ed] dark:border-neutral-900 rounded-xl p-4 font-mono text-[10.5px] leading-relaxed text-neutral-500 transition-colors">
-                          <p className="text-right">May 30, 2026</p>
-                          <p>To,<br />{selectedCompany.contactName}<br />Talent Acquisition | {selectedCompany.company}</p>
-                          <p className="my-2 font-semibold text-neutral-600 dark:text-neutral-300">RE: Application for {selectedCompany.role}</p>
-                          <p>I am writing to express my earnest interest in the {selectedCompany.role} role at {selectedCompany.company}. Having spent significant time as a Business Analyst shipping end-to-end at an AI-first company owning BRDs, sprints, and client go-lives, I bring a structured analytical focus aligned with your engineering team velocity...</p>
-                        </div>
+                        <textarea
+                          rows={12}
+                          value={coverLetterText}
+                          onChange={e => setCoverLetterText(e.target.value)}
+                          className="w-full bg-white dark:bg-neutral-950 border border-[#e8e8ed] dark:border-neutral-900 rounded-xl p-4 text-[11px] leading-relaxed text-neutral-700 dark:text-neutral-200 font-mono focus:outline-none focus:border-neutral-300 dark:focus:border-neutral-800 transition-colors"
+                        />
                         <button
-                          onClick={() => {
-                            setMessage('📥 PDF Cover Letter downloaded.');
-                            setTimeout(() => setMessage(''), 4000);
-                          }}
+                          onClick={downloadCoverLetterPdf}
                           className="w-full bg-white hover:bg-[#f5f5f7] dark:bg-neutral-900 dark:hover:bg-neutral-850 border border-[#e8e8ed] dark:border-neutral-850 text-neutral-700 dark:text-white rounded-xl py-2 text-xs font-semibold cursor-pointer transition-colors"
                         >
-                          Download cover_letter.pdf
+                          ⬇ Download PDF
                         </button>
                       </div>
                     ) : (
-                      <p className="text-xs text-neutral-400 dark:text-neutral-500 italic">Generate a custom formatted Cover Letter PDF aligned with their products with 1-click.</p>
+                      <p className="text-xs text-neutral-400 dark:text-neutral-500 italic">Generate a personalized cover letter for {selectedCompany.company} with AI, edit it, then download a real PDF.</p>
                     )}
                   </div>
                 </div>
@@ -1924,22 +1992,6 @@ function DashboardContent() {
                   </button>
                 )}
 
-                {selectedCompany.emailStatus === 'New' && (
-                  <button
-                    onClick={() => triggerAICompanyBrief(selectedCompany)}
-                    disabled={intelLoading}
-                    className="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold py-2.5 px-6 rounded-full transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer inline-flex items-center gap-1.5"
-                  >
-                    {intelLoading ? (
-                      <>
-                        <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                        Generating Pitch...
-                      </>
-                    ) : (
-                      '🤖 Generate Outreach Pitch'
-                    )}
-                  </button>
-                )}
 
                 {(selectedCompany.emailStatus === 'Sent' || selectedCompany.emailStatus === 'Replied' || selectedCompany.emailStatus === 'Interview' || selectedCompany.emailStatus === 'Offer') && (
                   <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10.5px] font-bold py-2.5 px-5 rounded-full inline-flex items-center gap-1.5 shadow-sm transition-all select-none">
