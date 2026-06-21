@@ -163,10 +163,10 @@ export default function AnalyticsPage() {
         </div>
 
         <div className="bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-5 shadow-[0_4px_12px_rgba(0,0,0,0.015)] dark:shadow-none flex flex-col justify-between transition-colors">
-          <span className="text-neutral-400 dark:text-neutral-500 text-[10px] font-bold uppercase tracking-wider">Recruiter Opens</span>
+          <span className="text-neutral-400 dark:text-neutral-500 text-[10px] font-bold uppercase tracking-wider">Replies Received</span>
           <div className="flex items-baseline gap-2 mt-2">
-            <span className="text-2xl font-bold text-[#1d1d1f] dark:text-neutral-100">{totalOpens}</span>
-            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">Hits ({distinctOpenedCount} Leads)</span>
+            <span className="text-2xl font-bold text-[#1d1d1f] dark:text-neutral-100">{totalResponses}</span>
+            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">{responseRate}% reply rate</span>
           </div>
         </div>
 
@@ -228,14 +228,14 @@ export default function AnalyticsPage() {
                   3. outreach emailed: {sentList.length} sent ({total > 0 ? Math.round((sentList.length/total)*100) : 0}%)
                 </text>
 
-                {/* 4. Opened */}
+                {/* 4. Replied */}
                 <text x="300" y="165" fill="currentColor" fontSize="10" fontWeight="bold" textAnchor="middle" className="text-emerald-600 dark:text-emerald-400 transition-colors">
-                  4. read receipts: {distinctOpenedCount} opened ({sentList.length > 0 ? openRate : 0}% open rate)
+                  4. recruiter replies: {totalResponses} replied ({sentList.length > 0 ? responseRate : 0}% reply rate)
                 </text>
 
-                {/* 5. Recruiter Response */}
+                {/* 5. Interview */}
                 <text x="300" y="210" fill="currentColor" fontSize="10" fontWeight="bold" textAnchor="middle" className="text-blue-600 dark:text-blue-400 transition-colors">
-                  5. recruiter response: {totalResponses} replied ({sentList.length > 0 ? responseRate : 0}% success rate)
+                  5. interviews: {totalInterviews} advanced ({sentList.length > 0 ? interviewRate : 0}% of sent)
                 </text>
               </svg>
             </div>
@@ -265,7 +265,7 @@ export default function AnalyticsPage() {
                   <path
                     className="text-emerald-500 transition-all duration-500 ease-out"
                     strokeWidth="2"
-                    strokeDasharray={`${openRate}, 100`}
+                    strokeDasharray={`${responseRate}, 100`}
                     strokeLinecap="round"
                     stroke="currentColor"
                     fill="none"
@@ -273,8 +273,8 @@ export default function AnalyticsPage() {
                   />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-lg font-bold text-neutral-850 dark:text-neutral-200 transition-colors">{openRate}%</span>
-                  <span className="text-[8px] uppercase tracking-wider text-neutral-400 dark:text-neutral-500 transition-colors">Open Rate</span>
+                  <span className="text-lg font-bold text-neutral-850 dark:text-neutral-200 transition-colors">{responseRate}%</span>
+                  <span className="text-[8px] uppercase tracking-wider text-neutral-400 dark:text-neutral-500 transition-colors">Reply Rate</span>
                 </div>
               </div>
             </div>
@@ -293,7 +293,7 @@ export default function AnalyticsPage() {
                   <path
                     className="text-blue-500 transition-all duration-500 ease-out"
                     strokeWidth="2"
-                    strokeDasharray={`${responseRate}, 100`}
+                    strokeDasharray={`${interviewRate}, 100`}
                     strokeLinecap="round"
                     stroke="currentColor"
                     fill="none"
@@ -301,8 +301,8 @@ export default function AnalyticsPage() {
                   />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-lg font-bold text-neutral-850 dark:text-neutral-200 transition-colors">{responseRate}%</span>
-                  <span className="text-[8px] uppercase tracking-wider text-neutral-400 dark:text-neutral-500 transition-colors">Response</span>
+                  <span className="text-lg font-bold text-neutral-850 dark:text-neutral-200 transition-colors">{interviewRate}%</span>
+                  <span className="text-[8px] uppercase tracking-wider text-neutral-400 dark:text-neutral-500 transition-colors">Interview Rate</span>
                 </div>
               </div>
             </div>
@@ -412,7 +412,7 @@ export default function AnalyticsPage() {
               <span className="text-[9px] uppercase tracking-wider font-bold text-neutral-400 dark:text-neutral-500">Best Send Day</span>
               <div className="mt-2.5 space-y-1">
                 <p className="text-xs font-bold text-neutral-800 dark:text-[#f5f5f7]">{patterns.bestSendDay || 'Tuesday'}</p>
-                <p className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">31% Higher Opens</p>
+                <p className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">31% Higher Replies</p>
               </div>
             </div>
 
@@ -428,7 +428,7 @@ export default function AnalyticsPage() {
               <span className="text-[9px] uppercase tracking-wider font-bold text-neutral-400 dark:text-neutral-500">Subject Format</span>
               <div className="mt-2.5 space-y-1">
                 <p className="text-xs font-bold text-neutral-800 dark:text-[#f5f5f7]">{patterns.subjectPatterns?.[0]?.format || 'Role + Company | Name'}</p>
-                <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">+{Math.round((patterns.subjectPatterns?.[0]?.openRate ?? 0.42) * 100)}% Open Rate</p>
+                <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">+{Math.round((patterns.subjectPatterns?.[0]?.openRate ?? 0.42) * 100)}% Reply Rate</p>
               </div>
             </div>
           </div>

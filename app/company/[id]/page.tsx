@@ -443,7 +443,7 @@ export default function CompanyPage() {
             <span className="absolute -left-[25px] top-1 bg-emerald-500 w-2.5 h-2.5 rounded-full ring-4 ring-white dark:ring-neutral-950 flex items-center justify-center text-[7px] text-white">✓</span>
             <div className="text-xs">
               <p className="font-semibold text-neutral-700 dark:text-neutral-200">Day 0: Original Sent</p>
-              <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Sent on Date Added via Gmail SMTP {company.openCount ? `(Opened ${company.openCount}x)` : ''}</p>
+              <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Sent from your mail client {company.lastContacted ? `on ${company.lastContacted}` : ''}</p>
             </div>
           </div>
 

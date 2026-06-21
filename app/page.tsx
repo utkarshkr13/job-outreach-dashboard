@@ -756,17 +756,11 @@ function DashboardContent() {
     if (replied) {
       return `🔥 Recruiter at ${replied.company} replied! Recommended action: paste their response in the Sent tab to draft an instant auto-reply.`;
     }
-    const opened = [...companies]
-      .filter(c => (c.openCount ?? 0) > 0)
-      .sort((a, b) => (b.openCount ?? 0) - (a.openCount ?? 0))[0];
-    if (opened) {
-      return `👍 Recruiter at ${opened.company} opened your pitch ${opened.openCount} ${opened.openCount === 1 ? 'time' : 'times'}! Recommended action: prepare follow-up.`;
-    }
     const drafts = companies.filter(c => c.emailStatus === 'Draft Ready').length;
     if (drafts > 0) {
-      return `💡 You have ${drafts} drafts ready for review. Recommended action: scroll down, press E to edit, and approve them for dispatch.`;
+      return `💡 You have ${drafts} drafts ready for review. Recommended action: scroll down, press E to edit, approve, then Send.`;
     }
-    return '✨ Your pipeline is up to date. Enter a company below to discover recruiter contacts and generate new drafts!';
+    return '✨ Your pipeline is up to date. New leads and drafts arrive automatically from your scheduled job.';
   };
   const briefingInsight = getBriefingInsight();
 
@@ -1674,15 +1668,6 @@ function DashboardContent() {
                     </span>
                   </div>
 
-                  {/* Pixel opens */}
-                  <div className="bg-[#fafafa] dark:bg-neutral-900/20 border border-[#e8e8ed] dark:border-neutral-900 rounded-2xl p-4 space-y-3 transition-colors">
-                    <h4 className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">👍  Tracking Pixel Receipt Logs</h4>
-                    <div className="flex justify-between items-center bg-white dark:bg-neutral-950 p-3 rounded-xl border border-[#e8e8ed] dark:border-neutral-900 transition-colors">
-                      <span className="text-xs text-neutral-400">Total Recruiter Opens:</span>
-                      <span className="text-sm font-bold text-emerald-500">{selectedCompany.openCount ?? 0}</span>
-                    </div>
-                  </div>
-
                   {/* Sentiment class auto-reply */}
                   <div className="bg-[#fafafa] dark:bg-neutral-900/20 border border-[#e8e8ed] dark:border-neutral-900 rounded-2xl p-4 space-y-3 transition-colors">
                     <h4 className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">💬 Sentiment Auto-Reply Suggest</h4>
@@ -1736,7 +1721,7 @@ function DashboardContent() {
                         <span className="absolute -left-[25px] top-1 bg-emerald-500 w-2.5 h-2.5 rounded-full ring-4 ring-white dark:ring-neutral-950 flex items-center justify-center text-[7px] text-white">✓</span>
                         <div className="text-xs">
                           <p className="font-semibold text-neutral-700 dark:text-neutral-200">Day 0: Original Sent</p>
-                          <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Sent on Date Added via Gmail SMTP {selectedCompany.openCount ? `(Opened ${selectedCompany.openCount}x)` : ''}</p>
+                          <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Sent from your mail client on {selectedCompany.lastContacted || selectedCompany.dateAdded}</p>
                         </div>
                       </div>
 
