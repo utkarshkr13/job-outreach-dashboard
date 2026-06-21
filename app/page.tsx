@@ -1284,11 +1284,11 @@ function DashboardContent() {
                     </span>
                   ) : selectedCompany.resumeStatus === 'global' ? (
                     <span className="apple-glow-emerald-cyan-custom text-[9px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 border transition-all">
-                      📎 Global Resume Attached
+                      📎 Global résumé on file
                     </span>
                   ) : (
                     <span className="apple-glow-rose text-[9px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-600/10 text-rose-600 dark:text-rose-400 border transition-all">
-                      ⚠️  No Resume Attached
+                      ⚠️  No résumé on file
                     </span>
                   )}
                 </div>
@@ -1328,7 +1328,7 @@ function DashboardContent() {
                 onClick={() => setDrawerTab('tracking')}
                 className={`flex-1 py-1.5 px-3 rounded-lg font-bold transition-all cursor-pointer text-center ${drawerTab === 'tracking' ? 'bg-white dark:bg-neutral-850 text-neutral-850 dark:text-white shadow-sm border border-neutral-200/40 dark:border-neutral-800/40' : 'text-neutral-500 hover:text-neutral-850 dark:text-neutral-400 dark:hover:text-neutral-200'}`}
               >
-                Receipts & Cadence
+                Replies & Cadence
               </button>
             </div>
 
@@ -1653,7 +1653,7 @@ function DashboardContent() {
                 </div>
               )}
 
-              {/* TAB 3: RECEIPTS & CADENCES */}
+              {/* TAB 3: REPLIES & CADENCE */}
               {drawerTab === 'tracking' && (
                 <div className="space-y-6">
                   
@@ -1944,7 +1944,7 @@ function DashboardContent() {
                 {(selectedCompany.emailStatus === 'Sent' || selectedCompany.emailStatus === 'Replied' || selectedCompany.emailStatus === 'Interview' || selectedCompany.emailStatus === 'Offer') && (
                   <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10.5px] font-bold py-2.5 px-5 rounded-full inline-flex items-center gap-1.5 shadow-sm transition-all select-none">
                     <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                    📬 Sent & Tracked Live
+                    📬 Sent
                   </span>
                 )}
 
