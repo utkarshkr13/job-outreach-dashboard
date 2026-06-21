@@ -275,9 +275,9 @@ export default function CompanyPage() {
               </span>
             )}
             <p className="text-[10px] leading-relaxed text-neutral-400 dark:text-neutral-500 mt-1">
-              {resumeStatus === 'custom' 
-                ? `Outreach CRM will attach the company-specific custom PDF override for ${company.company}.`
-                : `Outreach CRM will automatically fall back to your global resume uploaded in Settings.`}
+              {resumeStatus === 'custom'
+                ? `A company-specific custom PDF is on file for ${company.company} — attach it when you send.`
+                : `Falls back to your global résumé on file — download it from Settings to attach when sending.`}
             </p>
             {resumeMsg && (
               <p className={`text-[10px] font-semibold mt-2 animate-fade-in ${resumeMsg.includes('Error') ? 'text-red-500' : 'text-emerald-500'}`}>

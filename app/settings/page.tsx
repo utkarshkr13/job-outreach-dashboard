@@ -549,7 +549,7 @@ export default function SettingsPage() {
               <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 shadow-sm space-y-6">
                 <div>
                   <h3 className="text-base font-bold text-neutral-900 dark:text-white">Gmail Integration</h3>
-                  <p className="text-xs text-neutral-450 dark:text-neutral-500 mt-1">Dynamic connection to dispatch outreach emails from your actual Gmail inbox.</p>
+                  <p className="text-xs text-neutral-450 dark:text-neutral-500 mt-1">Linked Gmail account — used to sync AI drafts and scan for recruiter replies.</p>
                 </div>
 
                 <div className="flex items-center gap-4 p-5 rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-850">
@@ -691,7 +691,7 @@ export default function SettingsPage() {
               <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 shadow-sm space-y-6">
                 <div>
                   <h3 className="text-base font-bold text-neutral-900 dark:text-white">Resume Document Storage</h3>
-                  <p className="text-xs text-neutral-450 dark:text-neutral-500 mt-1">Manage PDF resumes attached dynamically during cold outreach pipelines.</p>
+                  <p className="text-xs text-neutral-450 dark:text-neutral-500 mt-1">Your résumé on file — attach it in your mail client when sending outreach.</p>
                 </div>
 
                 {resume.url ? (
