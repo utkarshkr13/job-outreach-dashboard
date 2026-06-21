@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import React, { useEffect, useState, Suspense } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -87,6 +87,7 @@ function DashboardContent() {
   const [ingestCompany, setIngestCompany] = useState('');
   const [ingestRole, setIngestRole] = useState('Associate PM');
   const [ingestLoading, setIngestLoading] = useState(false);
+  const [syncLoading, setSyncLoading] = useState(false);
 
   // Operations Loading
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -514,6 +515,32 @@ function DashboardContent() {
     }
   };
 
+  // Sync cold-email Gmail drafts -> Notion dashboard DB
+  const handleSyncGmailDrafts = async () => {
+    setSyncLoading(true);
+    try {
+      const res = await authFetch('/api/sync/gmail-drafts', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        if (data.synced > 0) {
+          await fetchCompanies(true);
+          setMessage(data.message);
+        } else {
+          setMessage(data.message);
+        }
+      } else {
+        setMessage('Sync failed: ' + data.error);
+      }
+      setTimeout(() => setMessage(''), 6000);
+    } catch (err) {
+      console.error('[Sync] error:', err);
+      setMessage('Gmail sync failed. Check console.');
+      setTimeout(() => setMessage(''), 5000);
+    } finally {
+      setSyncLoading(false);
+    }
+  };
+
   // Operations Status updates
   const handleStatusUpdate = async (id: string, newStatus: EmailStatus) => {
     setActionLoading(id + newStatus);
@@ -865,6 +892,23 @@ function DashboardContent() {
               <span className="w-3.5 h-3.5 border-2 border-neutral-750 dark:border-white border-t-transparent rounded-full animate-spin"></span>
             ) : 'Discover Recruiter Lead'}
           </button>
+
+          {/* Sync cold-email Gmail drafts -> dashboard */}
+          <div className="border-t border-neutral-200/60 dark:border-neutral-800/60 pt-3 space-y-1.5">
+            <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Import drafts the daily job saved in Gmail</p>
+            <button
+              type="button"
+              onClick={handleSyncGmailDrafts}
+              disabled={syncLoading}
+              className="w-full bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/20 dark:hover:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200/70 dark:border-blue-900/40 rounded-full py-2 text-xs font-semibold transition-all disabled:opacity-40 flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              {syncLoading ? (
+                <><span className="w-3.5 h-3.5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></span><span>Syncing...</span></>
+              ) : (
+                <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg><span>Sync Drafts from Gmail</span></>
+              )}
+            </button>
+          </div>
         </form>
 
         {/* Filter and sorting */}
