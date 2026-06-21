@@ -18,8 +18,8 @@ export async function POST(req: Request) {
         success: true,
         user: {
           uid: 'demo-user-id',
-          email: 'demo@gmail.com',
-          name: 'Demo User',
+          email: 'ukumardj@gmail.com',
+          name: 'Utkarsh Kumar',
           onboardingComplete: true,
         }
       });

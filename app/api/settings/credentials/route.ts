@@ -11,15 +11,15 @@ export async function GET(req: Request) {
     const isDemoMode = process.env.NEXT_PUBLIC_APP_MODE === 'demo' || userId === 'demo-user-id';
 
     let profile = {
-      senderName: 'Demo User',
-      phone: '+91 9999999999',
-      linkedin: 'linkedin.com/in/demo',
-      bio: 'I am a Demo User.',
+      senderName: 'Utkarsh Kumar',
+      phone: '',
+      linkedin: '',
+      bio: '',
       targetRoles: 'Associate PM or Business Analyst',
     };
 
     let credentialsMasked = {
-      gmailUser: 'demo@gmail.com',
+      gmailUser: 'ukumardj@gmail.com',
       gmailConnected: true,
       notionConnected: true,
       notionDbId: '••••••••••••••••',

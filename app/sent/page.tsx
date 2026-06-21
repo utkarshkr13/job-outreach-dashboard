@@ -85,14 +85,6 @@ export default function SentPage() {
                   <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-purple-600/20">
                     Sent
                   </span>
-                  
-                  <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full border transition-all ${
-                    c.openCount && c.openCount > 0 
-                      ? 'bg-emerald-50 dark:bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-950/30 animate-pulse'
-                      : 'bg-neutral-50 dark:bg-neutral-900/40 text-neutral-500 dark:text-neutral-400 border-neutral-100 dark:border-neutral-850'
-                  }`}>
-                    👁 {c.openCount ?? 0} {c.openCount === 1 ? 'Open' : 'Opens'}
-                  </span>
                 </div>
                 
                 <p className="text-xs text-neutral-500 dark:text-neutral-450">
@@ -216,16 +208,6 @@ export default function SentPage() {
                 </div>
               )}
 
-              {/* Open rate telemetry tracking */}
-              <div className="bg-[#fafafa] dark:bg-neutral-900/20 border border-neutral-250 dark:border-neutral-900 rounded-2xl p-4 space-y-2.5 transition-colors">
-                <h4 className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">Live Read Receipt Telemetry</h4>
-                <div className="flex justify-between items-center bg-white dark:bg-neutral-950 p-3 rounded-xl border border-neutral-250 dark:border-neutral-900 transition-colors">
-                  <span className="text-xs text-neutral-400">Total Opens Registered:</span>
-                  <span className={`text-sm font-bold ${selectedCompany.openCount && selectedCompany.openCount > 0 ? 'text-emerald-500 animate-pulse' : 'text-neutral-400'}`}>
-                    👁 {selectedCompany.openCount ?? 0} Opens
-                  </span>
-                </div>
-              </div>
 
               {/* Sentiment class auto-reply (Injected) */}
               <div className="bg-[#fafafa] dark:bg-neutral-900/20 border border-neutral-250 dark:border-neutral-900 rounded-2xl p-4 space-y-3 transition-colors">

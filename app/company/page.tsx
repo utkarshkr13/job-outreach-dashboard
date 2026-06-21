@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Company, EmailStatus } from '@/types';
+import { cleanSalary } from '@/lib/format';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
@@ -83,7 +84,7 @@ export default function CompaniesPage() {
             href="/"
             className="bg-white dark:bg-neutral-900 border border-[#e8e8ed] dark:border-neutral-850 hover:bg-neutral-50 dark:hover:bg-neutral-850 px-5 py-2.5 rounded-full text-xs font-semibold text-neutral-700 dark:text-neutral-300 shadow-sm transition-all"
           >
-            📬 Main Dashboard
+            📬 Dashboard
           </Link>
         </div>
       </div>
@@ -213,7 +214,7 @@ export default function CompaniesPage() {
                       c.emailStatus === 'Rejected' ? 'bg-red-50 dark:bg-red-950/10 text-red-600 dark:text-red-400 border border-red-150' :
                       'bg-neutral-100 dark:bg-neutral-900 text-neutral-500 dark:text-neutral-450 border border-neutral-200'
                     }`}>
-                      {c.emailStatus}
+                      {c.emailStatus || 'New'}
                     </span>
                   </div>
 
@@ -223,7 +224,7 @@ export default function CompaniesPage() {
                       <span>👤</span> {c.contactName || 'No recruiter mapped'}
                     </p>
                     {c.salaryRange && (
-                      <p className="text-[9.5px] text-neutral-400 font-medium">💰 {c.salaryRange} LPA Range</p>
+                      <p className="text-[9.5px] text-neutral-400 font-medium">💰 {cleanSalary(c.salaryRange)} LPA Range</p>
                     )}
                   </div>
                 </div>

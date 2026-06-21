@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { Company } from '@/types';
 import { getOptimalSendTime } from '@/lib/timing';
+import { cleanSalary } from '@/lib/format';
 
 export default function CompanyPage() {
   const { user } = useAuth();
@@ -230,7 +231,7 @@ export default function CompanyPage() {
               <span>•</span>
               <span>{company.location || 'Remote'}</span>
               <span>•</span>
-              <span>{company.salaryRange ? `${company.salaryRange} LPA` : 'Competitive'}</span>
+              <span>{company.salaryRange ? `${cleanSalary(company.salaryRange)} LPA` : 'Competitive'}</span>
             </p>
           </div>
           {company.companyType && (

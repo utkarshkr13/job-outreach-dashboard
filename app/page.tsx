@@ -4,6 +4,7 @@ import { useAuth } from '@/lib/auth-context';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Company, EmailStatus } from '@/types';
 import { getOptimalSendTime } from '@/lib/timing';
+import { cleanSalary } from '@/lib/format';
 
 import dynamic from 'next/dynamic';
 
@@ -848,71 +849,11 @@ function DashboardContent() {
         </div>
       </div>
 
-      {/* CONSOLE CONTROL ROOM PANEL */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* SEARCH & CONTROL CONSOLE */}
+      <div>
         
-        {/* Ingestion Panel */}
-        <form onSubmit={handleIngest} className="apple-glow-card bg-white/75 dark:bg-[#161617]/50 backdrop-blur-xl border border-neutral-250/50 dark:border-neutral-900/60 rounded-3xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.03)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.22)] flex flex-col justify-between gap-4 transition-colors duration-300">
-          <div>
-            <h2 className="text-xs font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">Recruiter Ingestion</h2>
-            <p className="text-[10px] text-neutral-500 mt-0.5">Finds target recruiters using Claude intelligence</p>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Target Recruiter Contact</label>
-            <input
-              type="text"
-              placeholder="Company (e.g. Stripe)"
-              value={ingestCompany}
-              onChange={e => setIngestCompany(e.target.value)}
-              className="apple-input-hover apple-input-bounds w-full bg-[#f5f5f7]/60 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-3 py-2 text-xs text-neutral-800 dark:text-neutral-100 placeholder:text-neutral-600 dark:placeholder:text-neutral-450 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-700 transition-all"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Target Role</label>
-            <select
-              value={ingestRole}
-              onChange={e => setIngestRole(e.target.value)}
-              className="apple-select-elastic apple-select-bounds w-full bg-white dark:bg-neutral-900 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-3 py-2 text-xs text-neutral-700 dark:text-neutral-300 focus:outline-none transition-all"
-            >
-              <option value="Associate PM">Associate PM</option>
-              <option value="Business Analyst">Business Analyst</option>
-              <option value="Product Owner">Product Owner</option>
-              <option value="Growth PM">Growth PM</option>
-            </select>
-          </div>
-
-          <button
-            type="submit"
-            disabled={ingestLoading || !ingestCompany}
-            className="apple-glow-blue apple-button-sweep w-full bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-800 dark:text-neutral-200 border border-[#e8e8ed] dark:border-neutral-800 rounded-full py-2 text-xs font-semibold transition-all disabled:opacity-40 flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
-          >
-            {ingestLoading ? (
-              <span className="w-3.5 h-3.5 border-2 border-neutral-750 dark:border-white border-t-transparent rounded-full animate-spin"></span>
-            ) : 'Discover Recruiter Lead'}
-          </button>
-
-          {/* Sync cold-email Gmail drafts -> dashboard */}
-          <div className="border-t border-neutral-200/60 dark:border-neutral-800/60 pt-3 space-y-1.5">
-            <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Import drafts the daily job saved in Gmail</p>
-            <button
-              type="button"
-              onClick={handleSyncGmailDrafts}
-              disabled={syncLoading}
-              className="w-full bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/20 dark:hover:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200/70 dark:border-blue-900/40 rounded-full py-2 text-xs font-semibold transition-all disabled:opacity-40 flex items-center justify-center gap-1.5 cursor-pointer"
-            >
-              {syncLoading ? (
-                <><span className="w-3.5 h-3.5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></span><span>Syncing...</span></>
-              ) : (
-                <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg><span>Sync Drafts from Gmail</span></>
-              )}
-            </button>
-          </div>
-        </form>
-
-        {/* Filter and sorting */}
-        <div className="apple-glow-card lg:col-span-2 bg-white/75 dark:bg-[#161617]/50 backdrop-blur-xl border border-neutral-250/50 dark:border-neutral-900/60 rounded-3xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.03)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.22)] flex flex-col justify-between gap-4 transition-colors duration-300">
+        {/* Filter and sorting — full width */}
+        <div className="apple-glow-card bg-white/75 dark:bg-[#161617]/50 backdrop-blur-xl border border-neutral-250/50 dark:border-neutral-900/60 rounded-3xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.03)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.22)] flex flex-col gap-4 transition-colors duration-300">
           <div className="flex justify-between items-start">
             <div>
               <h2 className="text-xs font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">Search & Control Console</h2>
@@ -958,17 +899,17 @@ function DashboardContent() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="flex flex-col md:flex-row md:items-center gap-3">
             <input
               id="dashboard-search-input"
               type="text"
               placeholder="Search by company, role or recruiter..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="bg-[#f5f5f7]/60 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-4 py-2 text-xs text-neutral-800 dark:text-neutral-100 placeholder:text-neutral-600 dark:placeholder:text-neutral-450 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-700 transition-colors w-full"
+              className="flex-1 bg-[#f5f5f7]/60 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-4 py-2 text-xs text-neutral-800 dark:text-neutral-100 placeholder:text-neutral-600 dark:placeholder:text-neutral-450 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-700 transition-colors w-full"
             />
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 shrink-0">
               <select
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value as any)}
@@ -1087,7 +1028,7 @@ function DashboardContent() {
                             <>
                               <span className="text-neutral-300 dark:text-neutral-800 font-bold">•</span>
                               <span className="text-[9.5px] font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
-                                💰 {company.salaryRange} LPA
+                                💰 {cleanSalary(company.salaryRange)} LPA
                               </span>
                             </>
                           )}
@@ -1116,14 +1057,6 @@ function DashboardContent() {
                         </span>
                       </div>
 
-                      {isSent && (
-                        <div className="space-y-0.5">
-                          <span className="text-[9px] uppercase font-bold text-neutral-455 dark:text-neutral-500 block tracking-wider">Telemetry</span>
-                          <span className="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 inline-flex items-center gap-1 animate-pulse">
-                            👍 {company.openCount ?? 0} {company.openCount === 1 ? 'Open' : 'Opens'}
-                          </span>
-                        </div>
-                      )}
                     </div>
 
                     {/* Right: Actions / Status */}
@@ -1296,7 +1229,7 @@ function DashboardContent() {
 
                         <div className="flex justify-between items-center text-[8.5px] text-neutral-400 dark:text-neutral-550 pt-1.5 border-t border-[#e8e8ed] dark:border-neutral-900">
                           <span>👤 {c.contactName?.split(' ')[0]}</span>
-                          <span>💰 {c.salaryRange} LPA</span>
+                          <span>💰 {cleanSalary(c.salaryRange)} LPA</span>
                         </div>
 
                         {stage.status === 'Draft Ready' && (
