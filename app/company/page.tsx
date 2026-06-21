@@ -79,14 +79,6 @@ export default function CompaniesPage() {
             Database of targeted companies, active recruiters, and strategic pipeline touchpoints.
           </p>
         </div>
-        <div className="mt-4 md:mt-0">
-          <Link
-            href="/"
-            className="bg-white dark:bg-neutral-900 border border-[#e8e8ed] dark:border-neutral-850 hover:bg-neutral-50 dark:hover:bg-neutral-850 px-5 py-2.5 rounded-full text-xs font-semibold text-neutral-700 dark:text-neutral-300 shadow-sm transition-all"
-          >
-            📬 Dashboard
-          </Link>
-        </div>
       </div>
 
       {/* ── METRICS DASH DOCK ── */}

@@ -136,12 +136,6 @@ export default function AnalyticsPage() {
           </h1>
           <p className="text-neutral-500 dark:text-neutral-400 text-xs">Real-time recruiter CRM conversion insights & velocity metrics</p>
         </div>
-        <Link
-          href="/"
-          className="bg-white dark:bg-neutral-900 border border-[#e8e8ed] dark:border-neutral-850 hover:bg-neutral-50 dark:hover:bg-neutral-850 px-5 py-2 rounded-full text-xs font-semibold text-neutral-700 dark:text-neutral-300 transition-all flex items-center gap-2 cursor-pointer shadow-sm"
-        >
-          📬 Dashboard
-        </Link>
       </div>
 
       {/* GLANCE ROW */}

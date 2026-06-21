@@ -57,12 +57,6 @@ export default function SentPage() {
           <h1 className="text-2xl font-bold tracking-tight text-[#1d1d1f] dark:text-neutral-100">Sent Outreaches</h1>
           <p className="text-xs text-neutral-500 dark:text-neutral-400">Archive of cold emails successfully dispatched to recruiters</p>
         </div>
-        <Link
-          href="/"
-          className="bg-white dark:bg-neutral-900 border border-[#e8e8ed] dark:border-neutral-850 hover:bg-neutral-50 dark:hover:bg-neutral-850 px-4 py-2 rounded-full text-xs font-semibold text-neutral-700 dark:text-neutral-300 shadow-sm transition-all"
-        >
-          📬 Dashboard
-        </Link>
       </div>
 
       {loading ? (

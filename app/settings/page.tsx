@@ -437,13 +437,13 @@ export default function SettingsPage() {
                     : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-850 border-transparent'
                 }`}
               >
-                <span className="flex items-center gap-2.5">
+                <span className="flex items-center gap-2.5 flex-1 text-left">
                   <span>{tab.icon}</span>
                   <span>{tab.label}</span>
                 </span>
-                
+
                 {tab.status !== undefined && (
-                  <span className={`w-2 h-2 rounded-full ${
+                  <span className={`shrink-0 w-2 h-2 rounded-full ${
                     tab.status ? 'bg-emerald-500 shadow-sm shadow-emerald-500/30' : 'bg-red-500'
                   }`} />
                 )}

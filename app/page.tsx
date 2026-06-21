@@ -301,7 +301,7 @@ function DashboardContent() {
       
       if (currentView === 'kanban') return matchesSearch; 
       if (activeTab === 'All') return matchesSearch;
-      if (activeTab === 'Notion Draft Ready') return matchesSearch && c.emailStatus === 'Draft Ready';
+      if (activeTab === 'Notion Draft Ready') return matchesSearch && c.emailStatus === 'Draft Ready' && !!(c.emailDraft && c.emailDraft.trim());
       return matchesSearch && c.emailStatus === activeTab;
     })
     .sort((a, b) => {
@@ -847,7 +847,7 @@ function DashboardContent() {
       <div>
         
         {/* Filter and sorting — full width */}
-        <div className="apple-glow-card bg-white/75 dark:bg-[#161617]/50 backdrop-blur-xl border border-neutral-250/50 dark:border-neutral-900/60 rounded-3xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.03)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.22)] flex flex-col gap-4 transition-colors duration-300">
+        <div className="bg-white/75 dark:bg-[#161617]/50 backdrop-blur-xl border border-neutral-250/50 dark:border-neutral-900/60 rounded-3xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.03)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.22)] flex flex-col gap-4 transition-colors duration-300 relative z-20">
           <div className="flex justify-between items-start">
             <div>
               <h2 className="text-xs font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">Search & Control Console</h2>
@@ -951,7 +951,7 @@ function DashboardContent() {
                 const count = tab === 'All' 
                   ? companies.length 
                   : tab === 'Notion Draft Ready'
-                    ? companies.filter(c => c.emailStatus === 'Draft Ready').length
+                    ? companies.filter(c => c.emailStatus === 'Draft Ready' && !!(c.emailDraft && c.emailDraft.trim())).length
                     : companies.filter(c => c.emailStatus === tab).length;
                 return (
                   <button
@@ -962,8 +962,8 @@ function DashboardContent() {
                     }}
                     className={`w-full text-left apple-tab-elastic px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer border ${activeTab === tab ? 'bg-blue-50/80 dark:bg-[#333336] text-blue-600 dark:text-white border-blue-200/60 dark:border-neutral-700 shadow-[0_2px_8px_rgba(0,0,0,0.04)] font-bold' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-500 dark:hover:text-neutral-300 border-transparent hover:bg-neutral-50 dark:hover:bg-neutral-900/50'}`}
                   >
-                    <span>{tab}</span>
-                    <span className={`text-[9.5px] px-2 py-0.5 rounded-full transition-colors border ${activeTab === tab ? 'bg-blue-100/60 dark:bg-neutral-900 text-blue-600 dark:text-blue-400 border-blue-200/30 dark:border-transparent' : 'bg-[#e8e8ed]/45 dark:bg-neutral-900/40 text-neutral-400 dark:text-neutral-550 border-transparent font-bold'}`}>
+                    <span className="flex-1 text-left truncate">{tab}</span>
+                    <span className={`shrink-0 ml-2 text-[9.5px] px-2 py-0.5 rounded-full transition-colors border ${activeTab === tab ? 'bg-blue-100/60 dark:bg-neutral-900 text-blue-600 dark:text-blue-400 border-blue-200/30 dark:border-transparent' : 'bg-[#e8e8ed]/45 dark:bg-neutral-900/40 text-neutral-400 dark:text-neutral-550 border-transparent font-bold'}`}>
                       {count}
                     </span>
                   </button>
@@ -1055,7 +1055,7 @@ function DashboardContent() {
 
                     {/* Right: Actions / Status */}
                     <div className="flex items-center gap-3 justify-end self-stretch md:self-auto border-t md:border-t-0 pt-3 md:pt-0 border-neutral-100 dark:border-neutral-900/60 shrink-0">
-                      <div className="flex flex-col items-end">
+                      <div className="flex flex-col items-end w-24 shrink-0">
                         <span className={`text-[9.5px] font-bold px-2.5 py-1 rounded-full ${crmStage ? crmStage.colorClass : 'bg-neutral-100 text-neutral-500'} ${company.emailStatus === 'Redo' ? 'apple-glow-warning border' : ''} ${company.emailStatus === 'New' ? 'apple-glow-cyan-new border' : ''} ${company.emailStatus === 'Approved' ? 'apple-glow-approved-teal border' : ''} ${company.emailStatus === 'Replied' ? 'apple-pulse-green border' : ''} ${company.emailStatus === 'Interview' ? 'apple-glow-indigo border' : ''} ${company.emailStatus === 'Offer' ? 'apple-glow-lime-emerald border' : ''} ${company.emailStatus === 'Scheduled' ? 'apple-glow-cyan border' : ''}`}>
                           {company.emailStatus}
                         </span>
@@ -1066,7 +1066,7 @@ function DashboardContent() {
                         )}
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-end gap-2 w-[155px] shrink-0">
                         {company.emailStatus === 'Approved' && (
                           <div className="relative inline-flex items-center" data-send-menu="true">
                             <button
@@ -1176,13 +1176,13 @@ function DashboardContent() {
   ) : (
         
         /* ──── DRAG AND DROP KANBAN CRM BOARD ──── */
-        <div className="grid grid-cols-1 lg:grid-cols-9 gap-4 overflow-x-auto pb-4 scrollbar-thin">
+        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin snap-x">
           {CRM_STAGES.map(stage => {
             const stageCompanies = companies.filter(c => c.emailStatus === stage.status);
             return (
               <div
                 key={stage.status}
-                className="apple-folder-drag-glow bg-[#fafafa]/60 dark:bg-[#161617]/20 border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-4 shadow-[0_4px_12px_rgba(0,0,0,0.005)] dark:shadow-none min-w-[290px] flex flex-col h-[65vh] justify-between transition-colors duration-300"
+                className="apple-folder-drag-glow bg-[#fafafa]/60 dark:bg-[#161617]/20 border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-4 shadow-[0_4px_12px_rgba(0,0,0,0.005)] dark:shadow-none w-[300px] shrink-0 snap-start flex flex-col h-[65vh] transition-colors duration-300"
               >
                 {/* Stage Header */}
                 <div className="space-y-1 mb-4">
