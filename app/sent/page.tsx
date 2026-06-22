@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { Company } from '@/types';
-import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 
 export default function SentPage() {
@@ -12,20 +11,39 @@ export default function SentPage() {
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [recruiterReplyText, setRecruiterReplyText] = useState('');
   const [sentimentAnalysis, setSentimentAnalysis] = useState<{ score: string; reply: string } | null>(null);
+  const [sentimentLoading, setSentimentLoading] = useState(false);
   const [copyStatus, setCopyStatus] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dateFilter, setDateFilter] = useState('');
 
   const showCopyToast = (text: string) => {
     setCopyStatus(text);
     setTimeout(() => setCopyStatus(''), 3000);
   };
 
-  const handleSentimentAnalysis = () => {
-    if (!recruiterReplyText) return;
-    const firstName = selectedCompany?.contactName?.split(' ')[0] || 'there';
-    setSentimentAnalysis({
-      score: 'Positive Response (Score: 9.2/10)',
-      reply: `Hi ${firstName},\n\nThank you for getting back! I am absolutely thrilled to connect. Next week works perfectly for a brief 15-minute call.\n\nPlease feel free to share a time that works for you, or I can send over a calendar link.\n\nLooking forward to speaking with you soon!\n\nBest regards`
-    });
+  // Real recruiter-reply classifier (Claude). No fabricated output.
+  const handleSentimentAnalysis = async () => {
+    if (!recruiterReplyText || !selectedCompany) return;
+    setSentimentLoading(true);
+    setSentimentAnalysis(null);
+    try {
+      const token = user ? await user.getIdToken() : '';
+      const res = await fetch('/api/replies/classify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ replyBody: recruiterReplyText, notionId: selectedCompany.notionId }),
+      });
+      const data = await res.json();
+      if (res.ok && data.suggestedResponse) {
+        setSentimentAnalysis({ score: `Detected sentiment: ${data.sentiment}`, reply: data.suggestedResponse });
+      } else {
+        showCopyToast(`❌ ${data.error || 'Could not analyze reply.'}`);
+      }
+    } catch (e: any) {
+      showCopyToast(`❌ ${e?.message || 'Analyze failed.'}`);
+    } finally {
+      setSentimentLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -47,6 +65,18 @@ export default function SentPage() {
     loadData();
   }, [user]);
 
+  const filtered = companies.filter(c => {
+    const q = searchTerm.trim().toLowerCase();
+    const matchesSearch = !q
+      || c.company.toLowerCase().includes(q)
+      || (c.role || '').toLowerCase().includes(q)
+      || (c.contactName || '').toLowerCase().includes(q)
+      || (c.email || '').toLowerCase().includes(q);
+    const sentDate = c.lastContacted || c.dateAdded || '';
+    const matchesDate = !dateFilter || sentDate.startsWith(dateFilter);
+    return matchesSearch && matchesDate;
+  });
+
   return (
     <>
       <div className="max-w-4xl mx-auto space-y-6 animate-fade-in text-[#1d1d1f] dark:text-[#f5f5f7] transition-colors duration-300">
@@ -59,15 +89,45 @@ export default function SentPage() {
         </div>
       </div>
 
+      {/* Search + date filter */}
+      {!loading && companies.length > 0 && (
+        <div className="bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-2xl p-3 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+          <div className="relative flex-1">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 text-xs">🔍</span>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Search by company, role, recruiter or email…"
+              className="w-full bg-[#f5f5f7]/60 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl pl-8 pr-3 py-2 text-xs text-neutral-800 dark:text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-700"
+            />
+          </div>
+          <input
+            type="date"
+            value={dateFilter}
+            onChange={e => setDateFilter(e.target.value)}
+            className="bg-[#f5f5f7]/60 dark:bg-neutral-900/40 border border-[#e8e8ed] dark:border-neutral-850 rounded-xl px-3 py-2 text-xs text-neutral-700 dark:text-neutral-300 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-700"
+          />
+          {(searchTerm || dateFilter) && (
+            <button
+              onClick={() => { setSearchTerm(''); setDateFilter(''); }}
+              className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200 px-3 py-2 rounded-xl border border-[#e8e8ed] dark:border-neutral-850 cursor-pointer shrink-0"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      )}
+
       {loading ? (
         <div className="text-center py-20 text-neutral-500 font-semibold animate-pulse">Loading sent outreaches...</div>
-      ) : companies.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <div className="bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl py-20 text-center text-neutral-500 transition-colors duration-300">
-          No sent outreaches found. Approve and send drafts from the main Dashboard!
+          {companies.length === 0 ? 'No sent outreaches found. Approve and send drafts from the Dashboard!' : 'No sent outreaches match your search or date filter.'}
         </div>
       ) : (
         <div className="space-y-4">
-          {companies.map(c => (
+          {filtered.map(c => (
             <div
               key={c.notionId}
               onClick={() => setSelectedCompany(c)}
@@ -216,10 +276,10 @@ export default function SentPage() {
 
                 <button
                   onClick={handleSentimentAnalysis}
-                  disabled={!recruiterReplyText}
+                  disabled={!recruiterReplyText || sentimentLoading}
                   className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-full py-2 text-xs font-semibold transition-all disabled:opacity-40 cursor-pointer shadow-sm"
                 >
-                  Classify Reply & Draft Response
+                  {sentimentLoading ? 'Analyzing reply…' : 'Classify Reply & Draft Response'}
                 </button>
 
                 {sentimentAnalysis && (

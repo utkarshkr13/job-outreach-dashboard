@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import { Company, EmailStatus } from '@/types';
 import { cleanSalary } from '@/lib/format';
-import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
+import CompanyDraftDrawer from '@/app/components/CompanyDraftDrawer';
 
 export default function CompaniesPage() {
   const { user } = useAuth();
@@ -15,6 +15,8 @@ export default function CompaniesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<EmailStatus | 'All'>('All');
   const [filterType, setFilterType] = useState<'All' | 'Stable' | 'Startup'>('All');
+  const [displayCount, setDisplayCount] = useState(100);
+  const [drawerCompany, setDrawerCompany] = useState<Company | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -50,6 +52,20 @@ export default function CompaniesPage() {
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, [companies]);
+
+  // Infinite scroll: reveal 100 more as the user nears the bottom
+  useEffect(() => {
+    const onScroll = () => {
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 700) {
+        setDisplayCount(prev => prev + 100);
+      }
+    };
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Reset the visible window whenever filters change
+  useEffect(() => { setDisplayCount(100); }, [searchTerm, filterStatus, filterType]);
 
   // Compute metrics
   const totalTargeted = companies.length;
@@ -178,7 +194,7 @@ export default function CompaniesPage() {
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCompanies.map(c => {
+          {filteredCompanies.slice(0, displayCount).map(c => {
             const hasCustomCv = c.resumeStatus === 'custom';
             const hasGlobalCv = c.resumeStatus === 'global';
 
@@ -240,8 +256,8 @@ export default function CompaniesPage() {
                   )}
 
                   <div className="flex items-center gap-3.5" onClick={e => e.stopPropagation()}>
-                    <span 
-                      onClick={() => router.push(`/?drawer=${c.notionId}`)}
+                    <span
+                      onClick={() => setDrawerCompany(c)}
                       className="text-[9px] text-blue-600 dark:text-blue-400 font-bold hover:underline select-none cursor-pointer flex items-center gap-0.5"
                     >
                       Open Draft →
@@ -260,6 +276,23 @@ export default function CompaniesPage() {
         </div>
       )}
 
+      {!loading && filteredCompanies.length > displayCount && (
+        <p className="text-center text-[11px] text-neutral-400 dark:text-neutral-500 py-4">
+          Showing {displayCount} of {filteredCompanies.length} — scroll for more
+        </p>
+      )}
+
+      {drawerCompany && (
+        <CompanyDraftDrawer
+          company={drawerCompany}
+          user={user}
+          onClose={() => setDrawerCompany(null)}
+          onUpdated={(notionId, patch) => {
+            setCompanies(prev => prev.map(c => (c.notionId === notionId ? { ...c, ...patch } : c)));
+            setDrawerCompany(prev => (prev && prev.notionId === notionId ? { ...prev, ...patch } : prev));
+          }}
+        />
+      )}
     </div>
   );
 }
