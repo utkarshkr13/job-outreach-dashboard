@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
-import { updateStatus, getCompanyById, getNotionConnection } from '@/lib/notion';
+import { getCompanyById, getNotionConnection, updateCompanyProperties } from '@/lib/notion';
 import { sendEmail } from '@/lib/mailer';
+import { getGmailAccessToken, searchGmailMessageByRfcId } from '@/lib/gmail';
 import { getAuthenticatedUser } from '@/lib/auth-middleware';
+import { safeErrorBody, safeErrorStatus } from '@/lib/api-errors';
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -40,11 +42,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       userId: userId
     });
 
-    let threadId = `mock-thread-${company.notionId}`;
-    
+    // Only set gmailThreadId when we actually resolve a real Gmail thread ID.
+    // Previously this defaulted to a fabricated `mock-thread-...` value, which
+    // got written to Notion and later fed straight into the real Gmail API by
+    // /api/replies/scan (getGmailThread(company.gmailThreadId, ...)) — every
+    // such lead would silently fail reply detection forever. Leaving it
+    // undefined instead means updateCompanyProperties skips the field
+    // (see lib/notion.ts's `if (properties.gmailThreadId !== undefined)` guard),
+    // so replies/scan's `if (!company.gmailThreadId) continue;` correctly skips
+    // it instead of querying a thread ID that will never exist.
+    let threadId: string | undefined;
+
     if (process.env.NEXT_PUBLIC_APP_MODE !== 'demo' && sendResult.messageId) {
       try {
-        const { getGmailAccessToken, searchGmailMessageByRfcId } = require('@/lib/gmail');
         const token = await getGmailAccessToken({
           clientId: creds.gmailClientId,
           clientSecret: creds.gmailClientSecret,
@@ -58,18 +68,21 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       } catch (err: any) {
         console.warn('[API/SEND] Failed to resolve Thread ID for message:', err.message);
       }
+    } else if (process.env.NEXT_PUBLIC_APP_MODE === 'demo') {
+      // Demo mode has no real Gmail thread to resolve; keep a clearly-labelled
+      // placeholder so the UI has something to display, without risking a
+      // real API call against it later (replies/scan is also demo-gated).
+      threadId = `demo-thread-${company.notionId}`;
     }
 
-    const { updateCompanyProperties } = require('@/lib/notion');
     await updateCompanyProperties(connection, id, {
       emailStatus: 'Sent',
-      gmailThreadId: threadId,
+      ...(threadId !== undefined ? { gmailThreadId: threadId } : {}),
       lastContacted: new Date().toISOString().split('T')[0]
     });
     return NextResponse.json({ success: true });
   } catch (e: any) {
     console.error('❌ POST /api/send/[id] error:', e.message);
-    const isAuthError = e.message.includes('Unauthorized') || e.message.includes('User not found');
-    return NextResponse.json({ error: e.message }, { status: isAuthError ? 401 : 500 });
+    return NextResponse.json(safeErrorBody(e), { status: safeErrorStatus(e) });
   }
 }
