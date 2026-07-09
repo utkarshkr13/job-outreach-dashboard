@@ -3,6 +3,7 @@ import { getCompanyById, updateEmailDraft, getNotionConnection } from '@/lib/not
 import { mockGenerateFollowUp } from '@/lib/mockDb';
 import Anthropic from '@anthropic-ai/sdk';
 import { getAuthenticatedUser } from '@/lib/auth-middleware';
+import { safeErrorBody, safeErrorStatus } from '@/lib/api-errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,56 +18,49 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing notionId' }, { status: 400 });
     }
 
-    if (process.env.NEXT_PUBLIC_APP_MODE === 'demo') {
-      const result = mockGenerateFollowUp(notionId);
-      return NextResponse.json({ success: true, result });
-    }
-
-    // 2. Fetch specific company lead from the scoped Notion DB
     const company = await getCompanyById(connection, notionId);
     if (!company) {
       return NextResponse.json({ error: 'Company not found in active database.' }, { status: 404 });
     }
 
-    // 3. Setup dynamic Anthropic and profile details
-    const anthropicKey = creds.anthropicApiKey || process.env.ANTHROPIC_API_KEY;
-    if (!anthropicKey) {
-      throw new Error('Missing Anthropic API Key. Configure your key in Settings to execute email generation.');
+    if (process.env.NEXT_PUBLIC_APP_MODE === 'demo') {
+      const result = mockGenerateFollowUp(company);
+      await updateEmailDraft(connection, notionId, result.subject, result.body, result.notes, 'Follow-up Ready');
+      return NextResponse.json({ success: true, result });
     }
-    const anthropic = new Anthropic({ apiKey: anthropicKey });
-    
-    const firstName = company.contactName ? company.contactName.trim().split(' ')[0] : 'there';
-    const signature = [
-      creds.senderName,
-      creds.senderPhone,
-      creds.senderLinkedin
-    ].filter(Boolean).join('\n');
-    
-    const prompt = `Write a short, polite second-touchpoint follow-up email for job application.
-The recruiter's name is ${firstName}, company is ${company.company}, and the targeted role is ${company.role}.
-The follow-up should be extremely concise (2-3 sentences max) and refer back to your previous application, politely asking if they've had a chance to review it.
-NO em dashes. NO fluff. Keep signature block.
 
-Format of the follow-up:
-Hi ${firstName},
+    const apiKey = creds.anthropicApiKey || process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      throw new Error('Missing Anthropic API Key. Please configure keys to run follow-ups.');
+    }
+    const client = new Anthropic({ apiKey });
 
-[2 sentences politely checking in, referencing your background: "${creds.senderBio}"]
+    const systemPrompt = `You write a follow-up cold email for a job application that received no reply.
 
-Let me know if you have any availability for a quick call next week.
+Context:
+- Company: ${company.company}
+- Role: ${company.role}
+- Recruiter: ${company.contactName || 'Hiring Team'}
+- Original subject: ${company.emailSubject}
 
-${signature}`;
+RULES:
+- Short, warm, reference original email in one line, soft ask.
+- Never sound desperate or passive-aggressive.
+- NO em dashes (—).
+- Max 80 words.
 
-    const response = await anthropic.messages.create({
+Return only the email body. No subject line.`;
+
+    const response = await client.messages.create({
       model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 500,
-      messages: [{ role: 'user', content: prompt }]
+      max_tokens: 512,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: 'Generate follow-up email draft body.' }],
     });
+    const body = (response.content[0] as any).text.trim();
+    const subject = company.emailSubject?.startsWith('Re:') ? company.emailSubject : `Re: ${company.emailSubject}`;
 
-    const body = (response.content[0] as any).text;
-    const subject = `Re: ${creds.targetRoles} Interest at ${company.company} | ${creds.senderName}`;
-
-    // Save back to Notion with Draft Ready status so the user can review/edit
-    await updateEmailDraft(connection, notionId, subject, body, 'Score: 9.6. Approved (Follow-Up Cadence). Polished second-touchpoint email.', 'Draft Ready');
+    await updateEmailDraft(connection, notionId, subject, body, 'Score: 9.6/10', 'Follow-up Ready');
 
     return NextResponse.json({
       success: true,
@@ -80,7 +74,6 @@ ${signature}`;
 
   } catch (error: any) {
     console.error('Error generating follow-up draft:', error);
-    const isAuthError = error.message.includes('Unauthorized') || error.message.includes('User not found');
-    return NextResponse.json({ error: error.message }, { status: isAuthError ? 401 : 500 });
+    return NextResponse.json(safeErrorBody(error), { status: safeErrorStatus(error) });
   }
 }
