@@ -3,6 +3,7 @@ import { getAuthenticatedUser } from '@/lib/auth-middleware';
 import { db } from '@/lib/firebase-admin';
 import { encrypt } from '@/lib/crypto';
 import { Client } from '@notionhq/client';
+import { safeErrorBody, safeErrorStatus } from '@/lib/api-errors';
 
 export async function POST(req: Request) {
   try {
@@ -56,6 +57,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, message: 'Notion connection verified and stored successfully.' });
   } catch (error: any) {
     console.error('❌ Notion onboarding route error:', error.message);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, ...safeErrorBody(error) }, { status: safeErrorStatus(error) });
   }
 }
