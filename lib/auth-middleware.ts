@@ -34,11 +34,18 @@ export async function getAuthenticatedUser(req: Request): Promise<{ userId: stri
     throw new Error('Unauthorized: Missing Authorization Bearer token.');
   }
 
-  // Support demo mode or fallback for local development without Firebase secrets
+  // Demo mode / local dev without Firebase secrets: any token (including the
+  // well-known 'demo-token-123' used by the client) is accepted, but ONLY when
+  // we are explicitly in demo mode or Firebase Admin isn't configured at all.
+  // SECURITY: 'demo-token-123' must never be an independent bypass — it used to
+  // be OR'd in as its own clause, which meant a live production deployment
+  // (with FIREBASE_SERVICE_ACCOUNT set, not in demo mode) would still accept
+  // that hardcoded, client-bundled token and hand back real platform-level
+  // credentials. Removing it as a standalone condition closes that hole while
+  // preserving legitimate demo/local-dev behaviour.
   if (
-    process.env.NEXT_PUBLIC_APP_MODE === 'demo' || 
-    !process.env.FIREBASE_SERVICE_ACCOUNT ||
-    token === 'demo-token-123'
+    process.env.NEXT_PUBLIC_APP_MODE === 'demo' ||
+    !process.env.FIREBASE_SERVICE_ACCOUNT
   ) {
     return {
       userId: 'demo-user-id',
