@@ -8,11 +8,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Token is required' }, { status: 400 });
     }
 
-    // Support local/demo testing fallback
+    // Support local/demo testing fallback.
+    // SECURITY: do not OR in `token === 'demo-token-123'` as an independent
+    // condition — that previously let anyone holding the (client-bundled,
+    // publicly visible) demo token authenticate in a real production
+    // deployment even when Firebase was fully configured.
     if (
-      process.env.NEXT_PUBLIC_APP_MODE === 'demo' || 
-      !process.env.FIREBASE_SERVICE_ACCOUNT ||
-      token === 'demo-token-123'
+      process.env.NEXT_PUBLIC_APP_MODE === 'demo' ||
+      !process.env.FIREBASE_SERVICE_ACCOUNT
     ) {
       return NextResponse.json({
         success: true,
@@ -87,7 +90,9 @@ export async function POST(req: Request) {
     });
 
   } catch (error: any) {
-    console.error('Session API Error:', error.message);
-    return NextResponse.json({ success: false, error: error.message }, { status: 401 });
+    // Log full detail server-side only; never forward internal error text
+    // (which can include Firebase/library internals) to the client.
+    console.error('Session API Error:', error);
+    return NextResponse.json({ success: false, error: 'Authentication failed.' }, { status: 401 });
   }
 }
