@@ -4,6 +4,7 @@ import { db } from '@/lib/firebase-admin';
 import { decrypt } from '@/lib/crypto';
 import { UserCredentials } from '@/lib/auth-middleware';
 import Anthropic from '@anthropic-ai/sdk';
+import { safeErrorBody } from '@/lib/api-errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -176,6 +177,6 @@ No markdown wrappers outside the JSON, output only raw JSON.`;
     return NextResponse.json({ success: true, companiesScanned: totalFlagged });
   } catch (error: any) {
     console.error('❌ POST /api/signals/scan error:', error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(safeErrorBody(error), { status: 500 });
   }
 }
