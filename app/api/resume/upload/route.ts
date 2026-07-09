@@ -2,6 +2,7 @@ import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth-middleware';
 import { db } from '@/lib/firebase-admin';
+import { safeErrorBody, safeErrorStatus } from '@/lib/api-errors';
 
 export async function POST(request: Request): Promise<NextResponse> {
   const { searchParams } = new URL(request.url);
@@ -84,6 +85,6 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json(blob);
   } catch (error: any) {
     console.error('❌ Error uploading resume:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(safeErrorBody(error), { status: safeErrorStatus(error) });
   }
 }
