@@ -4,6 +4,7 @@ import { sendEmail } from '@/lib/mailer';
 import { db } from '@/lib/firebase-admin';
 import { decrypt } from '@/lib/crypto';
 import { UserCredentials } from '@/lib/auth-middleware';
+import { safeErrorBody } from '@/lib/api-errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -119,6 +120,6 @@ export async function GET(req: Request) {
 
   } catch (error: any) {
     console.error('❌ Cron Scheduled Send Error:', error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(safeErrorBody(error), { status: 500 });
   }
 }
