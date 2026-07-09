@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getCompanyById, getNotionConnection, updateCompanyProperties } from '@/lib/notion';
 import { getAuthenticatedUser } from '@/lib/auth-middleware';
 import { getOptimalSendTime } from '@/lib/timing';
+import { safeErrorBody, safeErrorStatus } from '@/lib/api-errors';
 
 export async function POST(
   req: Request,
@@ -33,7 +34,6 @@ export async function POST(
     return NextResponse.json({ success: true, scheduledFor });
   } catch (e: any) {
     console.error('❌ POST /api/send/[id]/schedule error:', e.message);
-    const isAuthError = e.message.includes('Unauthorized') || e.message.includes('User not found');
-    return NextResponse.json({ error: e.message }, { status: isAuthError ? 401 : 500 });
+    return NextResponse.json(safeErrorBody(e), { status: safeErrorStatus(e) });
   }
 }
