@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getCompaniesByStatus, updateCompanyProperties, getNotionConnection } from '@/lib/notion';
 import { sendEmail } from '@/lib/mailer';
 import { getAuthenticatedUser } from '@/lib/auth-middleware';
+import { safeErrorBody, safeErrorStatus } from '@/lib/api-errors';
 
 export async function POST(req: Request) {
   try {
@@ -56,7 +57,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ sent: results.filter(r => r.success).length, results });
   } catch (e: any) {
     console.error('❌ POST /api/send/bulk error:', e.message);
-    const isAuthError = e.message.includes('Unauthorized') || e.message.includes('User not found');
-    return NextResponse.json({ error: e.message }, { status: isAuthError ? 401 : 500 });
+    return NextResponse.json(safeErrorBody(e), { status: safeErrorStatus(e) });
   }
 }
