@@ -3,6 +3,7 @@ import { getCompanyById, getNotionConnection, updateCompanyProperties } from '@/
 import { getAuthenticatedUser } from '@/lib/auth-middleware';
 import { sendEmail } from '@/lib/mailer';
 import Anthropic from '@anthropic-ai/sdk';
+import { safeErrorBody, safeErrorStatus } from '@/lib/api-errors';
 
 export async function POST(
   req: Request,
@@ -133,7 +134,6 @@ Return only the email body. No subject line.`;
     return NextResponse.json({ error: 'Invalid action parameter' }, { status: 400 });
   } catch (e: any) {
     console.error('❌ POST /api/followup/[id] error:', e.message);
-    const isAuthError = e.message.includes('Unauthorized') || e.message.includes('User not found');
-    return NextResponse.json({ error: e.message }, { status: isAuthError ? 401 : 500 });
+    return NextResponse.json(safeErrorBody(e), { status: safeErrorStatus(e) });
   }
 }
