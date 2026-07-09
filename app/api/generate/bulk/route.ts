@@ -10,8 +10,9 @@ export async function POST(req: Request) {
     const { creds } = await getAuthenticatedUser(req);
     const connection = getNotionConnection(creds.notionApiKey, creds.notionDbId);
 
-    const companies = await getCompaniesByStatus(connection, ['New', 'Redo']);
-    const results: { company: string; success: boolean; score?: number; error?: string }[] = [];
+    // 2. Query all 'New' status companies from the scoped Notion DB
+    const companies = await getCompaniesByStatus(connection, 'New');
+    const results = [];
 
     for (const company of companies) {
       try {
