@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAllCompanies, getNotionConnection } from '@/lib/notion';
 import { getAuthenticatedUser } from '@/lib/auth-middleware';
+import { safeErrorBody, safeErrorStatus } from '@/lib/api-errors';
 
 export async function GET(req: Request) {
   try {
@@ -106,7 +107,6 @@ export async function GET(req: Request) {
     });
   } catch (e: any) {
     console.error('❌ GET /api/analytics/patterns error:', e.message);
-    const isAuthError = e.message.includes('Unauthorized') || e.message.includes('User not found');
-    return NextResponse.json({ error: e.message }, { status: isAuthError ? 401 : 500 });
+    return NextResponse.json(safeErrorBody(e), { status: safeErrorStatus(e) });
   }
 }
