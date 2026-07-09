@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { mockResetDb } from '@/lib/mockDb';
 import { getAuthenticatedUser } from '@/lib/auth-middleware';
+import { safeErrorBody, safeErrorStatus } from '@/lib/api-errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +17,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, error: 'Database reset is only supported in Demo mode.' }, { status: 400 });
   } catch (error: any) {
     console.error('Error resetting database:', error);
-    const isAuthError = error.message.includes('Unauthorized') || error.message.includes('User not found');
-    return NextResponse.json({ error: error.message }, { status: isAuthError ? 401 : 500 });
+    return NextResponse.json(safeErrorBody(error), { status: safeErrorStatus(error) });
   }
 }
