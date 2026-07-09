@@ -4,6 +4,7 @@ import { db } from '@/lib/firebase-admin';
 import { decrypt } from '@/lib/crypto';
 import { UserCredentials } from '@/lib/auth-middleware';
 import { getGmailAccessToken, getGmailThread, parseRecruiterReply } from '@/lib/gmail';
+import { safeErrorBody } from '@/lib/api-errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -108,6 +109,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, repliesFound: totalRepliesFound });
   } catch (error: any) {
     console.error('❌ POST /api/replies/scan error:', error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(safeErrorBody(error), { status: 500 });
   }
 }
