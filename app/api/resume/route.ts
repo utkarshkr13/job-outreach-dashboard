@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth-middleware';
 import fs from 'fs';
 import path from 'path';
+import { safeErrorBody, safeErrorStatus } from '@/lib/api-errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -79,7 +80,7 @@ export async function GET(req: NextRequest) {
     }
   } catch (error: any) {
     console.error('❌ Error fetching resume info from Vercel Blob:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(safeErrorBody(error), { status: safeErrorStatus(error) });
   }
 }
 
@@ -109,7 +110,7 @@ export async function DELETE(req: NextRequest) {
       }
       return NextResponse.json({ success: true });
     } catch (err: any) {
-      return NextResponse.json({ error: err.message }, { status: 500 });
+      return NextResponse.json(safeErrorBody(err), { status: safeErrorStatus(err) });
     }
   }
 
@@ -126,6 +127,6 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error('❌ Error deleting custom resume from Vercel Blob:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(safeErrorBody(error), { status: safeErrorStatus(error) });
   }
 }
