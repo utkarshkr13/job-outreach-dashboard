@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getCompaniesByStatus, updateEmailDraft, getNotionConnection } from '@/lib/notion';
 import { runAgentPipeline } from '@/lib/agents';
 import { getAuthenticatedUser } from '@/lib/auth-middleware';
+import { safeErrorBody, safeErrorStatus } from '@/lib/api-errors';
 
 export async function POST(req: Request) {
   try {
@@ -9,9 +10,8 @@ export async function POST(req: Request) {
     const { creds } = await getAuthenticatedUser(req);
     const connection = getNotionConnection(creds.notionApiKey, creds.notionDbId);
 
-    // 2. Query all 'New' status companies from the scoped Notion DB
-    const companies = await getCompaniesByStatus(connection, 'New');
-    const results = [];
+    const companies = await getCompaniesByStatus(connection, ['New', 'Redo']);
+    const results: { company: string; success: boolean; score?: number; error?: string }[] = [];
 
     for (const company of companies) {
       try {
@@ -29,7 +29,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ processed: results.length, results });
   } catch (e: any) {
     console.error('❌ POST /api/generate/bulk error:', e.message);
-    const isAuthError = e.message.includes('Unauthorized') || e.message.includes('User not found');
-    return NextResponse.json({ error: e.message }, { status: isAuthError ? 401 : 500 });
+    return NextResponse.json(safeErrorBody(e), { status: safeErrorStatus(e) });
   }
 }
