@@ -4,6 +4,7 @@ import { db } from '@/lib/firebase-admin';
 import { decrypt } from '@/lib/crypto';
 import { UserCredentials } from '@/lib/auth-middleware';
 import Anthropic from '@anthropic-ai/sdk';
+import { safeErrorBody } from '@/lib/api-errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -151,6 +152,6 @@ Return only the email body. No subject line.`;
     return NextResponse.json({ success: true, draftedCount: totalDrafted });
   } catch (error: any) {
     console.error('❌ POST /api/followup/bulk error:', error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(safeErrorBody(error), { status: 500 });
   }
 }
