@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { adminAuth } from '@/lib/firebase-admin';
+import { safeErrorBody, safeErrorStatus } from '@/lib/api-errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,6 +54,6 @@ export async function GET(req: Request) {
     return NextResponse.redirect(googleAuthUrl);
   } catch (error: any) {
     console.error('❌ Gmail OAuth initiation failed:', error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(safeErrorBody(error), { status: safeErrorStatus(error) });
   }
 }
