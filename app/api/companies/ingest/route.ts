@@ -4,6 +4,7 @@ import { Client } from '@notionhq/client';
 import Anthropic from '@anthropic-ai/sdk';
 import { getAuthenticatedUser } from '@/lib/auth-middleware';
 import { getNotionConnection } from '@/lib/notion';
+import { safeErrorBody, safeErrorStatus } from '@/lib/api-errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -106,7 +107,6 @@ Return a JSON object only:
 
   } catch (error: any) {
     console.error('Error in Ingest API:', error);
-    const isAuthError = error.message.includes('Unauthorized') || error.message.includes('User not found');
-    return NextResponse.json({ error: error.message }, { status: isAuthError ? 401 : 500 });
+    return NextResponse.json(safeErrorBody(error), { status: safeErrorStatus(error) });
   }
 }
