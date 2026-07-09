@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth-middleware';
 import { db } from '@/lib/firebase-admin';
 import { encrypt } from '@/lib/crypto';
+import { safeErrorBody, safeErrorStatus } from '@/lib/api-errors';
 
 export async function GET(req: Request) {
   try {
@@ -72,7 +73,7 @@ export async function GET(req: Request) {
     });
   } catch (error: any) {
     console.error('❌ Settings GET credentials error:', error.message);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, ...safeErrorBody(error) }, { status: safeErrorStatus(error) });
   }
 }
 
@@ -159,6 +160,6 @@ export async function PUT(req: Request) {
     return NextResponse.json({ success: true, message: 'Settings saved successfully.' });
   } catch (error: any) {
     console.error('❌ Settings PUT credentials error:', error.message);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, ...safeErrorBody(error) }, { status: safeErrorStatus(error) });
   }
 }
