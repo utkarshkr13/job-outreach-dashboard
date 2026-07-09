@@ -117,8 +117,13 @@ export async function sendEmail(
     console.error('Failed to attach resume (non-fatal):', err);
   }
 
-  // Append invisible open tracking pixel (using live Vercel domain)
-  const trackingPixelUrl = `https://job-outreach-dashboard.vercel.app/api/track/${payload.notionId}/open${creds.userId ? `?u=${creds.userId}` : ''}`;
+  // Append invisible open tracking pixel. Domain is configurable so the app
+  // works correctly on preview deploys, custom domains, and local dev instead
+  // of always pointing at the hardcoded production URL.
+  const trackingBaseUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://job-outreach-dashboard.vercel.app');
+  const trackingPixelUrl = `${trackingBaseUrl}/api/track/${payload.notionId}/open${creds.userId ? `?u=${creds.userId}` : ''}`;
   const trackedHtml = `${payload.emailBody.replace(/\n/g, '<br>')}<br><br><img src="${trackingPixelUrl}" width="1" height="1" style="display:none;" alt="" />`;
 
   const info = await transporter.sendMail({
