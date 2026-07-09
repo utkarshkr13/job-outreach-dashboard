@@ -1,7 +1,8 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getNotionConnection } from '@/lib/notion';
 import { getGmailAccessToken } from '@/lib/gmail';
 import { getAuthenticatedUser } from '@/lib/auth-middleware';
+import { safeErrorBody, safeErrorStatus } from '@/lib/api-errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -191,8 +192,6 @@ export async function POST(req: Request) {
 
   } catch (error: any) {
     console.error('[SYNC] gmail-drafts error:', error);
-    const isAuthError =
-      error.message.includes('Unauthorized') || error.message.includes('User not found');
-    return NextResponse.json({ error: error.message }, { status: isAuthError ? 401 : 500 });
+    return NextResponse.json(safeErrorBody(error), { status: safeErrorStatus(error) });
   }
 }
