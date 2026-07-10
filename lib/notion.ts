@@ -1,4 +1,5 @@
 import { Client } from '@notionhq/client';
+import { withRetry } from './retry';
 import { Company, EmailStatus } from '@/types';
 import {
   getMockCompanies,
@@ -122,7 +123,7 @@ export async function getCompaniesByStatus(
   let cursor: string | undefined = undefined;
 
   while (hasMore) {
-    const response = await notion.databases.query({
+    const response = await withRetry(() => notion.databases.query({
       database_id: DB_ID,
       start_cursor: cursor,
       filter: {
@@ -131,7 +132,7 @@ export async function getCompaniesByStatus(
           select: { equals: s }
         }))
       }
-    });
+    }));
 
     results = results.concat(response.results);
     hasMore = response.has_more;
@@ -152,11 +153,11 @@ export async function getAllCompanies(connection: NotionConnection): Promise<Com
   let cursor: string | undefined = undefined;
 
   while (hasMore) {
-    const response = await notion.databases.query({
+    const response = await withRetry(() => notion.databases.query({
       database_id: DB_ID,
       start_cursor: cursor,
       sorts: [{ property: 'Number', direction: 'ascending' }]
-    });
+    }));
 
     results = results.concat(response.results);
     hasMore = response.has_more;
@@ -180,7 +181,7 @@ export async function updateEmailDraft(
   }
 
   const { notion } = connection;
-  await notion.pages.update({
+  await withRetry(() => notion.pages.update({
     page_id: notionId,
     properties: {
       'Email Status': { select: { name: status } },
@@ -188,7 +189,7 @@ export async function updateEmailDraft(
       'Email Draft': { rich_text: [{ text: { content: body.slice(0, 2000) } }] },
       'Draft Notes': { rich_text: [{ text: { content: notes.slice(0, 2000) } }] },
     }
-  });
+  }));
 }
 
 export async function updateStatus(
@@ -212,7 +213,7 @@ export async function updateStatus(
   if (status === 'Sent') {
     props['Emailed'] = { checkbox: true };
   }
-  await notion.pages.update({ page_id: notionId, properties: props });
+  await withRetry(() => notion.pages.update({ page_id: notionId, properties: props }));
 }
 
 export async function getCompanyById(connection: NotionConnection, id: string): Promise<Company | null> {
@@ -222,7 +223,7 @@ export async function getCompanyById(connection: NotionConnection, id: string): 
   }
 
   const { notion } = connection;
-  const page: any = await notion.pages.retrieve({ page_id: id });
+  const page: any = await withRetry(() => notion.pages.retrieve({ page_id: id }));
   if (!page) return null;
 
   return mapPageToCompany(page);
@@ -294,8 +295,8 @@ export async function updateCompanyProperties(
     props['Signal Updated'] = { date: properties.signalUpdated ? { start: properties.signalUpdated } : null };
   }
 
-  await notion.pages.update({
+  await withRetry(() => notion.pages.update({
     page_id: notionId,
     properties: props,
-  });
+  }));
 }
