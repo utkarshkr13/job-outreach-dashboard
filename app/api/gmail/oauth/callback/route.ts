@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/firebase-admin';
 import { encrypt } from '@/lib/crypto';
+import { getErrorMessage } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -106,8 +107,8 @@ export async function GET(req: Request) {
 
     // Redirect to step 2 with success
     return NextResponse.redirect(`${protocol}://${host}/onboarding?step=2&success=true&email=${encodeURIComponent(gmailEmail)}`);
-  } catch (err: any) {
-    console.error('❌ Google OAuth callback processing failed:', err.message);
-    return NextResponse.redirect(`${protocol}://${host}/onboarding?step=2&error=${encodeURIComponent(err.message)}`);
+  } catch (err) {
+    console.error('❌ Google OAuth callback processing failed:', getErrorMessage(err));
+    return NextResponse.redirect(`${protocol}://${host}/onboarding?step=2&error=${encodeURIComponent(getErrorMessage(err))}`);
   }
 }
