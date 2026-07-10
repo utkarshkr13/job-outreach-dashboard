@@ -89,7 +89,7 @@ export async function POST(req: Request) {
       }
     });
 
-  } catch (error: any) {
+  } catch (error) {
     // Log full detail server-side only; never forward internal error text
     // (which can include Firebase/library internals) to the client.
     console.error('Session API Error:', error);
