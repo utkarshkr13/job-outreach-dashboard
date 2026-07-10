@@ -27,6 +27,7 @@ It has two halves that work together:
   - [6. Deploy to Vercel](#6-deploy-to-vercel)
 - [Vercel cron jobs (server-side automation)](#-vercel-cron-jobs-server-side-automation)
 - [Claude Scheduled Jobs](#-claude-scheduled-jobs)
+- [Testing](#-testing)
 - [Troubleshooting](#-troubleshooting)
 
 ---
@@ -331,6 +332,22 @@ These are protected by `CRON_SECRET`.
 
 ---
 
+## 🧪 Testing
+
+Unit tests cover the pure/testable lib modules (retry/backoff, timeout,
+rate limiting, encryption, error formatting) with Vitest:
+
+```bash
+npm test          # run once (also runs in CI)
+npm run test:watch
+```
+
+Routes that call Notion/Gmail/Anthropic aren't covered by these tests since
+they need real credentials — verification for those is the manual sanity
+pass plus `npx tsc --noEmit` + `npm run build` in CI.
+
+---
+
 ## 🧯 Troubleshooting
 
 | Symptom | Cause / fix |
@@ -343,4 +360,4 @@ These are protected by `CRON_SECRET`.
 
 ---
 
-*Last updated: June 7, 2026.*
+*Last updated: July 10, 2026.*
