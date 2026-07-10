@@ -100,7 +100,7 @@ export async function GET(req: NextRequest) {
     } else {
       return new NextResponse('Not found', { status: 404 });
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('❌ Error fetching resume from Vercel Blob:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
