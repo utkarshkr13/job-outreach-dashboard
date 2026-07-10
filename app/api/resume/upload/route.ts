@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth-middleware';
 import { db } from '@/lib/firebase-admin';
 import { safeErrorBody, safeErrorStatus } from '@/lib/api-errors';
+import { getErrorMessage } from '@/lib/errors';
 
 export async function POST(request: Request): Promise<NextResponse> {
   const { searchParams } = new URL(request.url);
@@ -59,8 +60,8 @@ export async function POST(request: Request): Promise<NextResponse> {
         addRandomSuffix: false,
         allowOverwrite: true,
       });
-    } catch (e: any) {
-      if (e.message.includes('private store')) {
+    } catch (e) {
+      if (getErrorMessage(e).includes('private store')) {
         blob = await put(targetName, buffer, {
           access: 'private',
           addRandomSuffix: false,
@@ -83,7 +84,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     return NextResponse.json(blob);
-  } catch (error: any) {
+  } catch (error) {
     console.error('❌ Error uploading resume:', error);
     return NextResponse.json(safeErrorBody(error), { status: safeErrorStatus(error) });
   }
