@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { withRetry, withTimeout, isTransientError } from './retry';
 import { Company, AgentResult } from '@/types';
 import { mockGenerateDraftPipeline } from './mockDb';
 import { UserCredentials } from './auth-middleware';
@@ -15,41 +16,64 @@ async function askModel(
   systemPrompt: string,
   userMessage: string
 ): Promise<string> {
+  // LLM calls are wrapped with a timeout (a hung request would otherwise
+  // stall the whole outreach pipeline) and a small retry with backoff for
+  // transient failures (429/5xx/network) — auth and validation errors are
+  // NOT retried since they'll never succeed on a second attempt.
   if (config.provider === 'groq') {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage }
-        ],
-        temperature: 0.7,
-        max_tokens: 1024
-      })
-    });
-    
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      throw new Error(errData.error?.message || `Groq API request failed with status ${response.status}`);
-    }
-    
-    const data = await response.json();
-    return data.choices[0]?.message?.content || '';
+    return withRetry(
+      () => withTimeout(callGroq(config, systemPrompt, userMessage), 30_000, 'Groq completion'),
+      { shouldRetry: isTransientError }
+    );
   } else {
-    const client = new Anthropic({ apiKey: config.apiKey });
-    const response = await client.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 1024,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: userMessage }],
-    });
-    return (response.content[0] as any).text;
+    return withRetry(
+      () => withTimeout(callAnthropic(config, systemPrompt, userMessage), 30_000, 'Anthropic completion'),
+      { shouldRetry: isTransientError }
+    );
   }
+}
+
+async function callGroq(config: ModelConfig, systemPrompt: string, userMessage: string): Promise<string> {
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${config.apiKey}`
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userMessage }
+      ],
+      temperature: 0.7,
+      max_tokens: 1024
+    })
+  });
+
+  if (!response.ok) {
+    const errData = await response.json().catch(() => ({}));
+    const error: Error & { status?: number } = new Error(
+      errData.error?.message || `Groq API request failed with status ${response.status}`
+    );
+    error.status = response.status;
+    throw error;
+  }
+
+  const data = await response.json();
+  return data.choices[0]?.message?.content || '';
+}
+
+async function callAnthropic(config: ModelConfig, systemPrompt: string, userMessage: string): Promise<string> {
+  const client = new Anthropic({ apiKey: config.apiKey });
+  const response = await client.messages.create({
+    model: 'claude-3-5-sonnet-20241022',
+    max_tokens: 1024,
+    system: systemPrompt,
+    messages: [{ role: 'user', content: userMessage }],
+  });
+  const block = response.content[0];
+  return block.type === 'text' ? block.text : '';
 }
 
 // ─── AGENT 1: COMPANY HOOK ───────────────────────────────────────────────────
