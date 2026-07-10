@@ -15,7 +15,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, message: 'Database reset to default seed records successfully.' });
     }
     return NextResponse.json({ success: false, error: 'Database reset is only supported in Demo mode.' }, { status: 400 });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error resetting database:', error);
     return NextResponse.json(safeErrorBody(error), { status: safeErrorStatus(error) });
   }
