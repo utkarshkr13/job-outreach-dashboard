@@ -105,7 +105,7 @@ Return a JSON object only:
       }
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error in Ingest API:', error);
     return NextResponse.json(safeErrorBody(error), { status: safeErrorStatus(error) });
   }
