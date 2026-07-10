@@ -17,8 +17,13 @@ jobs:
           node-version: 20
           cache: 'npm'
 
+      # NOTE: using `npm install` rather than `npm ci` because
+      # package-lock.json was not regenerated/committed alongside the new
+      # devDependencies (vitest) added in this pass — see commit message.
+      # `npm ci` requires an exact lockfile match and would fail until the
+      # lockfile is regenerated and committed.
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Type check
         run: npx tsc --noEmit
@@ -29,6 +34,9 @@ jobs:
       - name: Lint (non-blocking, tracked as tech debt)
         run: npm run lint
         continue-on-error: true
+
+      - name: Unit tests
+        run: npm test
 
       - name: Build
         run: npm run build
