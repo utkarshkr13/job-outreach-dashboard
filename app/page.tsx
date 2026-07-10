@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import React, { useEffect, useState, Suspense } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -1509,7 +1509,7 @@ function DashboardContent() {
                         </p>
                       </div>
                       <button
-                        onClick={() => triggerAICompanyBrief(selectedCompany)}
+                        onClick={() => selectedCompany && triggerAICompanyBrief(selectedCompany)}
                         disabled={intelLoading}
                         className="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold py-2.5 px-6 rounded-full transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer inline-flex items-center gap-1.5"
                       >
