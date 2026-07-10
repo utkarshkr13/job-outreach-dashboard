@@ -4,6 +4,7 @@ import { sendEmail } from '@/lib/mailer';
 import { getGmailAccessToken, searchGmailMessageByRfcId } from '@/lib/gmail';
 import { getAuthenticatedUser } from '@/lib/auth-middleware';
 import { safeErrorBody, safeErrorStatus } from '@/lib/api-errors';
+import { getErrorMessage } from '@/lib/errors';
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -45,7 +46,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     // Only set gmailThreadId when we actually resolve a real Gmail thread ID.
     // Previously this defaulted to a fabricated `mock-thread-...` value, which
     // got written to Notion and later fed straight into the real Gmail API by
-    // /api/replies/scan (getGmailThread(company.gmailThreadId, ...)) — every
+    // /api/replies/scan (getGmailThread(company.gmailThreadId, ...)). Every
     // such lead would silently fail reply detection forever. Leaving it
     // undefined instead means updateCompanyProperties skips the field
     // (see lib/notion.ts's `if (properties.gmailThreadId !== undefined)` guard),
@@ -65,8 +66,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         if (resolvedThreadId) {
           threadId = resolvedThreadId;
         }
-      } catch (err: any) {
-        console.warn('[API/SEND] Failed to resolve Thread ID for message:', err.message);
+      } catch (err) {
+        console.warn('[API/SEND] Failed to resolve Thread ID for message:', getErrorMessage(err));
       }
     } else if (process.env.NEXT_PUBLIC_APP_MODE === 'demo') {
       // Demo mode has no real Gmail thread to resolve; keep a clearly-labelled
@@ -81,8 +82,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       lastContacted: new Date().toISOString().split('T')[0]
     });
     return NextResponse.json({ success: true });
-  } catch (e: any) {
-    console.error('❌ POST /api/send/[id] error:', e.message);
+  } catch (e) {
+    console.error('❌ POST /api/send/[id] error:', getErrorMessage(e));
     return NextResponse.json(safeErrorBody(e), { status: safeErrorStatus(e) });
   }
 }
