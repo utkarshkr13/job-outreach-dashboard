@@ -4,6 +4,7 @@ import { db } from '@/lib/firebase-admin';
 import { encrypt } from '@/lib/crypto';
 import { Client } from '@notionhq/client';
 import { safeErrorBody, safeErrorStatus } from '@/lib/api-errors';
+import { getErrorMessage } from '@/lib/errors';
 
 export async function POST(req: Request) {
   try {
@@ -18,11 +19,11 @@ export async function POST(req: Request) {
     try {
       const notion = new Client({ auth: notionApiKey });
       await notion.databases.retrieve({ database_id: notionDbId });
-    } catch (notionErr: any) {
-      console.error('❌ Notion API Connection Test failed:', notionErr.message);
+    } catch (notionErr) {
+      console.error('❌ Notion API Connection Test failed:', getErrorMessage(notionErr));
       return NextResponse.json({ 
         success: false, 
-        error: `Could not connect to Notion: ${notionErr.message}. Please double-check your API Integration Token, Database ID, and ensure you have shared the database with your integration.` 
+        error: `Could not connect to Notion: ${getErrorMessage(notionErr)}. Please double-check your API Integration Token, Database ID, and ensure you have shared the database with your integration.` 
       }, { status: 400 });
     }
 
@@ -55,8 +56,8 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true, message: 'Notion connection verified and stored successfully.' });
-  } catch (error: any) {
-    console.error('❌ Notion onboarding route error:', error.message);
+  } catch (error) {
+    console.error('❌ Notion onboarding route error:', getErrorMessage(error));
     return NextResponse.json({ success: false, ...safeErrorBody(error) }, { status: safeErrorStatus(error) });
   }
 }
