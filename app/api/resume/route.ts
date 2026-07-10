@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
     } else {
       return NextResponse.json({ url: null, status: 'none' });
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('❌ Error fetching resume info from Vercel Blob:', error);
     return NextResponse.json(safeErrorBody(error), { status: safeErrorStatus(error) });
   }
@@ -109,7 +109,7 @@ export async function DELETE(req: NextRequest) {
         fs.unlinkSync(customPath);
       }
       return NextResponse.json({ success: true });
-    } catch (err: any) {
+    } catch (err) {
       return NextResponse.json(safeErrorBody(err), { status: safeErrorStatus(err) });
     }
   }
@@ -125,7 +125,7 @@ export async function DELETE(req: NextRequest) {
       await del(customBlob.url);
     }
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error) {
     console.error('❌ Error deleting custom resume from Vercel Blob:', error);
     return NextResponse.json(safeErrorBody(error), { status: safeErrorStatus(error) });
   }
