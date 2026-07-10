@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { withTimeout } from './retry';
 import { list } from '@vercel/blob';
 import fs from 'fs';
 import path from 'path';
@@ -126,15 +127,23 @@ export async function sendEmail(
   const trackingPixelUrl = `${trackingBaseUrl}/api/track/${payload.notionId}/open${creds.userId ? `?u=${creds.userId}` : ''}`;
   const trackedHtml = `${payload.emailBody.replace(/\n/g, '<br>')}<br><br><img src="${trackingPixelUrl}" width="1" height="1" style="display:none;" alt="" />`;
 
-  const info = await transporter.sendMail({
-    from: `"${senderName || 'Job Seeker'}" <${gmailUser}>`,
-    to: payload.toEmail,
-    subject: payload.subject,
-    html: trackedHtml,
-    text: payload.emailBody,
-    replyTo: gmailUser,
-    attachments,
-  });
+  // Sending is NOT retried here: a transient failure *after* Gmail accepted
+  // the message would cause a retry to send a visible duplicate email to the
+  // recruiter, which is worse than surfacing the error once. We only bound
+  // how long we wait so a hung SMTP connection can't stall the request forever.
+  const info = await withTimeout(
+    transporter.sendMail({
+      from: `"${senderName || 'Job Seeker'}" <${gmailUser}>`,
+      to: payload.toEmail,
+      subject: payload.subject,
+      html: trackedHtml,
+      text: payload.emailBody,
+      replyTo: gmailUser,
+      attachments,
+    }),
+    20_000,
+    'Gmail sendMail'
+  );
 
   return { success: true, messageId: info.messageId };
 }
