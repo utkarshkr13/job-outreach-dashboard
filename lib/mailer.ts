@@ -118,14 +118,34 @@ export async function sendEmail(
     console.error('Failed to attach resume (non-fatal):', err);
   }
 
-  // Append invisible open tracking pixel. Domain is configurable so the app
-  // works correctly on preview deploys, custom domains, and local dev instead
-  // of always pointing at the hardcoded production URL.
+  // Domain used to build absolute links (tracking pixel + unsubscribe),
+  // configurable so preview deploys / custom domains resolve correctly
+  // instead of always pointing at the hardcoded production URL.
   const trackingBaseUrl =
     process.env.NEXT_PUBLIC_APP_URL ||
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://job-outreach-dashboard.vercel.app');
-  const trackingPixelUrl = `${trackingBaseUrl}/api/track/${payload.notionId}/open${creds.userId ? `?u=${creds.userId}` : ''}`;
-  const trackedHtml = `${payload.emailBody.replace(/\n/g, '<br>')}<br><br><img src="${trackingPixelUrl}" width="1" height="1" style="display:none;" alt="" />`;
+  const userQuery = creds.userId ? `?u=${creds.userId}` : '';
+  const trackingPixelUrl = `${trackingBaseUrl}/api/track/${payload.notionId}/open${userQuery}`;
+  const unsubscribeUrl = `${trackingBaseUrl}/api/track/${payload.notionId}/unsubscribe${userQuery}`;
+
+  // CAN-SPAM-style disclosure + working one-click unsubscribe, appended below
+  // the sender's own signature. Kept small/grey so it doesn't compete with
+  // the actual pitch, but present and functional on every send.
+  const complianceFooter =
+    `<div style="margin-top:24px;padding-top:12px;border-top:1px solid #e5e5e5;font-size:11px;color:#8a8a8e;line-height:1.5;">` +
+    `You're receiving this because you're listed as a hiring contact for ${payload.companyName}. ` +
+    `Not the right person, or don't want future emails about this application? ` +
+    `<a href="${unsubscribeUrl}" style="color:#8a8a8e;">Unsubscribe</a>.` +
+    `</div>`;
+  const complianceFooterText =
+    `\n\n---\nYou're receiving this because you're listed as a hiring contact for ${payload.companyName}. ` +
+    `Unsubscribe: ${unsubscribeUrl}`;
+
+  const trackedHtml =
+    `${payload.emailBody.replace(/\n/g, '<br>')}<br><br>` +
+    complianceFooter +
+    `<img src="${trackingPixelUrl}" width="1" height="1" style="display:none;" alt="" />`;
+  const trackedText = `${payload.emailBody}${complianceFooterText}`;
 
   // Sending is NOT retried here: a transient failure *after* Gmail accepted
   // the message would cause a retry to send a visible duplicate email to the
@@ -137,9 +157,12 @@ export async function sendEmail(
       to: payload.toEmail,
       subject: payload.subject,
       html: trackedHtml,
-      text: payload.emailBody,
+      text: trackedText,
       replyTo: gmailUser,
       attachments,
+      headers: {
+        'List-Unsubscribe': `<${unsubscribeUrl}>`,
+      },
     }),
     20_000,
     'Gmail sendMail'
