@@ -33,7 +33,7 @@ export function isTransientError(error: unknown): boolean {
     return true;
   }
   const message = error instanceof Error ? error.message : '';
-  return /timeout|network|fetch failed|ECONNRESET/i.test(message);
+  return /timed?\s*out|network|fetch failed|ECONNRESET/i.test(message);
 }
 
 function sleep(ms: number): Promise<void> {
