@@ -26,6 +26,10 @@ export default function Navbar() {
 
   const isAuthScreen = pathname === '/login' || pathname === '/onboarding';
 
+  // The site password gate is unauthenticated by definition — never show the
+  // full app chrome (nav links, sign out, production badge) on it.
+  if (pathname === '/password') return null;
+
   return (
     <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-6xl px-6 py-2.5 rounded-full border border-white/40 dark:border-neutral-900 bg-white/85 dark:bg-[#161617]/80 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex items-center justify-between transition-all duration-300">
       <div className="flex items-center gap-8">
