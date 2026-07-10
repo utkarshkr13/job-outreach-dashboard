@@ -3,6 +3,7 @@ import { getAuthenticatedUser } from '@/lib/auth-middleware';
 import { db } from '@/lib/firebase-admin';
 import { encrypt } from '@/lib/crypto';
 import { safeErrorBody, safeErrorStatus } from '@/lib/api-errors';
+import { getErrorMessage } from '@/lib/errors';
 
 export async function POST(req: Request) {
   try {
@@ -53,8 +54,8 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true, message: 'Profile saved successfully.' });
-  } catch (error: any) {
-    console.error('❌ Profile onboarding route error:', error.message);
+  } catch (error) {
+    console.error('❌ Profile onboarding route error:', getErrorMessage(error));
     return NextResponse.json({ success: false, ...safeErrorBody(error) }, { status: safeErrorStatus(error) });
   }
 }
