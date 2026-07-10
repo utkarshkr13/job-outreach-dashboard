@@ -5,6 +5,7 @@ import { db } from '@/lib/firebase-admin';
 import { decrypt } from '@/lib/crypto';
 import { UserCredentials } from '@/lib/auth-middleware';
 import { safeErrorBody } from '@/lib/api-errors';
+import { getErrorMessage } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -105,21 +106,21 @@ export async function GET(req: Request) {
 
               await updateStatus(connection, company.notionId, 'Sent');
               results.push({ company: company.company, success: true });
-            } catch (e: any) {
-              results.push({ company: company.company, success: false, error: e.message });
+            } catch (e) {
+              results.push({ company: company.company, success: false, error: getErrorMessage(e) });
             }
           }
         }
         userResults.push({ userId, processedCount: results.length, details: results });
-      } catch (err: any) {
-        console.error(`❌ Failed to sweep schedule for user ${userId}:`, err.message);
+      } catch (err) {
+        console.error(`❌ Failed to sweep schedule for user ${userId}:`, getErrorMessage(err));
       }
     }
 
     return NextResponse.json({ success: true, usersSwept: userResults.length, details: userResults });
 
-  } catch (error: any) {
-    console.error('❌ Cron Scheduled Send Error:', error.message);
+  } catch (error) {
+    console.error('❌ Cron Scheduled Send Error:', getErrorMessage(error));
     return NextResponse.json(safeErrorBody(error), { status: 500 });
   }
 }
