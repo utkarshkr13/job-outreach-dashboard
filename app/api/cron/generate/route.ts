@@ -4,6 +4,7 @@ import { runAgentPipeline } from '@/lib/agents';
 import { db } from '@/lib/firebase-admin';
 import { decrypt } from '@/lib/crypto';
 import { UserCredentials } from '@/lib/auth-middleware';
+import { getErrorMessage } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -67,23 +68,23 @@ export async function GET(req: Request) {
 
             // Small throttling delay to avoid Anthropic rate limits
             await new Promise(r => setTimeout(r, 1200));
-          } catch (e: any) {
-            results.push({ company: company.company, success: false, error: e.message });
+          } catch (e) {
+            results.push({ company: company.company, success: false, error: getErrorMessage(e) });
           }
         }
 
         userResults.push({ userId, success: true, processed: results.length, results });
 
-      } catch (userErr: any) {
-        console.error(`❌ Failed to run cron pipeline for user ${userId}:`, userErr.message);
-        userResults.push({ userId, success: false, error: userErr.message });
+      } catch (userErr) {
+        console.error(`❌ Failed to run cron pipeline for user ${userId}:`, getErrorMessage(userErr));
+        userResults.push({ userId, success: false, error: getErrorMessage(userErr) });
       }
     }
 
     return NextResponse.json({ success: true, usersProcessed: userResults.length, details: userResults });
 
-  } catch (error: any) {
-    console.error('❌ Multi-user Cron Error:', error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    console.error('❌ Multi-user Cron Error:', getErrorMessage(error));
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
   }
 }
