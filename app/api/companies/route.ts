@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAllCompanies, getCompaniesByStatus, updateStatus, updateCompanyProperties, getNotionConnection } from '@/lib/notion';
 import { getAuthenticatedUser } from '@/lib/auth-middleware';
 import { safeErrorBody, safeErrorStatus } from '@/lib/api-errors';
+import { getErrorMessage } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,8 +20,8 @@ export async function GET(req: Request) {
       ? await getCompaniesByStatus(connection, status as any)
       : await getAllCompanies(connection);
     return NextResponse.json(companies);
-  } catch (e: any) {
-    console.error('❌ GET /api/companies error:', e.message);
+  } catch (e) {
+    console.error('❌ GET /api/companies error:', getErrorMessage(e));
     return NextResponse.json(safeErrorBody(e), { status: safeErrorStatus(e) });
   }
 }
@@ -55,8 +56,8 @@ export async function POST(req: Request) {
 
     await updateCompanyProperties(connection, notionId, updatePayload);
     return NextResponse.json({ success: true });
-  } catch (e: any) {
-    console.error('❌ POST /api/companies error:', e.message);
+  } catch (e) {
+    console.error('❌ POST /api/companies error:', getErrorMessage(e));
     return NextResponse.json(safeErrorBody(e), { status: safeErrorStatus(e) });
   }
 }
