@@ -56,7 +56,7 @@ export async function GET(req: Request) {
       },
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error exporting outreach data:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
