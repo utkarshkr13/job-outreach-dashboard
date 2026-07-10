@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth-middleware';
 import { db } from '@/lib/firebase-admin';
 import { safeErrorBody, safeErrorStatus } from '@/lib/api-errors';
+import { getErrorMessage } from '@/lib/errors';
 
 export async function POST(req: Request) {
   try {
@@ -28,8 +29,8 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true, message: 'Onboarding completed.' });
-  } catch (error: any) {
-    console.error('❌ Complete onboarding route error:', error.message);
+  } catch (error) {
+    console.error('❌ Complete onboarding route error:', getErrorMessage(error));
     return NextResponse.json({ success: false, ...safeErrorBody(error) }, { status: safeErrorStatus(error) });
   }
 }
