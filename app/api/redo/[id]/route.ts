@@ -3,6 +3,7 @@ import { updateEmailDraft, updateStatus, getAllCompanies, getNotionConnection } 
 import { runAgentPipeline } from '@/lib/agents';
 import { getAuthenticatedUser } from '@/lib/auth-middleware';
 import { safeErrorBody, safeErrorStatus } from '@/lib/api-errors';
+import { getErrorMessage } from '@/lib/errors';
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -24,8 +25,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     await updateEmailDraft(connection, id, result.subject, result.body, `Score: ${result.score}/10 — ${result.notes}`, 'Draft Ready');
 
     return NextResponse.json({ success: true, result });
-  } catch (e: any) {
-    console.error('❌ POST /api/redo/[id] error:', e.message);
+  } catch (e) {
+    console.error('❌ POST /api/redo/[id] error:', getErrorMessage(e));
     return NextResponse.json(safeErrorBody(e), { status: safeErrorStatus(e) });
   }
 }
