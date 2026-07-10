@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { getErrorMessage } from './errors';
 
 const ALGORITHM = 'aes-256-cbc';
 
@@ -69,8 +70,8 @@ export function decrypt(text: string): string {
     const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
     const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
     return decrypted.toString('utf8');
-  } catch (err: any) {
-    console.error('❌ Decryption failed — returning empty string to avoid leaking cipher text.', err.message);
+  } catch (err) {
+    console.error('❌ Decryption failed — returning empty string to avoid leaking cipher text.', getErrorMessage(err));
     return '';
   }
 }
