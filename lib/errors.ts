@@ -9,8 +9,13 @@
 export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
   if (typeof error === 'string') return error;
+  if (error === undefined || error === null) return String(error);
   try {
-    return JSON.stringify(error);
+    // JSON.stringify(undefined) returns the *value* undefined (not a string),
+    // which is already handled above, but non-serializable values (e.g.
+    // functions, symbols, circular objects) also need the String() fallback.
+    const json = JSON.stringify(error);
+    return json !== undefined ? json : String(error);
   } catch {
     return String(error);
   }
