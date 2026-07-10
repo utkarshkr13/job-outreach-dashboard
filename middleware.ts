@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Routes that are always public — the password gate + its auth endpoints
-const PUBLIC_PATHS = ['/password', '/api/auth/site-password', '/api/auth/logout'];
+// Routes that are always public — the password gate, its auth endpoints,
+// and endpoints hit by external recipients (email open pixel, unsubscribe
+// link) who never carry the site-auth cookie.
+const PUBLIC_PATHS = ['/password', '/api/auth/site-password', '/api/auth/logout', '/api/track'];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
