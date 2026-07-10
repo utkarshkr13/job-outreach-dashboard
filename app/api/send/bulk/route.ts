@@ -3,11 +3,26 @@ import { getCompaniesByStatus, updateCompanyProperties, getNotionConnection } fr
 import { sendEmail } from '@/lib/mailer';
 import { getAuthenticatedUser } from '@/lib/auth-middleware';
 import { safeErrorBody, safeErrorStatus } from '@/lib/api-errors';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { getErrorMessage } from '@/lib/errors';
+import { logger } from '@/lib/logger';
 
 export async function POST(req: Request) {
   try {
     // 1. Authenticate user & load decrypted secrets
     const { userId, creds } = await getAuthenticatedUser(req);
+
+    // Bulk operations hit external APIs (LLM/Gmail) repeatedly and are the
+    // most expensive + most abuse-prone routes in the app — cap how often a
+    // given user can trigger one.
+    const rl = checkRateLimit(`${userId}:send-bulk`, 3, 60_000);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please wait before trying again.' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil(rl.retryAfterMs / 1000)) } }
+      );
+    }
+
     const connection = getNotionConnection(creds.notionApiKey, creds.notionDbId);
 
     // 2. Fetch all approved leads from user's scoped DB
@@ -49,14 +64,14 @@ export async function POST(req: Request) {
 
         // Throttling delay between sends to respect SMTP rate limits
         await new Promise(r => setTimeout(r, 500));
-      } catch (e: any) {
-        results.push({ company: company.company, success: false, error: e.message });
+      } catch (e) {
+        results.push({ company: company.company, success: false, error: getErrorMessage(e) });
       }
     }
 
     return NextResponse.json({ sent: results.filter(r => r.success).length, results });
-  } catch (e: any) {
-    console.error('❌ POST /api/send/bulk error:', e.message);
+  } catch (e) {
+    logger.error('POST /api/send/bulk failed', e);
     return NextResponse.json(safeErrorBody(e), { status: safeErrorStatus(e) });
   }
 }
