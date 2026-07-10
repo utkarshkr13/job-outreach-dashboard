@@ -17,11 +17,15 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check the httpOnly auth cookie — value is compared server-side only
+  // Check the httpOnly auth cookie — value is compared server-side only.
+  // No hardcoded fallback: in demo mode we accept the fixed demo secret
+  // (matches app/api/auth/site-password/route.ts); otherwise AUTH_SECRET
+  // must be explicitly configured, or every request fails closed to /password.
   const authCookie = req.cookies.get('site-auth')?.value;
-  const expected   = process.env.AUTH_SECRET || 'b6e3f2d1e4c5a6b7f8c9d0e1f2a3b4c5';
+  const isDemoMode = process.env.NEXT_PUBLIC_APP_MODE === 'demo';
+  const expected = isDemoMode ? 'demo-site-auth-cookie' : process.env.AUTH_SECRET;
 
-  if (authCookie !== expected) {
+  if (!expected || authCookie !== expected) {
     const url = req.nextUrl.clone();
     url.pathname = '/password';
     url.searchParams.set('next', req.nextUrl.pathname);
