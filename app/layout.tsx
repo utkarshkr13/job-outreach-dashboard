@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/react';
 import './globals.css';
 import './ui-fixes.css';
 import './design-system.css';
+import './theme.css';
 
 export const metadata: Metadata = {
   title: 'Outreach Platform',
