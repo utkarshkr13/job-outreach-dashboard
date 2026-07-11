@@ -1,116 +1,212 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import Link from 'next/link';
 
+const NAV_ITEMS = [
+  { href: '/', label: 'Dashboard' },
+  { href: '/company', label: 'Companies' },
+  { href: '/sent', label: 'Sent' },
+  { href: '/analytics', label: 'Analytics' },
+  { href: '/settings', label: 'Settings' },
+] as const;
+
 export default function Navbar() {
   const { user, onboardingComplete, logout } = useAuth();
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
 
+  // Sliding active-tab indicator geometry
+  const listRef = useRef<HTMLDivElement>(null);
+  const tabRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
+  const [indicator, setIndicator] = useState<{ left: number; width: number; ready: boolean }>({
+    left: 0,
+    width: 0,
+    ready: false,
+  });
+
   useEffect(() => {
-    const savedTheme = localStorage.getItem('crm-theme') as 'light' | 'dark' | null;
-    const initialTheme = savedTheme || 'dark';
-    setTheme(initialTheme);
-    document.documentElement.classList.toggle('dark', initialTheme === 'dark');
+    const saved = (localStorage.getItem('crm-theme') as 'light' | 'dark' | null) || 'dark';
+    setTheme(saved);
+    document.documentElement.classList.toggle('dark', saved === 'dark');
+    setMounted(true);
   }, []);
 
   const toggleTheme = () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
-    localStorage.setItem('crm-theme', newTheme);
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    localStorage.setItem('crm-theme', next);
+    document.documentElement.classList.toggle('dark', next === 'dark');
   };
 
   const isAuthScreen = pathname === '/login' || pathname === '/onboarding';
+  const showTabs = !!user && onboardingComplete && !isAuthScreen;
 
-  // The site password gate is unauthenticated by definition — never show the
-  // full app chrome (nav links, sign out, production badge) on it.
+  // Which nav item is active (longest matching prefix, '/' only on exact)
+  const activeHref =
+    NAV_ITEMS.filter(i => (i.href === '/' ? pathname === '/' : pathname.startsWith(i.href)))
+      .sort((a, b) => b.href.length - a.href.length)[0]?.href ?? null;
+
+  const measure = () => {
+    const el = activeHref ? tabRefs.current[activeHref] : null;
+    const container = listRef.current;
+    if (!el || !container) {
+      setIndicator(i => ({ ...i, ready: false }));
+      return;
+    }
+    const c = container.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    setIndicator({ left: r.left - c.left, width: r.width, ready: true });
+  };
+
+  useLayoutEffect(() => {
+    measure();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeHref, showTabs, mounted]);
+
+  useEffect(() => {
+    const onResize = () => measure();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeHref, showTabs]);
+
+  // Never render app chrome on the unauthenticated password gate.
   if (pathname === '/password') return null;
 
   return (
-    <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-6xl px-6 py-2.5 rounded-full border border-white/40 dark:border-neutral-900 bg-white/85 dark:bg-[#161617]/80 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex items-center justify-between transition-all duration-300">
-      <div className="flex items-center gap-8">
-        <span className="font-bold text-xs tracking-tight text-[#1d1d1f] dark:text-neutral-100 flex items-center gap-2 select-none">
-          <span className="w-3 h-3 bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-500 rounded-md shadow-sm animate-pulse"></span>
-          Outreach Platform
-        </span>
-
-        {user && onboardingComplete && !isAuthScreen && (
-          <div className="flex items-center gap-1.5 bg-neutral-200/40 dark:bg-neutral-900/40 p-0.5 rounded-full border border-neutral-200/30 dark:border-neutral-800/30">
-            {[
-              { href: '/', label: 'Dashboard' },
-              { href: '/company', label: 'Companies' },
-              { href: '/sent', label: 'Sent' },
-              { href: '/analytics', label: 'Analytics' },
-              { href: '/settings', label: 'Settings' },
-            ].map(({ href, label }) => {
-              const isActive = pathname === href;
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`relative px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-300 ${
-                    isActive
-                      ? 'bg-white dark:bg-neutral-850 text-neutral-850 dark:text-white shadow-sm border border-neutral-200/40 dark:border-neutral-800/40'
-                      : 'text-neutral-500 hover:text-neutral-850 dark:text-neutral-400 dark:hover:text-neutral-200 hover:bg-neutral-200/20 dark:hover:bg-neutral-800/20'
-                  }`}
-                >
-                  {label}
-                  {isActive && (
-                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-blue-500 shadow-[0_0_8px_#0071e3] scale-100 animate-pulse"></span>
-                  )}
-                </Link>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      <div className="flex items-center gap-3">
-        <button
-          onClick={toggleTheme}
-          className="p-2 rounded-full hover:bg-neutral-200/60 dark:hover:bg-neutral-800/60 transition-colors text-neutral-500 dark:text-neutral-400 flex items-center justify-center border border-neutral-250/50 dark:border-neutral-800/50 w-8 h-8 cursor-pointer active:scale-95"
-          title={theme === 'dark' ? 'Activate Light Mode' : 'Activate Dark Mode'}
-        >
-          {theme === 'dark' ? (
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
-            </svg>
-          ) : (
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-            </svg>
-          )}
-        </button>
-
-        {user && (
-          <button
-            onClick={logout}
-            className="text-[10px] font-bold px-3 py-2 rounded-full border border-neutral-250/50 dark:border-neutral-800/50 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30 text-neutral-500 dark:text-neutral-400 cursor-pointer transition-all duration-200 flex items-center gap-1 active:scale-95"
-          >
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            Sign Out
-          </button>
-        )}
-
-        <div className="w-[1px] h-4 bg-neutral-200 dark:bg-neutral-800"></div>
-
-        {false ? (
-          <span className="px-2.5 py-1 rounded-full text-[9px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center gap-1 select-none">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
-            Demo
+    <nav
+      className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-6xl rv-interactive"
+      style={{
+        background: 'color-mix(in srgb, var(--rv-surface) 82%, transparent)',
+        border: '1px solid var(--rv-border)',
+        borderRadius: 'var(--rv-r-pill)',
+        boxShadow: 'var(--rv-shadow-md)',
+        backdropFilter: 'blur(18px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(18px) saturate(160%)',
+      }}
+      aria-label="Primary"
+    >
+      <div className="flex items-center justify-between gap-4 px-4 sm:px-6 py-2.5">
+        {/* Brand + tabs */}
+        <div className="flex items-center gap-6 min-w-0">
+          <span className="flex items-center gap-2 select-none shrink-0">
+            <span
+              className="w-3 h-3 rounded-[5px] shadow-sm"
+              style={{ background: 'linear-gradient(135deg, #22d3ee, var(--rv-accent) 55%, #6366f1)' }}
+            />
+            <span className="font-semibold text-[13px] tracking-tight" style={{ color: 'var(--rv-text)' }}>
+              Outreach Platform
+            </span>
           </span>
-        ) : (
-          <span className="px-2.5 py-1 rounded-full text-[9px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1 select-none">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+
+          {showTabs && (
+            <div
+              ref={listRef}
+              className="relative hidden md:flex items-center gap-1 p-0.5 rounded-full"
+              style={{ background: 'var(--rv-surface-2)', border: '1px solid var(--rv-border)' }}
+            >
+              {/* Sliding highlight */}
+              <span
+                aria-hidden
+                className="absolute top-0.5 bottom-0.5 rounded-full pointer-events-none"
+                style={{
+                  left: indicator.left,
+                  width: indicator.width,
+                  background: 'var(--rv-surface)',
+                  border: '1px solid var(--rv-border-strong)',
+                  boxShadow: 'var(--rv-shadow-sm)',
+                  opacity: indicator.ready ? 1 : 0,
+                  transition:
+                    'left var(--rv-dur-3) var(--rv-ease-spring), width var(--rv-dur-3) var(--rv-ease-spring), opacity var(--rv-dur-2) var(--rv-ease)',
+                }}
+              />
+              {NAV_ITEMS.map(({ href, label }) => {
+                const active = href === activeHref;
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    ref={el => {
+                      tabRefs.current[href] = el;
+                    }}
+                    aria-current={active ? 'page' : undefined}
+                    className="relative z-10 px-3.5 py-1.5 rounded-full text-[12.5px] font-semibold tracking-wide rv-interactive rv-focus"
+                    style={{ color: active ? 'var(--rv-text)' : 'var(--rv-text-3)' }}
+                  >
+                    {label}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Right cluster */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <button
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+            className="relative w-8 h-8 rounded-full flex items-center justify-center rv-interactive rv-press rv-focus"
+            style={{ color: 'var(--rv-text-2)', border: '1px solid var(--rv-border)', background: 'var(--rv-surface)' }}
+          >
+            <span
+              className="absolute inset-0 flex items-center justify-center rv-interactive"
+              style={{
+                opacity: mounted && theme === 'dark' ? 1 : 0,
+                transform: mounted && theme === 'dark' ? 'rotate(0deg) scale(1)' : 'rotate(-90deg) scale(0.6)',
+              }}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            </span>
+            <span
+              className="absolute inset-0 flex items-center justify-center rv-interactive"
+              style={{
+                opacity: mounted && theme === 'light' ? 1 : 0,
+                transform: mounted && theme === 'light' ? 'rotate(0deg) scale(1)' : 'rotate(90deg) scale(0.6)',
+              }}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+              </svg>
+            </span>
+          </button>
+
+          {user && (
+            <button
+              onClick={logout}
+              className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-full rv-interactive rv-press rv-focus"
+              style={{ color: 'var(--rv-text-2)', border: '1px solid var(--rv-border)', background: 'var(--rv-surface)' }}
+              onMouseEnter={e => {
+                e.currentTarget.style.color = 'var(--rv-danger)';
+                e.currentTarget.style.borderColor = 'var(--rv-danger)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.color = 'var(--rv-text-2)';
+                e.currentTarget.style.borderColor = 'var(--rv-border)';
+              }}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              Sign Out
+            </button>
+          )}
+
+          <span
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold select-none"
+            style={{ color: 'var(--rv-success)', background: 'var(--rv-success-soft)', border: '1px solid color-mix(in srgb, var(--rv-success) 26%, transparent)' }}
+          >
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--rv-success)' }} />
             Production
           </span>
-        )}
+        </div>
       </div>
     </nav>
   );
