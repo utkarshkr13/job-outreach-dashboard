@@ -1,0 +1,128 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   REVAMP FOUNDATION  ·  imported LAST so its tokens & utilities win.
+
+   A single, coherent design-token + motion layer for the UI revamp. New
+   components consume these `--rv-*` tokens and `.rv-*` utilities. Everything
+   here is additively namespaced (rv-) so it never collides with the legacy
+   `apple-*` / globals decorative classes still referenced elsewhere — pages
+   can be migrated onto it one at a time with zero risk to un-migrated screens.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --rv-bg:            #f6f7f9;
+  --rv-surface:       #ffffff;
+  --rv-surface-2:     #fbfbfd;
+  --rv-border:        #e7e8ec;
+  --rv-border-strong: #d7d9df;
+
+  --rv-text:          #16171a;
+  --rv-text-2:        #5c5f68;
+  --rv-text-3:        #8a8d97;
+
+  --rv-accent:        #2563eb;
+  --rv-accent-hover:  #1d4fd7;
+  --rv-accent-soft:   #eef3ff;
+  --rv-on-accent:     #ffffff;
+
+  --rv-success:       #15935a;
+  --rv-success-soft:  #e7f6ee;
+  --rv-warning:       #b7791f;
+  --rv-warning-soft:  #fbf1de;
+  --rv-danger:        #d1414a;
+  --rv-danger-soft:   #fdeced;
+
+  --rv-r-sm: 8px;
+  --rv-r-md: 12px;
+  --rv-r-lg: 16px;
+  --rv-r-xl: 22px;
+  --rv-r-pill: 999px;
+
+  --rv-shadow-sm: 0 1px 2px rgba(16, 17, 26, 0.04), 0 1px 3px rgba(16, 17, 26, 0.06);
+  --rv-shadow-md: 0 2px 4px rgba(16, 17, 26, 0.04), 0 8px 20px rgba(16, 17, 26, 0.06);
+  --rv-shadow-lg: 0 6px 16px rgba(16, 17, 26, 0.08), 0 24px 48px rgba(16, 17, 26, 0.10);
+
+  --rv-ease:        cubic-bezier(0.22, 1, 0.36, 1);
+  --rv-ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
+  --rv-dur-1: 120ms;
+  --rv-dur-2: 200ms;
+  --rv-dur-3: 320ms;
+
+  --rv-ring: 0 0 0 3px rgba(37, 99, 235, 0.28);
+}
+
+.dark {
+  --rv-bg:            #0a0b0d;
+  --rv-surface:       #141518;
+  --rv-surface-2:     #17181c;
+  --rv-border:        #262830;
+  --rv-border-strong: #33353f;
+
+  --rv-text:          #f3f4f6;
+  --rv-text-2:        #a6a9b3;
+  --rv-text-3:        #74777f;
+
+  --rv-accent:        #4f8dff;
+  --rv-accent-hover:  #6ba0ff;
+  --rv-accent-soft:   #172338;
+  --rv-on-accent:     #0a0b0d;
+
+  --rv-success:       #35c07a;
+  --rv-success-soft:  #10281d;
+  --rv-warning:       #e3a53b;
+  --rv-warning-soft:  #2a2113;
+  --rv-danger:        #ff6b73;
+  --rv-danger-soft:   #2a1518;
+
+  --rv-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --rv-shadow-md: 0 2px 6px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.45);
+  --rv-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5), 0 24px 56px rgba(0, 0, 0, 0.55);
+
+  --rv-ring: 0 0 0 3px rgba(79, 141, 255, 0.34);
+}
+
+/* ─── Motion primitives ───────────────────────────────────────────────────── */
+
+@keyframes rv-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes rv-scale-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.rv-animate-in  { animation: rv-fade-in var(--rv-dur-3) var(--rv-ease) both; }
+.rv-animate-pop { animation: rv-scale-in var(--rv-dur-2) var(--rv-ease-spring) both; }
+
+.rv-interactive {
+  transition:
+    background-color var(--rv-dur-2) var(--rv-ease),
+    border-color     var(--rv-dur-2) var(--rv-ease),
+    color            var(--rv-dur-2) var(--rv-ease),
+    box-shadow       var(--rv-dur-2) var(--rv-ease),
+    transform        var(--rv-dur-2) var(--rv-ease);
+}
+.rv-press:active { transform: scale(0.97); }
+
+.rv-focus:focus-visible {
+  outline: none;
+  box-shadow: var(--rv-ring);
+}
+
+/* ─── Reusable surfaces ───────────────────────────────────────────────────── */
+
+.rv-card {
+  background: var(--rv-surface);
+  border: 1px solid var(--rv-border);
+  border-radius: var(--rv-r-lg);
+  box-shadow: var(--rv-shadow-sm);
+}
+
+/* ─── Respect user motion preference ──────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .rv-animate-in,
+  .rv-animate-pop { animation: none !important; }
+  .rv-interactive,
+  .rv-press:active { transition: none !important; transform: none !important; }
+}
