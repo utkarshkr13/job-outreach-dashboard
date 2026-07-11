@@ -19,6 +19,22 @@
   --font-sans: 'Outfit', 'Plus Jakarta Sans', var(--font-geist-sans), sans-serif;
   --font-mono: var(--font-geist-mono);
   --color-neutral-850: #202021;
+
+  /* Intermediate neutral steps used throughout the app (e.g. text-neutral-250,
+     dark:text-neutral-450) but never previously defined here — Tailwind v4
+     silently drops any utility whose shade isn't a real @theme token, so these
+     were rendering as invisible/inherited-color text instead of the intended
+     shade. Values are interpolated between their neighboring standard steps,
+     consistent with the existing --color-neutral-850. */
+  --color-neutral-150: #ededed;
+  --color-neutral-250: #dcdcdc;
+  --color-neutral-350: #bbbbbb;
+  --color-neutral-450: #8b8b8b;
+  --color-neutral-455: #898989;
+  --color-neutral-505: #727272;
+  --color-neutral-550: #626262;
+  --color-neutral-650: #494949;
+  --color-neutral-750: #333333;
 }
 
 body {
@@ -1684,10 +1700,3 @@ body::-webkit-scrollbar-thumb:hover {
   animation: breathingVioletTealGlow 3.5s infinite ease-in-out;
   border-color: rgba(139, 92, 246, 0.4) !important;
 }
-
-
-
-
-
-
-
