@@ -202,7 +202,7 @@ export default function CompaniesPage() {
               <div 
                 key={c.notionId}
                 onClick={() => router.push(`/company/${c.notionId}`)}
-                className="apple-glow-card apple-grid-spring bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-6 shadow-[0_4px_12px_rgba(0,0,0,0.01)] dark:shadow-none apple-spring hover:border-[#0071e3]/45 flex flex-col justify-between h-[230px] relative overflow-hidden transition-all duration-300 cursor-pointer"
+                className="apple-glow-card apple-grid-spring bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 rounded-3xl p-6 shadow-[0_4px_12px_rgba(0,0,0,0.01)] dark:shadow-none apple-spring hover:border-[#0071e3]/45 flex flex-col justify-between h-[230px] relative overflow-hidden transition-colors duration-300 cursor-pointer"
               >
                 <div>
                   <div className="flex justify-between items-start">
@@ -258,13 +258,13 @@ export default function CompaniesPage() {
                   <div className="flex items-center gap-3.5" onClick={e => e.stopPropagation()}>
                     <span
                       onClick={() => setDrawerCompany(c)}
-                      className="text-[9px] text-blue-600 dark:text-blue-400 font-bold hover:underline select-none cursor-pointer flex items-center gap-0.5"
+                      className="text-[9px] text-blue-600 dark:text-blue-400 font-bold hover:underline select-none cursor-pointer flex items-center gap-0.5 transition-transform active:scale-95"
                     >
                       Open Draft →
                     </span>
                     <span 
                       onClick={() => router.push(`/company/${c.notionId}`)}
-                      className="text-[9px] text-[#0071e3] font-bold hover:underline select-none cursor-pointer flex items-center gap-0.5"
+                      className="text-[9px] text-[#0071e3] font-bold hover:underline select-none cursor-pointer flex items-center gap-0.5 transition-transform active:scale-95"
                     >
                       Configure →
                     </span>
