@@ -91,7 +91,7 @@ function PasswordForm() {
             <button
               type="submit"
               disabled={loading || !value || !username}
-              className="w-full py-2.5 rounded-xl bg-[#1d1d1f] dark:bg-white text-white dark:text-black text-sm font-semibold transition hover:opacity-90 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+              className="w-full py-2.5 rounded-xl bg-[#1d1d1f] dark:bg-white text-white dark:text-black text-sm font-semibold transition-[opacity,transform] hover:opacity-90 active:scale-[0.98] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
             >
               {loading ? 'Signing in…' : 'Sign in'}
             </button>
