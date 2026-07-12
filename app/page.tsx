@@ -837,7 +837,7 @@ function DashboardContent() {
                 strokeDasharray={dashArray}
                 strokeDashoffset={dashOffset}
                 strokeLinecap="round"
-                className="transition-all duration-500 ease-out"
+                className="transition-[stroke-dashoffset] duration-500 ease-out"
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center text-[10px] text-neutral-500 font-semibold leading-none">
@@ -854,7 +854,7 @@ function DashboardContent() {
               <h1 className="text-xl font-bold tracking-tight text-[#1d1d1f] dark:text-neutral-100">
                 Morning Briefing
               </h1>
-              <span className="apple-pill-glow apple-glow-indigo-milestone bg-neutral-100 dark:bg-neutral-900 text-orange-600 dark:text-orange-400 border text-[10px] font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm transition-all">
+              <span className="apple-pill-glow apple-glow-indigo-milestone bg-neutral-100 dark:bg-neutral-900 text-orange-600 dark:text-orange-400 border text-[10px] font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm transition-shadow">
                 🔥 {streakCount} Days Streak
               </span>
             </div>
@@ -964,7 +964,7 @@ function DashboardContent() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start mt-4">
           
           {/* Vertical Menu Sidebar - 3 Columns */}
-          <div className="lg:col-span-3 bg-white/75 dark:bg-[#161617]/50 backdrop-blur-xl border border-neutral-250/50 dark:border-neutral-900/60 rounded-3xl p-4 space-y-1 shadow-[0_8px_30px_rgba(0,0,0,0.03)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.22)] transition-all duration-300">
+          <div className="lg:col-span-3 bg-white/75 dark:bg-[#161617]/50 backdrop-blur-xl border border-neutral-250/50 dark:border-neutral-900/60 rounded-3xl p-4 space-y-1 shadow-[0_8px_30px_rgba(0,0,0,0.03)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.22)] transition-colors duration-300">
             <div className="text-[10px] font-bold text-neutral-450 dark:text-neutral-500 uppercase tracking-wider px-3 pb-2 border-b border-neutral-100 dark:border-neutral-850 font-mono">
               CRM Status Categories
             </div>
@@ -982,7 +982,7 @@ function DashboardContent() {
                       setActiveTab(tab);
                       setFocusedIndex(-1);
                     }}
-                    className={`w-full text-left apple-tab-elastic px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer border ${activeTab === tab ? 'bg-blue-50/80 dark:bg-[#333336] text-blue-600 dark:text-white border-blue-200/60 dark:border-neutral-700 shadow-[0_2px_8px_rgba(0,0,0,0.04)] font-bold' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-500 dark:hover:text-neutral-300 border-transparent hover:bg-neutral-50 dark:hover:bg-neutral-900/50'}`}
+                    className={`w-full text-left apple-tab-elastic px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors flex items-center justify-between cursor-pointer border ${activeTab === tab ? 'bg-blue-50/80 dark:bg-[#333336] text-blue-600 dark:text-white border-blue-200/60 dark:border-neutral-700 shadow-[0_2px_8px_rgba(0,0,0,0.04)] font-bold' : 'text-neutral-500 hover:text-[#1d1d1f] dark:text-neutral-500 dark:hover:text-neutral-300 border-transparent hover:bg-neutral-50 dark:hover:bg-neutral-900/50'}`}
                   >
                     <span className="flex-1 text-left truncate">{tab}</span>
                     <span className={`shrink-0 ml-2 text-[9.5px] px-2 py-0.5 rounded-full transition-colors border ${activeTab === tab ? 'bg-blue-100/60 dark:bg-neutral-900 text-blue-600 dark:text-blue-400 border-blue-200/30 dark:border-transparent' : 'bg-[#e8e8ed]/45 dark:bg-neutral-900/40 text-neutral-400 dark:text-neutral-550 border-transparent font-bold'}`}>
@@ -1013,13 +1013,13 @@ function DashboardContent() {
                   <div
                     key={company.notionId}
                     onClick={() => openReviewDrawer(company.notionId)}
-                    className={`group relative overflow-hidden bg-white/70 dark:bg-[#161617]/50 backdrop-blur-xl border border-neutral-200/50 dark:border-neutral-900/60 p-5 rounded-2xl transition-all duration-300 hover:scale-[1.012] hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.03)] dark:hover:shadow-[0_8px_30px_rgba(0,0,0,0.22)] cursor-pointer flex flex-col md:flex-row md:items-center md:justify-between gap-4 ${
+                    className={`group relative overflow-hidden bg-white/70 dark:bg-[#161617]/50 backdrop-blur-xl border border-neutral-200/50 dark:border-neutral-900/60 p-5 rounded-2xl transition-[transform,box-shadow,background-color,border-color] duration-300 active:scale-[0.995] hover:scale-[1.012] hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.03)] dark:hover:shadow-[0_8px_30px_rgba(0,0,0,0.22)] cursor-pointer flex flex-col md:flex-row md:items-center md:justify-between gap-4 ${
                       isFocused ? 'ring-2 ring-blue-500/80 bg-blue-50/15 dark:bg-neutral-900/40' : ''
                     }`}
                   >
                     {/* Left: Avatar + Title Info */}
                     <div className="flex items-center gap-4">
-                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-xs uppercase transition-all shrink-0 border shadow-sm ${getCompanyAvatarColors(company.company)}`}>
+                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-xs uppercase transition-colors shrink-0 border shadow-sm ${getCompanyAvatarColors(company.company)}`}>
                         {company.company.charAt(0)}
                       </div>
                       <div className="space-y-0.5">
@@ -1097,7 +1097,7 @@ function DashboardContent() {
                                 handleSendEmail(company.notionId);
                               }}
                               disabled={actionLoading === company.notionId + 'send'}
-                              className="bg-blue-600 hover:bg-blue-500 text-white rounded-l-full px-3 py-1.5 text-[10px] font-bold shadow-sm transition-all cursor-pointer select-none active:scale-95"
+                              className="bg-blue-600 hover:bg-blue-500 text-white rounded-l-full px-3 py-1.5 text-[10px] font-bold shadow-sm transition-[background-color,transform] duration-150 cursor-pointer select-none active:scale-95"
                             >
                               Send Now
                             </button>
@@ -1106,12 +1106,12 @@ function DashboardContent() {
                                 e.stopPropagation();
                                 setActiveSendMenuId(activeSendMenuId === company.notionId ? null : company.notionId);
                               }}
-                              className="bg-blue-700 hover:bg-blue-650 text-white rounded-r-full px-2.5 py-1.5 border-l border-white/20 transition-all text-[10px] font-bold cursor-pointer select-none"
+                              className="bg-blue-700 hover:bg-blue-650 text-white rounded-r-full px-2.5 py-1.5 border-l border-white/20 transition-[background-color,transform] duration-150 text-[10px] font-bold cursor-pointer select-none active:scale-95"
                             >
                               ▼
                             </button>
                             {activeSendMenuId === company.notionId && (
-                              <div className="absolute right-0 top-full mt-1.5 w-52 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl py-1.5 z-50 animate-scale-up font-semibold text-left">
+                              <div className="absolute right-0 top-full mt-1.5 w-52 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl py-1.5 z-50 animate-scale-up origin-top-right font-semibold text-left">
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -1119,7 +1119,7 @@ function DashboardContent() {
                                     const optimal = getOptimalSendTime(company.location || 'Bangalore').toISOString();
                                     handleScheduleSend(company.notionId, optimal);
                                   }}
-                                  className="w-full px-4 py-2 text-[10px] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-left flex items-center gap-2"
+                                  className="w-full px-4 py-2 text-[10px] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 active:bg-neutral-200 dark:active:bg-neutral-700 transition-colors text-left flex items-center gap-2"
                                 >
                                   ✨ Send at Optimal Time
                                 </button>
@@ -1130,7 +1130,7 @@ function DashboardContent() {
                                     const oneHourLater = new Date(Date.now() + 60 * 60 * 1000).toISOString();
                                     handleScheduleSend(company.notionId, oneHourLater);
                                   }}
-                                  className="w-full px-4 py-2 text-[10px] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-left flex items-center gap-2"
+                                  className="w-full px-4 py-2 text-[10px] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 active:bg-neutral-200 dark:active:bg-neutral-700 transition-colors text-left flex items-center gap-2"
                                 >
                                   ⏱️ Schedule for 1 Hour Later
                                 </button>
@@ -1142,7 +1142,7 @@ function DashboardContent() {
                                     tomorrow.setHours(9, 30, 0, 0);
                                     handleScheduleSend(company.notionId, tomorrow.toISOString());
                                   }}
-                                  className="w-full px-4 py-2 text-[10px] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-left flex items-center gap-2"
+                                  className="w-full px-4 py-2 text-[10px] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 active:bg-neutral-200 dark:active:bg-neutral-700 transition-colors text-left flex items-center gap-2"
                                 >
                                   🌅 Schedule for Tomorrow 9:30 AM
                                 </button>
@@ -1158,7 +1158,7 @@ function DashboardContent() {
                               handleStatusUpdate(company.notionId, 'Approved');
                             }}
                             disabled={actionLoading === company.notionId + 'Approved'}
-                            className="bg-blue-600 hover:bg-blue-500 text-white rounded-full px-4 py-1.5 text-[10px] font-bold shadow-sm active:scale-95 transition-all cursor-pointer"
+                            className="bg-blue-600 hover:bg-blue-500 text-white rounded-full px-4 py-1.5 text-[10px] font-bold shadow-sm active:scale-95 transition-[background-color,transform] duration-150 cursor-pointer"
                           >
                             Approve
                           </button>
@@ -1171,7 +1171,7 @@ function DashboardContent() {
                               handleGenerateFollowUp(company.notionId);
                             }}
                             disabled={actionLoading === company.notionId + 'followup'}
-                            className="bg-white hover:bg-neutral-50 dark:bg-neutral-850 dark:hover:bg-neutral-800 border border-neutral-250 dark:border-neutral-850 text-neutral-850 dark:text-neutral-200 rounded-full px-4 py-1.5 text-[10px] font-bold shadow-sm active:scale-95 transition-all cursor-pointer"
+                            className="bg-white hover:bg-neutral-50 dark:bg-neutral-850 dark:hover:bg-neutral-800 border border-neutral-250 dark:border-neutral-850 text-neutral-850 dark:text-neutral-200 rounded-full px-4 py-1.5 text-[10px] font-bold shadow-sm active:scale-95 transition-[background-color,transform] duration-150 cursor-pointer"
                           >
                             Follow-Up
                           </button>
@@ -1182,7 +1182,7 @@ function DashboardContent() {
                             e.stopPropagation();
                             openReviewDrawer(company.notionId);
                           }}
-                          className="bg-white hover:bg-neutral-50 dark:bg-neutral-850 dark:hover:bg-neutral-800 border border-neutral-250 dark:border-neutral-850 text-neutral-850 dark:text-neutral-200 rounded-full px-3.5 py-1.5 text-[10px] font-bold shadow-sm active:scale-95 transition-all cursor-pointer"
+                          className="bg-white hover:bg-neutral-50 dark:bg-neutral-850 dark:hover:bg-neutral-800 border border-neutral-250 dark:border-neutral-850 text-neutral-850 dark:text-neutral-200 rounded-full px-3.5 py-1.5 text-[10px] font-bold shadow-sm active:scale-95 transition-[background-color,transform] duration-150 cursor-pointer"
                         >
                           Edit
                         </button>
@@ -1228,7 +1228,7 @@ function DashboardContent() {
                       <div
                         key={c.notionId}
                         onClick={() => openReviewDrawer(c.notionId)}
-                        className="apple-kanban-hover bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 hover:border-neutral-350 dark:hover:border-neutral-800 rounded-2xl p-4 cursor-pointer transition-all group space-y-2 relative overflow-hidden shadow-[0_3px_8px_rgba(0,0,0,0.01)] dark:shadow-none"
+                        className="apple-kanban-hover bg-white dark:bg-[#161617] border border-[#e8e8ed] dark:border-neutral-900 hover:border-neutral-350 dark:hover:border-neutral-800 rounded-2xl p-4 cursor-pointer transition-[transform,box-shadow,border-color] duration-200 active:scale-[0.985] group space-y-2 relative overflow-hidden shadow-[0_3px_8px_rgba(0,0,0,0.01)] dark:shadow-none"
                       >
                         <div className="flex justify-between items-start gap-1">
                           <h4 className="font-bold text-xs text-neutral-800 dark:text-neutral-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 line-clamp-1 transition-colors">
@@ -1254,7 +1254,7 @@ function DashboardContent() {
                               e.stopPropagation();
                               handleStatusUpdate(c.notionId, 'Approved');
                             }}
-                            className="w-full mt-2 bg-neutral-50 hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-800 rounded-xl py-1 text-[9px] font-semibold transition-all cursor-pointer"
+                            className="w-full mt-2 bg-neutral-50 hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-800 rounded-xl py-1 text-[9px] font-semibold transition-[background-color,transform] duration-150 cursor-pointer active:scale-[0.96]"
                           >
                             Approve
                           </button>
@@ -1266,7 +1266,7 @@ function DashboardContent() {
                               e.stopPropagation();
                               handleSendEmail(c.notionId);
                             }}
-                            className="w-full mt-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl py-1 text-[9px] font-semibold transition-all shadow-sm cursor-pointer"
+                            className="w-full mt-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl py-1 text-[9px] font-semibold transition-[background-color,transform] duration-150 shadow-sm cursor-pointer active:scale-[0.96]"
                           >
                             Send Quick
                           </button>
@@ -1284,7 +1284,7 @@ function DashboardContent() {
 
       {/* ──── APPLE SLIDE-OVER CRM REVIEW DRAWER ──── */}
       {selectedCompany && (
-        <div className="fixed inset-0 z-50 bg-black/30 dark:bg-black/60 backdrop-blur-sm transition-all duration-300 flex justify-end">
+        <div className="fixed inset-0 z-50 bg-black/30 dark:bg-black/60 backdrop-blur-sm transition-opacity duration-300 flex justify-end">
           
           <div className="flex-1" onClick={() => setSelectedCompanyId(null)}></div>
 
@@ -1301,15 +1301,15 @@ function DashboardContent() {
                   </span>
                   
                   {selectedCompany.resumeStatus === 'custom' ? (
-                    <span className="apple-glow-seablue-indigo text-[9px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400 border transition-all">
+                    <span className="apple-glow-seablue-indigo text-[9px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400 border transition-colors">
                       📎 APM/BA Resume Mapped
                     </span>
                   ) : selectedCompany.resumeStatus === 'global' ? (
-                    <span className="apple-glow-emerald-cyan-custom text-[9px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 border transition-all">
+                    <span className="apple-glow-emerald-cyan-custom text-[9px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 border transition-colors">
                       📎 Global résumé on file
                     </span>
                   ) : (
-                    <span className="apple-glow-rose text-[9px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-600/10 text-rose-600 dark:text-rose-400 border transition-all">
+                    <span className="apple-glow-rose text-[9px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-600/10 text-rose-600 dark:text-rose-400 border transition-colors">
                       ⚠️  No résumé on file
                     </span>
                   )}
@@ -1331,7 +1331,7 @@ function DashboardContent() {
             <div className="mx-6 my-2 bg-neutral-200/55 dark:bg-neutral-900/45 p-1 rounded-xl flex text-xs gap-0.5 border border-neutral-300/10 dark:border-neutral-800/10 shrink-0 select-none">
               <button
                 onClick={() => setDrawerTab('editor')}
-                className={`flex-1 py-1.5 px-3 rounded-lg font-bold transition-all cursor-pointer text-center ${drawerTab === 'editor' ? 'bg-white dark:bg-neutral-850 text-neutral-850 dark:text-white shadow-sm border border-neutral-200/40 dark:border-neutral-800/40' : 'text-neutral-500 hover:text-neutral-850 dark:text-neutral-400 dark:hover:text-neutral-200'}`}
+                className={`flex-1 py-1.5 px-3 rounded-lg font-bold transition-colors cursor-pointer text-center active:scale-[0.97] ${drawerTab === 'editor' ? 'bg-white dark:bg-neutral-850 text-neutral-850 dark:text-white shadow-sm border border-neutral-200/40 dark:border-neutral-800/40' : 'text-neutral-500 hover:text-neutral-850 dark:text-neutral-400 dark:hover:text-neutral-200'}`}
               >
                 Pitch Editor
               </button>
@@ -1341,14 +1341,14 @@ function DashboardContent() {
                   setDrawerTab('intelligence');
                   if (!companyIntelBrief) triggerAICompanyBrief(selectedCompany);
                 }}
-                className={`flex-1 py-1.5 px-3 rounded-lg font-bold transition-all cursor-pointer text-center ${drawerTab === 'intelligence' ? 'bg-white dark:bg-neutral-850 text-neutral-850 dark:text-white shadow-sm border border-neutral-200/40 dark:border-neutral-800/40' : 'text-neutral-500 hover:text-neutral-850 dark:text-neutral-400 dark:hover:text-neutral-200'}`}
+                className={`flex-1 py-1.5 px-3 rounded-lg font-bold transition-colors cursor-pointer text-center active:scale-[0.97] ${drawerTab === 'intelligence' ? 'bg-white dark:bg-neutral-850 text-neutral-850 dark:text-white shadow-sm border border-neutral-200/40 dark:border-neutral-800/40' : 'text-neutral-500 hover:text-neutral-850 dark:text-neutral-400 dark:hover:text-neutral-200'}`}
               >
                 AI Recruiter Intel
               </button>
 
               <button
                 onClick={() => setDrawerTab('tracking')}
-                className={`flex-1 py-1.5 px-3 rounded-lg font-bold transition-all cursor-pointer text-center ${drawerTab === 'tracking' ? 'bg-white dark:bg-neutral-850 text-neutral-850 dark:text-white shadow-sm border border-neutral-200/40 dark:border-neutral-800/40' : 'text-neutral-500 hover:text-neutral-850 dark:text-neutral-400 dark:hover:text-neutral-200'}`}
+                className={`flex-1 py-1.5 px-3 rounded-lg font-bold transition-colors cursor-pointer text-center active:scale-[0.97] ${drawerTab === 'tracking' ? 'bg-white dark:bg-neutral-850 text-neutral-850 dark:text-white shadow-sm border border-neutral-200/40 dark:border-neutral-800/40' : 'text-neutral-500 hover:text-neutral-850 dark:text-neutral-400 dark:hover:text-neutral-200'}`}
               >
                 Replies & Cadence
               </button>
@@ -1409,7 +1409,7 @@ function DashboardContent() {
                             setTimeout(() => setMessage(''), 8000);
                           }
                         }}
-                        className="w-full bg-pink-600 hover:bg-pink-500 text-white py-2.5 rounded-xl font-bold text-xs shadow-sm active:scale-95 transition-all cursor-pointer text-center block"
+                        className="w-full bg-pink-600 hover:bg-pink-500 text-white py-2.5 rounded-xl font-bold text-xs shadow-sm active:scale-95 transition-[background-color,transform] duration-150 cursor-pointer text-center block"
                       >
                         ✉️  Open Mail Client to Reply
                       </button>
@@ -1427,7 +1427,7 @@ function DashboardContent() {
                     </div>
                     
                     {!jdCollapsed && (
-                      <div className="space-y-3 pt-1.5 border-t border-[#e8e8ed] dark:border-neutral-900 transition-all duration-300">
+                      <div className="space-y-3 pt-1.5 border-t border-[#e8e8ed] dark:border-neutral-900 transition-colors duration-300">
                         <div className="flex gap-2">
                           <input
                             type="text"
@@ -1439,7 +1439,7 @@ function DashboardContent() {
                           <button
                             onClick={handleJdAnalyze}
                             disabled={jdLoading}
-                            className="bg-blue-600 hover:bg-blue-500 text-white rounded-xl px-4 py-2 text-xs font-bold transition-all disabled:opacity-50"
+                            className="bg-blue-600 hover:bg-blue-500 text-white rounded-xl px-4 py-2 text-xs font-bold transition-[background-color,transform,opacity] duration-150 disabled:opacity-50 active:scale-[0.96]"
                           >
                             {jdLoading ? 'Analyzing...' : 'Analyze'}
                           </button>
@@ -1511,7 +1511,7 @@ function DashboardContent() {
                       <button
                         onClick={() => selectedCompany && triggerAICompanyBrief(selectedCompany)}
                         disabled={intelLoading}
-                        className="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold py-2.5 px-6 rounded-full transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer inline-flex items-center gap-1.5"
+                        className="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold py-2.5 px-6 rounded-full transition-[background-color,transform,opacity] duration-150 shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer inline-flex items-center gap-1.5"
                       >
                         {intelLoading ? (
                           <>
@@ -1706,7 +1706,7 @@ function DashboardContent() {
                     <button
                       onClick={handleSentimentAnalysis}
                       disabled={!recruiterReplyText}
-                      className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-full py-2 text-xs font-semibold transition-all disabled:opacity-40 cursor-pointer shadow-sm"
+                      className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-full py-2 text-xs font-semibold transition-[background-color,transform,opacity] duration-150 disabled:opacity-40 cursor-pointer shadow-sm active:scale-[0.96]"
                     >
                       Classify Reply & Draft Response
                     </button>
@@ -1858,7 +1858,7 @@ function DashboardContent() {
                 <button
                   onClick={() => handleStatusUpdate(selectedCompany.notionId, 'Rejected')}
                   disabled={actionLoading === selectedCompanyId + 'Rejected'}
-                  className="bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 border border-[#e8e8ed] dark:border-neutral-800 text-rose-600 dark:text-rose-400 text-xs font-bold py-2.5 px-4 rounded-full transition-all cursor-pointer active:scale-95 shadow-sm"
+                  className="bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 border border-[#e8e8ed] dark:border-neutral-800 text-rose-600 dark:text-rose-400 text-xs font-bold py-2.5 px-4 rounded-full transition-[background-color,transform] duration-150 cursor-pointer active:scale-95 shadow-sm"
                 >
                   Reject Card
                 </button>
@@ -1866,7 +1866,7 @@ function DashboardContent() {
                 <button
                   onClick={() => handleStatusUpdate(selectedCompany.notionId, 'Redo')}
                   disabled={actionLoading === selectedCompanyId + 'Redo'}
-                  className="bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 border border-[#e8e8ed] dark:border-neutral-800 text-orange-600 dark:text-orange-400 text-xs font-bold py-2.5 px-4 rounded-full transition-all cursor-pointer active:scale-95 shadow-sm"
+                  className="bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 border border-[#e8e8ed] dark:border-neutral-800 text-orange-600 dark:text-orange-400 text-xs font-bold py-2.5 px-4 rounded-full transition-[background-color,transform] duration-150 cursor-pointer active:scale-95 shadow-sm"
                 >
                   🔄 Redo AI
                 </button>
@@ -1875,7 +1875,7 @@ function DashboardContent() {
               <div className="flex gap-2">
                 <button
                   onClick={handleSaveDrawerEdits}
-                  className="bg-white hover:bg-[#fafafa] dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-750 dark:text-neutral-300 text-xs font-bold py-2.5 px-5 rounded-full border border-neutral-250 dark:border-neutral-800 transition-all cursor-pointer active:scale-95 shadow-sm"
+                  className="bg-white hover:bg-[#fafafa] dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-750 dark:text-neutral-300 text-xs font-bold py-2.5 px-5 rounded-full border border-neutral-250 dark:border-neutral-800 transition-[background-color,transform] duration-150 cursor-pointer active:scale-95 shadow-sm"
                 >
                   💾 Save Edits
                 </button>
@@ -1888,25 +1888,25 @@ function DashboardContent() {
                         setSelectedCompanyId(null);
                       }}
                       disabled={actionLoading === selectedCompanyId + 'send'}
-                      className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2.5 pl-6 pr-4 rounded-l-full transition-all shadow-sm cursor-pointer select-none active:scale-95"
+                      className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2.5 pl-6 pr-4 rounded-l-full transition-[background-color,transform] duration-150 shadow-sm cursor-pointer select-none active:scale-95"
                     >
                       Send Outreach Now
                     </button>
                     <button
                       onClick={() => setDrawerSendMenuOpen(!drawerSendMenuOpen)}
-                      className="bg-blue-750 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-3 rounded-r-full border-l border-white/20 transition-all cursor-pointer select-none"
+                      className="bg-blue-750 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-3 rounded-r-full border-l border-white/20 transition-[background-color,transform] duration-150 cursor-pointer select-none active:scale-95"
                     >
                       ▼
                     </button>
                     {drawerSendMenuOpen && (
-                      <div className="absolute right-0 bottom-full mb-2 w-56 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl py-2 z-50 animate-scale-up font-semibold text-left">
+                      <div className="absolute right-0 bottom-full mb-2 w-56 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl py-2 z-50 animate-scale-up origin-bottom-right font-semibold text-left">
                         <button
                           onClick={() => {
                             setDrawerSendMenuOpen(false);
                             const optimal = getOptimalSendTime(selectedCompany.location || 'Bangalore').toISOString();
                             handleScheduleSend(selectedCompany.notionId, optimal);
                           }}
-                          className="w-full px-4 py-2.5 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-left flex items-center gap-2"
+                          className="w-full px-4 py-2.5 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 active:bg-neutral-200 dark:active:bg-neutral-700 transition-colors text-left flex items-center gap-2"
                         >
                           ✨ Send at Optimal Time
                         </button>
@@ -1916,7 +1916,7 @@ function DashboardContent() {
                             const oneHourLater = new Date(Date.now() + 60 * 60 * 1000).toISOString();
                             handleScheduleSend(selectedCompany.notionId, oneHourLater);
                           }}
-                          className="w-full px-4 py-2.5 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-left flex items-center gap-2"
+                          className="w-full px-4 py-2.5 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 active:bg-neutral-200 dark:active:bg-neutral-700 transition-colors text-left flex items-center gap-2"
                         >
                           ⏱️  Schedule for 1 Hour Later
                         </button>
@@ -1927,7 +1927,7 @@ function DashboardContent() {
                             tomorrow.setHours(9, 30, 0, 0);
                             handleScheduleSend(selectedCompany.notionId, tomorrow.toISOString());
                           }}
-                          className="w-full px-4 py-2.5 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-left flex items-center gap-2"
+                          className="w-full px-4 py-2.5 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 active:bg-neutral-200 dark:active:bg-neutral-700 transition-colors text-left flex items-center gap-2"
                         >
                           🌅 Schedule for Tomorrow 9:30 AM
                         </button>
@@ -1942,7 +1942,7 @@ function DashboardContent() {
                       handleStatusUpdate(selectedCompany.notionId, 'Approved');
                       setSelectedCompanyId(null);
                     }}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2.5 px-6 rounded-full transition-all shadow-sm cursor-pointer active:scale-95"
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2.5 px-6 rounded-full transition-[background-color,transform] duration-150 shadow-sm cursor-pointer active:scale-95"
                   >
                     Approve Outreach Draft
                   </button>
@@ -1950,14 +1950,14 @@ function DashboardContent() {
 
 
                 {(selectedCompany.emailStatus === 'Sent' || selectedCompany.emailStatus === 'Replied' || selectedCompany.emailStatus === 'Interview' || selectedCompany.emailStatus === 'Offer') && (
-                  <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10.5px] font-bold py-2.5 px-5 rounded-full inline-flex items-center gap-1.5 shadow-sm transition-all select-none">
+                  <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10.5px] font-bold py-2.5 px-5 rounded-full inline-flex items-center gap-1.5 shadow-sm transition-colors select-none">
                     <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
                     📬 Sent
                   </span>
                 )}
 
                 {selectedCompany.emailStatus === 'Rejected' && (
-                  <span className="bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 text-[10.5px] font-bold py-2.5 px-5 rounded-full inline-flex items-center gap-1.5 shadow-sm transition-all select-none">
+                  <span className="bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 text-[10.5px] font-bold py-2.5 px-5 rounded-full inline-flex items-center gap-1.5 shadow-sm transition-colors select-none">
                     ❌ Lead Archived
                   </span>
                 )}
