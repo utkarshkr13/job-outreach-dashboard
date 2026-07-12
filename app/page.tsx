@@ -1013,12 +1013,12 @@ function DashboardContent() {
                   <div
                     key={company.notionId}
                     onClick={() => openReviewDrawer(company.notionId)}
-                    className={`group relative overflow-hidden bg-white/70 dark:bg-[#161617]/50 backdrop-blur-xl border border-neutral-200/50 dark:border-neutral-900/60 p-5 rounded-2xl transition-[transform,box-shadow,background-color,border-color] duration-300 active:scale-[0.995] hover:scale-[1.012] hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.03)] dark:hover:shadow-[0_8px_30px_rgba(0,0,0,0.22)] cursor-pointer flex flex-col md:flex-row md:items-center md:justify-between gap-4 ${
+                    className={`group relative overflow-hidden bg-white/70 dark:bg-[#161617]/50 backdrop-blur-xl border border-neutral-200/50 dark:border-neutral-900/60 p-5 rounded-2xl transition-[transform,box-shadow,background-color,border-color] duration-300 active:scale-[0.995] hover:scale-[1.012] hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.03)] dark:hover:shadow-[0_8px_30px_rgba(0,0,0,0.22)] cursor-pointer grid grid-cols-1 md:grid-cols-[minmax(0,1.7fr)_150px_100px_92px_170px] md:items-center gap-4 ${
                       isFocused ? 'ring-2 ring-blue-500/80 bg-blue-50/15 dark:bg-neutral-900/40' : ''
                     }`}
                   >
                     {/* Left: Avatar + Title Info */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 min-w-0">
                       <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-xs uppercase transition-colors shrink-0 border shadow-sm ${getCompanyAvatarColors(company.company)}`}>
                         {company.company.charAt(0)}
                       </div>
@@ -1054,30 +1054,27 @@ function DashboardContent() {
                       </div>
                     </div>
 
-                    {/* Middle: Recruiter Contact & Source */}
-                    <div className="flex items-center gap-6 md:ml-auto md:mr-10">
-                      <div className="space-y-0.5 hidden sm:block">
-                        <span className="text-[9px] uppercase font-bold text-neutral-400 dark:text-neutral-500 block tracking-wider">Recruiter</span>
-                        <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-250 block truncate w-36 leading-normal">
-                          {company.contactName || 'Direct / Form'}
-                        </span>
-                        <span className="text-[10px] text-neutral-455 dark:text-neutral-500 block leading-none font-medium truncate w-36">
-                          {company.contactTitle || 'Hiring Coordinator'}
-                        </span>
-                      </div>
-
-                      <div className="space-y-0.5">
-                        <span className="text-[9px] uppercase font-bold text-neutral-400 dark:text-neutral-500 block tracking-wider">Source</span>
-                        <span className="inline-block px-2.5 py-0.5 rounded-full bg-neutral-200/50 dark:bg-neutral-900 border border-neutral-250/20 dark:border-neutral-800 text-[10px] font-bold text-neutral-700 dark:text-neutral-300">
-                          {company.source || 'LinkedIn'}
-                        </span>
-                      </div>
-
+                    {/* Recruiter */}
+                    <div className="space-y-0.5 min-w-0">
+                      <span className="text-[9px] uppercase font-bold text-neutral-400 dark:text-neutral-500 block tracking-wider">Recruiter</span>
+                      <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-250 block truncate leading-normal">
+                        {company.contactName || 'Direct / Form'}
+                      </span>
+                      <span className="text-[10px] text-neutral-455 dark:text-neutral-500 block leading-none font-medium truncate">
+                        {company.contactTitle || 'Hiring Coordinator'}
+                      </span>
                     </div>
 
-                    {/* Right: Actions / Status */}
-                    <div className="flex items-center gap-3 justify-end self-stretch md:self-auto border-t md:border-t-0 pt-3 md:pt-0 border-neutral-100 dark:border-neutral-900/60 shrink-0">
-                      <div className="flex flex-col items-end w-24 shrink-0">
+                    {/* Source */}
+                    <div className="space-y-0.5 min-w-0">
+                      <span className="text-[9px] uppercase font-bold text-neutral-400 dark:text-neutral-500 block tracking-wider">Source</span>
+                      <span className="inline-block px-2.5 py-0.5 rounded-full bg-neutral-200/50 dark:bg-neutral-900 border border-neutral-250/20 dark:border-neutral-800 text-[10px] font-bold text-neutral-700 dark:text-neutral-300 truncate max-w-full">
+                        {company.source || 'LinkedIn'}
+                      </span>
+                    </div>
+
+                    {/* Status */}
+                    <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-self-end w-full md:w-auto border-t md:border-t-0 pt-3 md:pt-0 border-neutral-100 dark:border-neutral-900/60 shrink-0">
                         <span className={`text-[9.5px] font-bold px-2.5 py-1 rounded-full ${crmStage ? crmStage.colorClass : 'bg-neutral-100 text-neutral-500'} ${company.emailStatus === 'Redo' ? 'apple-glow-warning border' : ''} ${company.emailStatus === 'New' ? 'apple-glow-cyan-new border' : ''} ${company.emailStatus === 'Approved' ? 'apple-glow-approved-teal border' : ''} ${company.emailStatus === 'Replied' ? 'apple-pulse-green border' : ''} ${company.emailStatus === 'Interview' ? 'apple-glow-indigo border' : ''} ${company.emailStatus === 'Offer' ? 'apple-glow-lime-emerald border' : ''} ${company.emailStatus === 'Scheduled' ? 'apple-glow-cyan border' : ''}`}>
                           {company.emailStatus}
                         </span>
@@ -1086,9 +1083,10 @@ function DashboardContent() {
                             ⏳ {getScheduledCountdown(company.scheduledSendTime)}
                           </span>
                         )}
-                      </div>
+                    </div>
 
-                      <div className="flex items-center justify-end gap-2 w-[155px] shrink-0">
+                    {/* Actions */}
+                    <div className="flex items-center justify-end md:justify-self-end gap-2 w-full md:w-[170px] shrink-0">
                         {company.emailStatus === 'Approved' && (
                           <div className="relative inline-flex items-center" data-send-menu="true">
                             <button
@@ -1186,7 +1184,6 @@ function DashboardContent() {
                         >
                           Edit
                         </button>
-                      </div>
                     </div>
                   </div>
                 );
