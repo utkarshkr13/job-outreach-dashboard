@@ -111,7 +111,7 @@ export default function SentPage() {
           {(searchTerm || dateFilter) && (
             <button
               onClick={() => { setSearchTerm(''); setDateFilter(''); }}
-              className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200 px-3 py-2 rounded-xl border border-[#e8e8ed] dark:border-neutral-850 cursor-pointer shrink-0"
+              className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200 px-3 py-2 rounded-xl border border-[#e8e8ed] dark:border-neutral-850 cursor-pointer shrink-0 transition-colors active:scale-95"
             >
               Clear
             </button>
@@ -131,7 +131,7 @@ export default function SentPage() {
             <div
               key={c.notionId}
               onClick={() => setSelectedCompany(c)}
-              className="bg-white dark:bg-[#161617] border border-neutral-200 dark:border-neutral-900 rounded-3xl p-6 shadow-[0_4px_12px_rgba(0,0,0,0.012)] dark:shadow-none apple-spring flex justify-between items-start cursor-pointer hover:border-neutral-300 dark:hover:border-neutral-700 transition-all animate-fade-in"
+              className="bg-white dark:bg-[#161617] border border-neutral-200 dark:border-neutral-900 rounded-3xl p-6 shadow-[0_4px_12px_rgba(0,0,0,0.012)] dark:shadow-none apple-spring flex justify-between items-start cursor-pointer hover:border-neutral-300 dark:hover:border-neutral-700 transition-colors animate-fade-in"
             >
               <div className="space-y-2">
                 <div className="flex items-center gap-3">
@@ -163,7 +163,7 @@ export default function SentPage() {
                     setRecruiterReplyText('');
                     setSentimentAnalysis(null);
                   }}
-                  className="bg-white hover:bg-neutral-50 dark:bg-neutral-900 dark:hover:bg-neutral-850 border border-neutral-300 dark:border-neutral-800 text-neutral-700 dark:text-neutral-350 text-[10px] font-bold px-3.5 py-1.5 rounded-full shadow-sm active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
+                  className="bg-white hover:bg-neutral-50 dark:bg-neutral-900 dark:hover:bg-neutral-850 border border-neutral-300 dark:border-neutral-800 text-neutral-700 dark:text-neutral-350 text-[10px] font-bold px-3.5 py-1.5 rounded-full shadow-sm active:scale-95 transition-[background-color,border-color,transform] flex items-center gap-1 cursor-pointer"
                 >
                   💬 Write Reply
                 </button>
@@ -177,7 +177,7 @@ export default function SentPage() {
 
       {/* ──── APPLE SLIDE-OVER CRM PREVIEW DRAWER (Rendered OUTSIDE the animated div) ──── */}
       {selectedCompany && (
-        <div className="fixed inset-0 z-50 bg-black/30 dark:bg-black/60 backdrop-blur-sm transition-all duration-300 flex justify-end text-[#1d1d1f] dark:text-[#f5f5f7]">
+        <div className="fixed inset-0 z-50 bg-black/30 dark:bg-black/60 backdrop-blur-sm transition-colors duration-300 flex justify-end text-[#1d1d1f] dark:text-[#f5f5f7]">
           
           <div className="flex-1" onClick={() => setSelectedCompany(null)}></div>
 
@@ -200,7 +200,7 @@ export default function SentPage() {
               
               <button
                 onClick={() => setSelectedCompany(null)}
-                className="apple-modal-close text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-100 text-xs border border-neutral-250 dark:border-neutral-900 bg-white dark:bg-neutral-900/40 rounded-full w-7 h-7 flex items-center justify-center cursor-pointer transition-colors"
+                className="apple-modal-close text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-100 text-xs border border-neutral-250 dark:border-neutral-900 bg-white dark:bg-neutral-900/40 rounded-full w-7 h-7 flex items-center justify-center cursor-pointer transition-[color,transform] active:scale-90"
               >
                 ✕
               </button>
@@ -250,7 +250,7 @@ export default function SentPage() {
                           navigator.clipboard.writeText(`Subject: ${selectedCompany.emailSubject}\n\n${selectedCompany.emailDraft}`);
                           showCopyToast('Email copied to clipboard!');
                         }}
-                        className="text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 text-[9px] font-semibold bg-[#fafafa] dark:bg-neutral-900 border border-neutral-250 dark:border-neutral-800 px-2 py-0.5 rounded-full cursor-pointer transition-colors"
+                        className="text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 text-[9px] font-semibold bg-[#fafafa] dark:bg-neutral-900 border border-neutral-250 dark:border-neutral-800 px-2 py-0.5 rounded-full cursor-pointer transition-[color,transform] active:scale-95"
                       >
                         Copy Pitch
                       </button>
@@ -277,7 +277,7 @@ export default function SentPage() {
                 <button
                   onClick={handleSentimentAnalysis}
                   disabled={!recruiterReplyText || sentimentLoading}
-                  className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-full py-2 text-xs font-semibold transition-all disabled:opacity-40 cursor-pointer shadow-sm"
+                  className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-full py-2 text-xs font-semibold transition-[background-color,transform] active:scale-[0.98] disabled:opacity-40 cursor-pointer shadow-sm"
                 >
                   {sentimentLoading ? 'Analyzing reply…' : 'Classify Reply & Draft Response'}
                 </button>
@@ -291,7 +291,7 @@ export default function SentPage() {
                           navigator.clipboard.writeText(sentimentAnalysis.reply);
                           showCopyToast('Response copied to clipboard!');
                         }}
-                        className="bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-850 text-xs font-semibold px-3 py-1 rounded-full border border-neutral-250 dark:border-neutral-800 text-neutral-700 dark:text-white cursor-pointer transition-colors"
+                        className="bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-850 text-xs font-semibold px-3 py-1 rounded-full border border-neutral-250 dark:border-neutral-800 text-neutral-700 dark:text-white cursor-pointer transition-[background-color,transform] active:scale-95"
                       >
                         Copy Response
                       </button>
@@ -312,7 +312,7 @@ export default function SentPage() {
             <div className="border-t border-neutral-250 dark:border-neutral-900 p-6 bg-[#fafafa]/60 dark:bg-neutral-900/10 flex justify-end transition-colors">
               <button
                 onClick={() => setSelectedCompany(null)}
-                className="bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 border border-neutral-250 dark:border-neutral-800 text-neutral-700 dark:text-neutral-350 text-xs font-semibold py-2.5 px-6 rounded-full transition-all cursor-pointer animate-fade-in"
+                className="bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 border border-neutral-250 dark:border-neutral-800 text-neutral-700 dark:text-neutral-350 text-xs font-semibold py-2.5 px-6 rounded-full transition-[background-color,transform] active:scale-95 cursor-pointer animate-fade-in"
               >
                 Close Drawer
               </button>
@@ -324,7 +324,7 @@ export default function SentPage() {
 
       {/* Floating Toast Notification */}
       {copyStatus && (
-        <div className="apple-toast-overlay apple-toast-frosted fixed top-6 right-6 z-50 text-neutral-850 dark:text-neutral-200 text-xs font-semibold px-5 py-3.5 border border-neutral-250 dark:border-neutral-850 transition-all duration-300 max-w-sm animate-slide-in flex gap-3 items-start">
+        <div className="apple-toast-overlay apple-toast-frosted fixed top-6 right-6 z-50 text-neutral-850 dark:text-neutral-200 text-xs font-semibold px-5 py-3.5 border border-neutral-250 dark:border-neutral-850 transition-colors duration-300 max-w-sm animate-slide-in flex gap-3 items-start">
           <span className="text-sm">📋</span>
           <div className="flex-1">
             <p className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider">System Copy</p>
