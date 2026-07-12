@@ -13,7 +13,6 @@ const nextConfig: NextConfig = {
   // Firebase alone is ~700KB unoptimized; this cuts it dramatically.
   experimental: {
     optimizePackageImports: [
-      'firebase',
       'firebase-admin',
       '@notionhq/client',
       '@anthropic-ai/sdk',

@@ -25,9 +25,6 @@ interface AuthContextType {
   user: LocalUser | null;
   loading: boolean;
   onboardingComplete: boolean;
-  loginWithGoogle: () => Promise<void>;
-  loginWithApple: () => Promise<void>;
-  loginAsDemo: () => Promise<void>;
   logout: () => Promise<void>;
   refreshSessionStatus: () => Promise<void>;
 }
@@ -52,19 +49,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.location.href = '/password';
   };
 
-  const noop = async () => {};
-
   return (
     <AuthContext.Provider
       value={{
         user: LOCAL_USER,
         loading: false,
         onboardingComplete: true,
-        loginWithGoogle: noop,
-        loginWithApple: noop,
-        loginAsDemo: noop,
         logout,
-        refreshSessionStatus: noop,
+        refreshSessionStatus: async () => {},
       }}
     >
       {children}
