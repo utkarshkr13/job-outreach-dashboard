@@ -431,7 +431,7 @@ export default function SettingsPage() {
               <button
                 key={tab.id}
                 onClick={() => { setActiveSection(tab.id); setErrorMsg(null); setSuccessMsg(null); }}
-                className={`w-full px-4 py-3 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition-all cursor-pointer border ${
+                className={`w-full px-4 py-3 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition-colors active:scale-[0.98] cursor-pointer border ${
                   activeSection === tab.id
                     ? 'bg-neutral-100 text-[#1d1d1f] border-neutral-300/40 dark:bg-neutral-850 dark:text-white dark:border-neutral-800 shadow-sm'
                     : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-850 border-transparent'
@@ -536,7 +536,7 @@ export default function SettingsPage() {
                   <button
                     type="submit"
                     disabled={saveLoading}
-                    className="px-6 h-11 rounded-xl bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-750 dark:text-[#f5f5f7] border border-[#e8e8ed] dark:border-neutral-800 font-semibold text-sm hover:scale-102 transition-all cursor-pointer shadow-sm disabled:opacity-50"
+                    className="px-6 h-11 rounded-xl bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-750 dark:text-[#f5f5f7] border border-[#e8e8ed] dark:border-neutral-800 font-semibold text-sm hover:scale-[1.02] active:scale-[0.98] transition-[background-color,transform] cursor-pointer shadow-sm disabled:opacity-50"
                   >
                     {saveLoading ? 'Saving...' : 'Save Changes'}
                   </button>
@@ -573,7 +573,7 @@ export default function SettingsPage() {
                 <div className="flex justify-end pt-4 border-t border-neutral-100 dark:border-neutral-850">
                   <button
                     onClick={handleGmailReconnect}
-                    className="px-6 h-11 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-750 text-neutral-850 dark:text-neutral-200 font-semibold text-xs border border-neutral-200 dark:border-neutral-700 transition-all cursor-pointer"
+                    className="px-6 h-11 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-750 text-neutral-850 dark:text-neutral-200 font-semibold text-xs border border-neutral-200 dark:border-neutral-700 transition-[background-color,transform] active:scale-[0.98] cursor-pointer"
                   >
                     {gmailConnected ? 'Reconnect Gmail Inbox' : 'Link Gmail Account'}
                   </button>
@@ -618,7 +618,7 @@ export default function SettingsPage() {
                   <button
                     type="submit"
                     disabled={saveLoading}
-                    className="px-6 h-11 rounded-xl bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-750 dark:text-[#f5f5f7] border border-[#e8e8ed] dark:border-neutral-800 font-semibold text-sm hover:scale-102 transition-all cursor-pointer shadow-sm disabled:opacity-50"
+                    className="px-6 h-11 rounded-xl bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-750 dark:text-[#f5f5f7] border border-[#e8e8ed] dark:border-neutral-800 font-semibold text-sm hover:scale-[1.02] active:scale-[0.98] transition-[background-color,transform] cursor-pointer shadow-sm disabled:opacity-50"
                   >
                     {saveLoading ? 'Testing...' : 'Test & Save Notion Link'}
                   </button>
@@ -678,7 +678,7 @@ export default function SettingsPage() {
                   <button
                     type="submit"
                     disabled={saveLoading}
-                    className="px-6 h-11 rounded-xl bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-750 dark:text-[#f5f5f7] border border-[#e8e8ed] dark:border-neutral-800 font-semibold text-sm hover:scale-102 transition-all cursor-pointer shadow-sm disabled:opacity-50"
+                    className="px-6 h-11 rounded-xl bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-750 dark:text-[#f5f5f7] border border-[#e8e8ed] dark:border-neutral-800 font-semibold text-sm hover:scale-[1.02] active:scale-[0.98] transition-[background-color,transform] cursor-pointer shadow-sm disabled:opacity-50"
                   >
                     {saveLoading ? 'Saving...' : 'Save AI Configurations'}
                   </button>
@@ -732,7 +732,7 @@ export default function SettingsPage() {
                   />
                   <label
                     htmlFor="resume-file-upload-settings"
-                    className="px-6 h-11 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-750 text-neutral-850 dark:text-neutral-200 font-semibold text-xs border border-neutral-200 dark:border-neutral-700 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    className="px-6 h-11 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-750 text-neutral-850 dark:text-neutral-200 font-semibold text-xs border border-neutral-200 dark:border-neutral-700 transition-[background-color,transform] active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     {resume.loading ? 'Uploading...' : 'Upload/Replace PDF Resume'}
                   </label>
@@ -853,7 +853,7 @@ export default function SettingsPage() {
                   <button
                     type="submit"
                     disabled={saveLoading}
-                    className="px-6 h-11 rounded-xl bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-750 dark:text-[#f5f5f7] border border-[#e8e8ed] dark:border-neutral-800 font-semibold text-sm hover:scale-102 transition-all cursor-pointer shadow-sm disabled:opacity-50"
+                    className="px-6 h-11 rounded-xl bg-[#fafafa] hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-850 text-neutral-750 dark:text-[#f5f5f7] border border-[#e8e8ed] dark:border-neutral-800 font-semibold text-sm hover:scale-[1.02] active:scale-[0.98] transition-[background-color,transform] cursor-pointer shadow-sm disabled:opacity-50"
                   >
                     {saveLoading ? 'Saving...' : 'Save Security Settings'}
                   </button>
@@ -871,7 +871,7 @@ export default function SettingsPage() {
                     type="button"
                     onClick={triggerDbReset}
                     disabled={reseedLoading}
-                    className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-red-50 hover:bg-red-100 dark:bg-red-950/10 dark:hover:bg-red-950/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-950/40 cursor-pointer disabled:opacity-50"
+                    className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-red-50 hover:bg-red-100 dark:bg-red-950/10 dark:hover:bg-red-950/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-950/40 transition-[background-color,transform] active:scale-[0.98] cursor-pointer disabled:opacity-50"
                   >
                     {reseedLoading ? 'Resetting...' : 'Reset Leads Database'}
                   </button>
@@ -884,7 +884,7 @@ export default function SettingsPage() {
         </div>
       )}
       {successMsg && (
-        <div className="apple-toast-overlay apple-toast-frosted fixed top-6 right-6 z-50 text-neutral-850 dark:text-neutral-200 text-xs font-semibold px-5 py-3.5 border border-neutral-200 dark:border-neutral-800 transition-all duration-300 max-w-sm animate-slide-in flex gap-3 items-start">
+        <div className="apple-toast-overlay apple-toast-frosted fixed top-6 right-6 z-50 text-neutral-850 dark:text-neutral-200 text-xs font-semibold px-5 py-3.5 border border-neutral-200 dark:border-neutral-800 transition-colors duration-300 max-w-sm animate-slide-in flex gap-3 items-start">
           <span className="text-sm">✓</span>
           <div className="flex-1">
             <p className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider">System Confirmed</p>
